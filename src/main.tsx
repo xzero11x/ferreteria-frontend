@@ -1,9 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import FerreteriaProLanding from './pages/Home'
+import AppRouter from './router/AppRouter'
+import './global.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <FerreteriaProLanding />
+    <AppRouter />
   </StrictMode>,
 )
