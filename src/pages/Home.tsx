@@ -1,4 +1,4 @@
-import "../global.css";
+import "../home.css";
 import { Button } from "../components/button";
 import { CheckCircle, BarChart, Users, Zap } from "lucide-react";
 import { PricingPlans } from "../components/PricingPlans";
