@@ -1,14 +1,12 @@
-/* ====== Estilos globales ====== */
-body {
+/* ====== Estilos encapsulados para Ferretería Pro ====== */
+.ferreteria-pro {
   font-family: 'Segoe UI', Arial, sans-serif;
   color: #333;
-  margin: 0;
-  padding: 0;
   background-color: #f9fafb;
 }
 
 /* ====== Header ====== */
-header {
+.ferreteria-pro header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -17,31 +15,31 @@ header {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-header h1 {
+.ferreteria-pro header h1 {
   font-size: 1.5rem;
   font-weight: bold;
   color: #1d4ed8;
 }
 
-nav a {
+.ferreteria-pro nav a {
   text-decoration: none;
   color: #444;
   margin-left: 24px;
   transition: color 0.3s;
 }
 
-nav a:hover {
+.ferreteria-pro nav a:hover {
   color: #2563eb;
 }
 
 /* ====== Hero ====== */
-.hero {
+.ferreteria-pro .hero {
   text-align: center;
   padding: 40px 20px;
   background-color: #f9fafb;
 }
 
-.hero span {
+.ferreteria-pro .hero span {
   background-color: #dcfce7;
   color: #15803d;
   padding: 4px 12px;
@@ -50,13 +48,13 @@ nav a:hover {
   font-weight: 500;
 }
 
-.hero h2 {
-  font-size: 4rem;
+.ferreteria-pro .hero h2 {
+  font-size: 2.75rem;
   margin-top: 16px;
   color: #111827;
 }
 
-.hero p {
+.ferreteria-pro .hero p {
   max-width: 700px;
   margin: 16px auto;
   font-size: 1.125rem;
@@ -65,7 +63,7 @@ nav a:hover {
 }
 
 /* ====== Buttons ====== */
-button {
+.ferreteria-pro button {
   background-color: #2563eb;
   color: white;
   border: none;
@@ -76,121 +74,119 @@ button {
   transition: background 0.3s;
 }
 
-button:hover {
+.ferreteria-pro button:hover {
   background-color: #1e40af;
 }
 
-button.outline {
+.ferreteria-pro button.outline {
   background-color: transparent;
   border: 2px solid #2563eb;
   color: #2563eb;
 }
 
-button.outline:hover {
+.ferreteria-pro button.outline:hover {
   background-color: #2563eb;
   color: white;
 }
 
-button.ghost {
+.ferreteria-pro button.ghost {
   background-color: transparent;
   color: #444;
   border: none;
 }
 
 /* ====== Features ====== */
-.features {
+.ferreteria-pro .features {
   background: white;
   padding: 50px 32px;
   text-align: center;
 }
 
-.features h3 {
+.ferreteria-pro .features h3 {
   font-size: 1.875rem;
   margin-bottom: 48px;
 }
 
-.features-grid {
+.ferreteria-pro .features-grid {
   display: grid;
   gap: 32px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
 }
 
-.features-grid div h4 {
+.ferreteria-pro .features-grid div h4 {
   margin-top: 16px;
   font-weight: 600;
 }
 
 /* ====== Pricing ====== */
-.pricing {
+.ferreteria-pro .pricing {
   padding: 80px 32px;
   background-color: white;
   text-align: center;
 }
 
-.pricing h3 {
+.ferreteria-pro .pricing h3 {
   font-size: 1.875rem;
   margin-bottom: 48px;
 }
 
-
-
-.plan {
+.ferreteria-pro .plan {
   border: 1px solid #ddd;
   border-radius: 16px;
   padding: 32px;
   transition: box-shadow 0.3s;
 }
 
-.plan:hover {
+.ferreteria-pro .plan:hover {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.plan h4 {
+.ferreteria-pro .plan h4 {
   font-size: 1.25rem;
   margin-bottom: 8px;
 }
 
-.plan p {
+.ferreteria-pro .plan p {
   color: #555;
 }
 
 /* ====== CTA ====== */
-.cta {
+.ferreteria-pro .cta {
   background-color: #1d4ed8;
   color: white;
   text-align: center;
   padding: 80px 32px;
 }
 
-.cta h3 {
+.ferreteria-pro .cta h3 {
   font-size: 1.875rem;
   margin-bottom: 16px;
 }
 
 /* ====== Footer ====== */
-footer {
+.ferreteria-pro footer {
   background-color: #111827;
   color: #9ca3af;
   padding: 64px 32px;
 }
 
-footer h4 {
+.ferreteria-pro footer h4 {
   color: white;
   font-weight: 600;
   margin-bottom: 8px;
 }
 
-footer ul {
+.ferreteria-pro footer ul {
   list-style: none;
   padding: 0;
 }
 
-footer li {
+.ferreteria-pro footer li {
   font-size: 0.875rem;
   margin-bottom: 4px;
 }
 
-footer .footer-bottom {
+.ferreteria-pro footer .footer-bottom {
   text-align: center;
   border-top: 1px solid #374151;
   margin-top: 32px;

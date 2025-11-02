@@ -1,11 +1,13 @@
-import "../home.css";
+
 import { Button } from "../components/button";
 import { CheckCircle, BarChart, Users, Zap } from "lucide-react";
 import { PricingPlans } from "../components/PricingPlans";
 
+import "../home.css";
+
 const FerreteriaProLanding: React.FC = () => {
   return (
-    <div>
+    <div className="ferreteria-pro">
       {/* Header */}
       <header>
         <h1>Ferretería Pro</h1>

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar"
 
 import data from "./data.json"
+import "@/global.css"
 
 export default function Page() {
   return (

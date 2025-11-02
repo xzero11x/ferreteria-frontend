@@ -1,6 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "../pages/Home";
-import Page from "@/app/dashboard/Page";
+import Page from "@/app/dashboard/page";
+
+
+
 
 const AppRouter: React.FC = () => {
   return (

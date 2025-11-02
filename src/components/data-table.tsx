@@ -23,9 +23,9 @@ import type {
   ColumnFiltersState,
   Row,
   SortingState,
-  VisibilityState,}
-  from "@tanstack/react-table"
+  VisibilityState} from "@tanstack/react-table"
 import {
+  
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -37,6 +37,7 @@ import {
 } from "@tanstack/react-table"
 import {
   CheckCircle2Icon,
+  CheckCircleIcon,
   ChevronDownIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -56,16 +57,14 @@ import { z } from "zod"
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import type{
+  ChartConfig
+} from "@/components/ui/chart"
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-
-import type{
-  ChartConfig,
-} from "@/components/ui/chart"
-
 import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
