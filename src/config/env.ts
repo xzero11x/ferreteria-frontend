@@ -1,25 +1,34 @@
-// Centraliza lectura de variables de entorno para Vite
-export const API_BASE_ORIGIN: string = (import.meta.env.VITE_API_BASE_ORIGIN as string) || "http://localhost:3001";
-export const TENANT_SUBDOMAIN: string = (import.meta.env.VITE_TENANT_SUBDOMAIN as string) || "central";
-export const TOKEN_KEY: string = (import.meta.env.VITE_TOKEN_STORAGE_KEY as string) || "ferreteria_token";
+// 1. Define la URL base de la API (sin subdominio)
+const API_BASE_ORIGIN =
+  import.meta.env.VITE_API_BASE_ORIGIN || "http://localhost:3001";
 
-/**
- * Construye la base de la API con subdominio para multi-tenant
- * Ej: http://central.localhost:3001
- */
-export function buildTenantApiBase(): string {
+// 2. Función para OBTENER el subdominio actual del navegador
+function getSubdomain() {
+  const parts = window.location.hostname.split(".");
+  // Si estamos en "central.localhost" (3 partes), devuelve "central"
+  if (parts.length >= 3 && parts[0] !== "www") {
+    return parts[0];
+  }
+  return null;
+}
+
+// 3. Construye la URL de la API dinámicamente
+export function getApiBaseUrl(): string {
+  const subdomain = getSubdomain();
+
+  // Si NO hay subdominio (estamos en la landing 'localhost'),
+  // devuelve la URL base (para el registro)
+  if (!subdomain) {
+    return API_BASE_ORIGIN;
+  }
+
+  // Si SÍ hay subdominio, lo añade a la URL
   try {
     const url = new URL(API_BASE_ORIGIN);
-    const protocol = url.protocol; // ej: "http:"
-    const host = url.host; // ej: "localhost:3001"
-    const [hostname, port] = host.split(":");
-    const isLocal = hostname === "localhost" || hostname === "127.0.0.1";
-    const tenantHost = isLocal
-      ? `${TENANT_SUBDOMAIN}.${hostname}${port ? `:${port}` : ""}`
-      : `${TENANT_SUBDOMAIN}.${host}`;
-    return `${protocol}//${tenantHost}`;
-  } catch {
-    // Fallback seguro para desarrollo
-    return `http://${TENANT_SUBDOMAIN}.localhost:3001`;
+    url.host = `${subdomain}.${url.host}`; // Ej: "central.localhost:3001"
+    return url.toString().slice(0, -1); // Quita el "/" final
+  } catch (error) {
+    console.error("Error constructing API URL", error);
+    return API_BASE_ORIGIN;
   }
 }
