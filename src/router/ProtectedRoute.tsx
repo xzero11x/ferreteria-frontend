@@ -1,13 +1,9 @@
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { getToken } from "@/auth/token";
+import { Outlet } from "react-router-dom";
 
-export default function ProtectedRoute() {
-  const token = getToken();
-  const location = useLocation();
-
-  if (!token) {
-    return <Navigate to="/" state={{ from: location }} replace />;
-  }
-
+// Ruta protegida (stub): actualmente permite el acceso y renderiza las rutas hijas.
+// Cuando se implemente autenticación, reemplazar por validación de token y redirección.
+const ProtectedRoute = () => {
   return <Outlet />;
-}
+};
+
+export default ProtectedRoute;

@@ -30,10 +30,11 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { IconBox, IconPackages, IconReportAnalytics, IconSettingsCog, IconShoppingCart } from "@tabler/icons-react"
 
 const data = {
   user: {
-    name: "shadcn",
+    name: "Ferreteria Admin",
     email: "m@example.com",
     avatar: "/avatars/shadcn.jpg",
   },
@@ -44,24 +45,39 @@ const data = {
       icon: LayoutDashboardIcon,
     },
     {
-      title: "Lifecycle",
+      title: "Productos",
       url: "#",
-      icon: ListIcon,
+      icon: IconBox,
     },
     {
-      title: "Analytics",
+      title: "Categorías",
       url: "#",
       icon: BarChartIcon,
     },
     {
-      title: "Projects",
+      title: "Inventario",
       url: "#",
       icon: FolderIcon,
     },
     {
-      title: "Team",
+      title: "Ventas",
       url: "#",
-      icon: UsersIcon,
+      icon: IconShoppingCart,
+    },
+    {
+      title: "Compras",
+      url: "#",
+      icon: IconPackages,
+    },
+    {
+      title: "Reportes",
+      url: "#",
+      icon: IconReportAnalytics,
+    },
+    {
+      title: "Configuración",
+      url: "#",
+      icon: IconSettingsCog,
     },
   ],
   navClouds: [
@@ -119,11 +135,6 @@ const data = {
       icon: SettingsIcon,
     },
     {
-      title: "Get Help",
-      url: "#",
-      icon: HelpCircleIcon,
-    },
-    {
       title: "Search",
       url: "#",
       icon: SearchIcon,
@@ -160,7 +171,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <a href="#">
                 <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Acme Inc.</span>
+                <span className="text-base font-semibold">Ferreteria Pro.</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -168,7 +179,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavDocuments items={data.documents} />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

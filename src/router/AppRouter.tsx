@@ -16,6 +16,7 @@ import ComprasPage from "@/pages/compras/index";
 import VentasPage from "@/pages/ventas/index";
 import ReportesPage from "@/pages/reportes/index";
 import ConfiguracionPage from "@/pages/configuracion/index";
+import Page from "@/app/dashboard/Page";
 
 const AppRouter: React.FC = () => {
   return (
@@ -27,10 +28,9 @@ const AppRouter: React.FC = () => {
         <Route path="/register" element={<RegisterPage />} />
         
         {/* Rutas protegidas del dashboard */}
-        <Route path="/dashboard" element={<ProtectedRoute />}>
-          <Route path="" element={<DashboardShell />}>
+       
             {/* Dashboard principal */}
-            <Route index element={<Dashboard />} />
+            <Route index element={<Page />} />
             
             {/* Páginas principales de cada módulo */}
             <Route path="productos" element={<ProductosPage />} />
@@ -40,8 +40,7 @@ const AppRouter: React.FC = () => {
             <Route path="ventas" element={<VentasPage />} />
             <Route path="reportes" element={<ReportesPage />} />
             <Route path="configuracion" element={<ConfiguracionPage />} />
-          </Route>
-        </Route>
+        
       </Routes>
     </BrowserRouter>
   );
