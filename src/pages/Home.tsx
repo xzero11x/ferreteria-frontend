@@ -16,7 +16,7 @@ const FerreteriaProLanding: React.FC = () => {
           <a href="#pricing">Precios</a>
           <a href="#docs">Docs</a>
         </nav>
-        <div>
+        <div className="header-actions">
           <Button variant="ghost">Ingresar</Button>
           <Button>Comenzar gratis</Button>
         </div>
@@ -29,7 +29,7 @@ const FerreteriaProLanding: React.FC = () => {
         <p>
          Gestión de inventario en tiempo real. Controla inventario, ventas y clientes desde una plataforma única.
         </p>
-        <div>
+        <div className="header-actions">
           <Button>Comenzar ahora</Button>
           <Button variant="outline">Ver demo</Button>
         </div>
