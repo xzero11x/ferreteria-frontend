@@ -22,6 +22,7 @@ import ConfiguracionPage from "@/pages/configuracion/index";
 import ClientesPage from "@/pages/clientes/index";
 import ProveedoresPage from "@/pages/proveedores/index";
 import PedidosPage from "@/pages/pedidos/index";
+import UsuariosPage from "@/pages/usuarios/index";
 
 const AppRouter: React.FC = () => {
 
@@ -44,6 +45,8 @@ const AppRouter: React.FC = () => {
                         <Route path="categorias" element={<CategoriasPage />} />
 
                         <Route path="inventario" element={<InventarioPage />} />
+
+                        <Route path="usuarios" element={<UsuariosPage />} />
 
                         <Route path="clientes" element={<ClientesPage />} />
 

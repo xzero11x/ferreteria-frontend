@@ -9,9 +9,7 @@ import {
   FileCodeIcon,
   FileIcon,
   FileTextIcon,
-  HelpCircleIcon,
   LayoutDashboardIcon,
-  ListIcon,
   SearchIcon,
   SettingsIcon,
   UsersIcon,
@@ -21,9 +19,9 @@ import {
   TruckIcon,
   ShoppingCartIcon,
   ShoppingBagIcon,
+  UserCog as UserCogIcon,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
@@ -66,6 +64,11 @@ const data = {
       title: "Inventario",
       url: "/dashboard/inventario",
       icon: BoxesIcon,
+    },
+    {
+      title: "Usuarios",
+      url: "/dashboard/usuarios",
+      icon: UserCogIcon,
     },
     {
       title: "Clientes",
