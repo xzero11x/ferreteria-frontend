@@ -1,3 +1,4 @@
+// Componente de navegación secundaria del sidebar
 "use client"
 
 import * as React from "react"

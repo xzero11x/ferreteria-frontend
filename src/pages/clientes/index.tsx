@@ -1,3 +1,4 @@
+// Página de gestión de clientes con CRUD completo
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Pencil, Plus, RefreshCcw, Trash2 } from "lucide-react";

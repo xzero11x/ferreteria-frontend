@@ -1,3 +1,4 @@
+// Componente de tabla de datos con soporte para drag and drop
 import * as React from "react"
 import {
   DndContext,

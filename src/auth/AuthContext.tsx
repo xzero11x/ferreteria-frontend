@@ -1,3 +1,4 @@
+// Contexto de autenticación para gestionar el estado del usuario
 import { createContext, useContext, useEffect, useState } from "react";
 import { getStoredUser, setStoredUser, type AuthUser } from "./user";
 

@@ -1,3 +1,4 @@
+// Gestión de datos del usuario autenticado en localStorage
 import { USER_KEY } from "../config/env";
 
 export type AuthUser = {

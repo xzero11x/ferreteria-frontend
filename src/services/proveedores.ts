@@ -1,3 +1,4 @@
+// Servicio de API para gestión de proveedores
 import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";
 

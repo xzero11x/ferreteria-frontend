@@ -1,3 +1,4 @@
+// Definición centralizada de rutas de la API
 export const endpoints = {
   auth: {
     register: () => "/api/auth/register",

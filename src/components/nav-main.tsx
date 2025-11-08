@@ -1,3 +1,4 @@
+// Componente de navegación principal del sidebar
 import { MailIcon, PlusCircleIcon, type LucideIcon } from "lucide-react"
 import { Link } from "react-router-dom"
 

@@ -1,3 +1,4 @@
+// Página de registro de nuevo tenant
 import { useState } from "react";
 import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";

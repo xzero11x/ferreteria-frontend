@@ -1,3 +1,4 @@
+// Componente de ruta protegida que requiere autenticación
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { getToken } from "@/auth/token";
 

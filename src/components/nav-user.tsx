@@ -1,3 +1,4 @@
+// Componente de perfil de usuario con menú desplegable
 import {
   BellIcon,
   CreditCardIcon,
