@@ -1,3 +1,4 @@
+// Cliente HTTP con autenticación automática para llamadas a la API
 import { buildTenantApiBase } from "@/config/env";
 import { getToken } from "@/auth/token";
 

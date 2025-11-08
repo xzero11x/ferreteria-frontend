@@ -1,3 +1,4 @@
+// Página de gestión de categorías con CRUD completo
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Pencil, Plus, RefreshCcw, Trash2 } from "lucide-react";

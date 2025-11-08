@@ -1,3 +1,4 @@
+// Sidebar de navegación principal con menú de módulos
 import * as React from "react"
 import {
   ArrowUpCircleIcon,

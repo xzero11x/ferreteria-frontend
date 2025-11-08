@@ -1,3 +1,4 @@
+// Configuración de rutas de la aplicación con protección de autenticación
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "../pages/Home";

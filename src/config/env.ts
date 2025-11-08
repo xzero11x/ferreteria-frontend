@@ -1,3 +1,4 @@
+// Configuración de entorno y construcción de URLs multi-tenant
 // 1. Define la URL base de la API (sin subdominio)
 const API_BASE_ORIGIN =
   import.meta.env.VITE_API_BASE_ORIGIN || "http://localhost:3001";
