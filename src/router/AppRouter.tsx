@@ -30,7 +30,7 @@ const AppRouter: React.FC = () => {
         {/* Rutas protegidas del dashboard */}
        
             {/* Dashboard principal */}
-            <Route index element={<Page />} />
+            <Route index element={<Home />} />
             
             {/* Páginas principales de cada módulo */}
             <Route path="productos" element={<ProductosPage />} />
