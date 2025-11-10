@@ -39,5 +39,18 @@ export const endpoints = {
     update: (id: number | string) => `/api/usuarios/${id}`,
     deactivate: (id: number | string) => `/api/usuarios/${id}/desactivar`,
   },
+  inventario: {
+    ajustes: {
+      list: () => "/api/inventario/ajustes",
+      create: () => "/api/inventario/ajustes",
+    },
+  },
+  ventas: {
+    list: () => "/api/ventas",
+    create: () => "/api/ventas",
+  },
+  reportes: {
+    kardex: (productoId: number | string) => `/api/reportes/kardex/${productoId}`,
+  },
   healthcheck: () => "/api/healthcheck",
 };
