@@ -1,3 +1,4 @@
+// Componente de tarjetas de sección con indicadores de tendencia
 import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"

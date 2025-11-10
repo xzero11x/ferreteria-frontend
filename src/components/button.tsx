@@ -1,3 +1,4 @@
+// Componente de botón personalizado
 import * as React from "react";
 import { cn } from "../lib/utils";
 

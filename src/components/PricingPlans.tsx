@@ -1,3 +1,4 @@
+// Componente de planes de precios para la landing page
 import React from "react";
 import "./PricingPlans.css";
 

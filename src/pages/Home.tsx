@@ -1,4 +1,4 @@
-
+// Página de inicio con landing y planes de pricing
 import { Button } from "../components/button";
 import { CheckCircle, BarChart, Users, Zap } from "lucide-react";
 import { PricingPlans } from "../components/PricingPlans";

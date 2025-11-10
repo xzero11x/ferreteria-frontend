@@ -1,3 +1,4 @@
+// Componente de gráfico de área interactivo
 "use client"
 
 import * as React from "react"

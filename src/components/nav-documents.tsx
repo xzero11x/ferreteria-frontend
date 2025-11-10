@@ -1,3 +1,4 @@
+// Componente de navegación de documentos en el sidebar
 "use client"
 
 import {
