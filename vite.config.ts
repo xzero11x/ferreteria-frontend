@@ -17,12 +17,5 @@ export default defineConfig({
     port: 5173,
     host: true, // Permite acceso desde cualquier IP
     cors: true,
-    proxy: {
-      '/api': {
-        target: 'http://central.localhost:3001',
-        changeOrigin: true,
-        secure: false,
-      }
-    }
   }
 })

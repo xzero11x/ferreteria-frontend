@@ -201,3 +201,10 @@
   padding-top: 16px;
   font-size: 0.875rem;
 }
+.header-actions{
+
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+}

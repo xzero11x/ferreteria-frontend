@@ -1,3 +1,4 @@
+// Layout principal del dashboard con sidebar y header
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {

@@ -1,26 +1,32 @@
+// Sidebar de navegación principal con menú de módulos
 import * as React from "react"
 import {
   ArrowUpCircleIcon,
   BarChartIcon,
   CameraIcon,
   ClipboardListIcon,
+  ClipboardCheckIcon,
   DatabaseIcon,
   FileCodeIcon,
   FileIcon,
   FileTextIcon,
-  FolderIcon,
-  HelpCircleIcon,
   LayoutDashboardIcon,
-  ListIcon,
   SearchIcon,
   SettingsIcon,
   UsersIcon,
+  BoxIcon,
+  BoxesIcon,
+  TagsIcon,
+  TruckIcon,
+  ShoppingCartIcon,
+  ShoppingBagIcon,
+  UserCog as UserCogIcon,
 } from "lucide-react"
 
-import { NavDocuments } from "@/components/nav-documents"
 import { NavMain } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { Link } from "react-router-dom"
 import {
   Sidebar,
   SidebarContent,
@@ -30,7 +36,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { IconBox, IconPackages, IconReportAnalytics, IconSettingsCog, IconShoppingCart } from "@tabler/icons-react"
+// Eliminamos íconos de Tabler para mantener estética coherente con Lucide
+import { useAuth } from "@/auth/AuthContext"
 
 const data = {
   user: {
@@ -41,43 +48,63 @@ const data = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: LayoutDashboardIcon,
     },
     {
       title: "Productos",
-      url: "#",
-      icon: IconBox,
+      url: "/dashboard/productos",
+      icon: BoxIcon,
     },
     {
       title: "Categorías",
-      url: "#",
-      icon: BarChartIcon,
+      url: "/dashboard/categorias",
+      icon: TagsIcon,
     },
     {
       title: "Inventario",
-      url: "#",
-      icon: FolderIcon,
+      url: "/dashboard/inventario",
+      icon: BoxesIcon,
+    },
+    {
+      title: "Usuarios",
+      url: "/dashboard/usuarios",
+      icon: UserCogIcon,
+    },
+    {
+      title: "Clientes",
+      url: "/dashboard/clientes",
+      icon: UsersIcon,
+    },
+    {
+      title: "Proveedores",
+      url: "/dashboard/proveedores",
+      icon: TruckIcon,
+    },
+    {
+      title: "Pedidos",
+      url: "/dashboard/pedidos",
+      icon: ClipboardCheckIcon,
     },
     {
       title: "Ventas",
-      url: "#",
-      icon: IconShoppingCart,
+      url: "/dashboard/ventas",
+      icon: ShoppingCartIcon,
     },
     {
       title: "Compras",
-      url: "#",
-      icon: IconPackages,
+      url: "/dashboard/compras",
+      icon: ShoppingBagIcon,
     },
     {
       title: "Reportes",
-      url: "#",
-      icon: IconReportAnalytics,
+      url: "/dashboard/reportes",
+      icon: BarChartIcon,
     },
     {
       title: "Configuración",
-      url: "#",
-      icon: IconSettingsCog,
+      url: "/dashboard/configuracion",
+      icon: SettingsIcon,
     },
   ],
   navClouds: [
@@ -131,12 +158,12 @@ const data = {
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/dashboard/configuracion",
       icon: SettingsIcon,
     },
     {
       title: "Search",
-      url: "#",
+      url: "/dashboard",
       icon: SearchIcon,
     },
   ],
@@ -160,6 +187,13 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useAuth();
+  const displayUser = {
+    name:
+      user?.name || (user?.email ? user.email.split("@")[0] : undefined) || data.user.name,
+    email: user?.email || data.user.email,
+    avatar: user?.avatar || data.user.avatar,
+  };
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -169,10 +203,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="#">
+              <Link to="/dashboard">
                 <ArrowUpCircleIcon className="h-5 w-5" />
                 <span className="text-base font-semibold">Ferreteria Pro.</span>
-              </a>
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -182,7 +216,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={displayUser} />
       </SidebarFooter>
     </Sidebar>
   )

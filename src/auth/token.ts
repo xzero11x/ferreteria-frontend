@@ -1,3 +1,4 @@
+// Utilidades para gestionar el token JWT en localStorage
 import { TOKEN_KEY } from "@/config/env";
 
 export function getToken(): string | null {
