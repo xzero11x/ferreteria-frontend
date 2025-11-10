@@ -1,12 +1,21 @@
 // Página de gestión de ajustes de inventario
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Package, Plus } from "lucide-react";
+import { Loader2, Package, Plus, RefreshCcw, History } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Table,
+	TableBody,
+	TableCell,
+	TableHead,
+	TableHeader,
+	TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
 	Select,
 	SelectContent,
@@ -14,8 +23,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import type { AjusteCreateInput } from "@/services/inventario";
-import { createAjuste } from "@/services/inventario";
+import type { AjusteCreateInput, Ajuste } from "@/services/inventario";
+import { createAjuste, listAjustes } from "@/services/inventario";
 import type { Producto } from "@/services/productos";
 import { listProductos } from "@/services/productos";
 
@@ -35,7 +44,9 @@ const initialFormState: AjusteFormState = {
 
 const InventarioPage = () => {
 	const [productos, setProductos] = useState<Producto[]>([]);
+	const [ajustes, setAjustes] = useState<Ajuste[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [loadingAjustes, setLoadingAjustes] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [form, setForm] = useState<AjusteFormState>(initialFormState);
 
@@ -52,9 +63,24 @@ const InventarioPage = () => {
 		}
 	}, []);
 
+	const fetchAjustes = useCallback(async () => {
+		setLoadingAjustes(true);
+		try {
+			const data = await listAjustes();
+			// Ordenar por fecha descendente (más recientes primero)
+			setAjustes(data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+		} catch (err: any) {
+			const message = err?.body?.message || err?.message || "No se pudieron cargar los ajustes";
+			toast.error(message);
+		} finally {
+			setLoadingAjustes(false);
+		}
+	}, []);
+
 	useEffect(() => {
 		void fetchProductos();
-	}, [fetchProductos]);
+		void fetchAjustes();
+	}, [fetchProductos, fetchAjustes]);
 
 	function resetForm() {
 		setForm(initialFormState);
@@ -110,6 +136,9 @@ const InventarioPage = () => {
 
 			toast.success(`Ajuste de ${payload.tipo} registrado correctamente`);
 			resetForm();
+			
+			// Recargar el historial de ajustes
+			await fetchAjustes();
 		} catch (err: any) {
 			const message = err?.message || err?.body?.message || "Error al registrar el ajuste";
 			toast.error(message);
@@ -234,21 +263,96 @@ const InventarioPage = () => {
 				</CardContent>
 			</Card>
 
-			{/* Card informativo */}
+			{/* Historial de Ajustes */}
 			<Card>
 				<CardHeader>
-					<CardTitle className="text-base font-semibold">💡 ¿Cómo usar los ajustes?</CardTitle>
+					<div className="flex items-center justify-between">
+						<CardTitle className="text-lg font-semibold flex items-center gap-2">
+							<History className="size-5" />
+							Historial de Ajustes
+						</CardTitle>
+						<Button
+							type="button"
+							size="sm"
+							variant="outline"
+							onClick={() => void fetchAjustes()}
+							disabled={loadingAjustes}
+						>
+							<RefreshCcw className={`size-4 mr-2 ${loadingAjustes ? "animate-spin" : ""}`} />
+							Actualizar
+						</Button>
+					</div>
 				</CardHeader>
-				<CardContent className="text-sm text-muted-foreground space-y-2">
-					<p>
-						<strong>Entrada (Sumar):</strong> Utiliza este tipo cuando encuentres productos que no estaban contabilizados o necesites corregir un conteo inicial hacia arriba.
-					</p>
-					<p>
-						<strong>Salida (Restar):</strong> Utiliza este tipo cuando encuentres productos dañados, perdidos o necesites corregir un conteo hacia abajo.
-					</p>
-					<p className="pt-2 border-t">
-						<strong>Nota:</strong> Todos los ajustes quedan registrados en el sistema y pueden ser auditados desde el reporte de Kardex.
-					</p>
+				<CardContent>
+					{loadingAjustes ? (
+						<div className="flex items-center justify-center py-8">
+							<Loader2 className="size-6 animate-spin text-muted-foreground" />
+						</div>
+					) : ajustes.length === 0 ? (
+						<div className="text-center py-8 text-muted-foreground">
+							<History className="size-12 mx-auto mb-2 opacity-50" />
+							<p>No hay ajustes registrados</p>
+							<p className="text-sm">Los ajustes que registres aparecerán aquí</p>
+						</div>
+					) : (
+						<div className="overflow-x-auto">
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Fecha</TableHead>
+										<TableHead>Producto</TableHead>
+										<TableHead>Tipo</TableHead>
+										<TableHead className="text-right">Cantidad</TableHead>
+										<TableHead>Motivo</TableHead>
+										<TableHead>Usuario</TableHead>
+									</TableRow>
+								</TableHeader>
+								<TableBody>
+									{ajustes.map((ajuste) => (
+										<TableRow key={ajuste.id}>
+											<TableCell className="text-sm">
+												{new Date(ajuste.fecha).toLocaleString("es-PE", {
+													year: "numeric",
+													month: "2-digit",
+													day: "2-digit",
+													hour: "2-digit",
+													minute: "2-digit",
+												})}
+											</TableCell>
+											<TableCell>
+												<div>
+													<div className="font-medium">
+														{ajuste.producto?.nombre || "Producto desconocido"}
+													</div>
+													{ajuste.producto?.sku && (
+														<div className="text-xs text-muted-foreground">
+															SKU: {ajuste.producto.sku}
+														</div>
+													)}
+												</div>
+											</TableCell>
+											<TableCell>
+												<Badge 
+													variant={ajuste.tipo === "entrada" ? "default" : "destructive"}
+												>
+													{ajuste.tipo === "entrada" ? "Entrada" : "Salida"}
+												</Badge>
+											</TableCell>
+											<TableCell className="text-right font-medium">
+												{ajuste.tipo === "entrada" ? "+" : "-"}{ajuste.cantidad}
+											</TableCell>
+											<TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+												{ajuste.motivo || "—"}
+											</TableCell>
+											<TableCell className="text-sm">
+												{ajuste.usuario?.nombre || ajuste.usuario?.email || "Usuario desconocido"}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						</div>
+					)}
 				</CardContent>
 			</Card>
 		</div>

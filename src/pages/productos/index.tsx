@@ -31,7 +31,6 @@ type ProductoFormState = {
 	descripcion: string;
 	precio_venta: string;
 	costo_compra: string;
-	stock: string;
 	stock_minimo: string;
 	categoria_id: string;
 };
@@ -42,7 +41,6 @@ const initialFormState: ProductoFormState = {
 	descripcion: "",
 	precio_venta: "",
 	costo_compra: "",
-	stock: "0",
 	stock_minimo: "",
 	categoria_id: "",
 };
@@ -120,7 +118,6 @@ const ProductosPage = () => {
 			descripcion: producto.descripcion ?? "",
 			precio_venta: producto.precio_venta ?? "",
 			costo_compra: producto.costo_compra ?? "",
-			stock: String(producto.stock ?? 0),
 			stock_minimo: producto.stock_minimo !== null ? String(producto.stock_minimo) : "",
 			categoria_id: producto.categoria_id !== null ? String(producto.categoria_id) : "",
 		});
@@ -138,15 +135,10 @@ const ProductosPage = () => {
 			throw new Error("El precio de venta debe ser un número mayor a 0");
 		}
 
-		const stock = Number.parseInt(form.stock, 10);
-		if (Number.isNaN(stock) || stock < 0) {
-			throw new Error("El stock debe ser un entero mayor o igual a 0");
-		}
-
 		const payload: ProductoCreateInput = {
 			nombre,
 			precio_venta: precio,
-			stock,
+			stock: 0, // Stock inicial en 0, se maneja desde Ajustes de Inventario
 		};
 
 		const sku = form.sku.trim();
@@ -305,19 +297,6 @@ const ProductosPage = () => {
 									setForm((prev) => ({ ...prev, costo_compra: event.target.value }))
 								}
 								placeholder="Opcional"
-								disabled={saving}
-							/>
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="stock">Stock</Label>
-							<Input
-								id="stock"
-								type="number"
-								min="0"
-								step="1"
-								value={form.stock}
-								onChange={(event) => setForm((prev) => ({ ...prev, stock: event.target.value }))}
-								required
 								disabled={saving}
 							/>
 						</div>
