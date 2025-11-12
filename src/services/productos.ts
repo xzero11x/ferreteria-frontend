@@ -34,6 +34,13 @@ export async function listProductos() {
   return http.get<Producto[]>(endpoints.productos.list());
 }
 
+// Búsqueda asíncrona de productos por término (nombre, SKU, código).
+// Si el backend no soporta el parámetro `search`, retornará la lista completa; el componente puede filtrar localmente.
+export async function searchProductos(searchTerm: string) {
+  const url = `${endpoints.productos.list()}?search=${encodeURIComponent(searchTerm)}`;
+  return http.get<Producto[]>(url);
+}
+
 export async function createProducto(data: ProductoCreateInput) {
   return http.post<Producto>(endpoints.productos.create(), data);
 }

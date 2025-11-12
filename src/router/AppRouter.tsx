@@ -17,7 +17,7 @@ import ProductosPage from "@/pages/productos/index";
 import CategoriasPage from "@/pages/categorias/index";
 import InventarioPage from "@/pages/inventario/index";
 import ComprasPage from "@/pages/compras/index";
-import VentasPage from "@/pages/ventas/index";
+import POSPage from "@/pages/ventas/POS";
 import ReportesPage from "@/pages/reportes/index";
 import ConfiguracionPage from "@/pages/configuracion/index";
 import ClientesPage from "@/pages/clientes/index";
@@ -57,7 +57,7 @@ const AppRouter: React.FC = () => {
 
                         <Route path="compras" element={<ComprasPage />} />
 
-                        <Route path="ventas" element={<VentasPage />} />
+                        <Route path="ventas" element={<POSPage />} />
 
                         <Route path="reportes" element={<ReportesPage />} />
 

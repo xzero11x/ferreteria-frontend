@@ -112,8 +112,15 @@ export default function CreateProductDialog({ onCreated, children }: CreateProdu
       if (values.categoria_id !== undefined) payload.categoria_id = values.categoria_id;
 
       const created = await createProducto(payload);
+      // Completar nombre de categoría inmediatamente si el backend no lo devuelve poblado
+      const catId = created.categoria_id ?? null;
+      const cat = catId != null ? categorias.find((c) => c.id === catId) : null;
+      const createdWithCategoria: Producto = {
+        ...created,
+        categoria: created.categoria ?? (cat ? { nombre: cat.nombre } : null),
+      };
       toast.success("Producto creado correctamente");
-      onCreated?.(created);
+      onCreated?.(createdWithCategoria);
       setOpen(false);
     } catch (err: any) {
       const message = err?.body?.message || err?.message || "Error al crear el producto";

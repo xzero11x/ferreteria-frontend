@@ -42,6 +42,12 @@ export default defineConfig([
   },
 ])
 ```
+ 
+## Navegación de la aplicación
+
+- Ruta principal del Dashboard: `/dashboard`
+- Ventas (POS): `/dashboard/ventas` (página principal POS)
+- Nota: el alias `ventas/pos` fue removido; usa únicamente `/dashboard/ventas`.
 
 You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
