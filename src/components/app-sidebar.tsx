@@ -203,9 +203,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <Link to="/dashboard">
-                <ArrowUpCircleIcon className="h-5 w-5" />
-                <span className="text-base font-semibold">Ferreteria Pro.</span>
+              <Link to="/dashboard" className="flex items-center gap-2">
+                <img
+                  src="/assets/logo/logoDefecto.svg"
+                  alt="Logo"
+                  className="h-6 w-6"
+                />
+                <span className="text-base font-semibold">FerrePro</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

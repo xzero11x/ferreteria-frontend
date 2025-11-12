@@ -1,4 +1,6 @@
 // Punto de entrada principal de la aplicación React
+import "@fontsource/geist";
+import "@/global.css";
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import AppRouter from './router/AppRouter'
