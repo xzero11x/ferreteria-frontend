@@ -5,6 +5,14 @@
   background-color: #f9fafb;
 }
 
+.header-actions{
+
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  justify-content: center;
+}
+
 /* ====== Header ====== */
 .ferreteria-pro header {
   display: flex;
