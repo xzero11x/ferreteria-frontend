@@ -1,5 +1,6 @@
 // Página de gestión de ajustes de inventario
 import { useCallback, useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2, Package, Plus, RefreshCcw, History } from "lucide-react";
 
@@ -43,6 +44,7 @@ const initialFormState: AjusteFormState = {
 };
 
 const InventarioPage = () => {
+	const [searchParams] = useSearchParams();
 	const [productos, setProductos] = useState<Producto[]>([]);
 	const [ajustes, setAjustes] = useState<Ajuste[]>([]);
 	const [loading, setLoading] = useState(true);
@@ -81,6 +83,18 @@ const InventarioPage = () => {
 		void fetchProductos();
 		void fetchAjustes();
 	}, [fetchProductos, fetchAjustes]);
+
+	// Si viene productoId en el query, preseleccionarlo cuando los productos estén cargados
+	useEffect(() => {
+		const pid = searchParams.get("productoId");
+		if (!pid) return;
+		if (productos.length === 0) return;
+		setForm(prev => {
+			if (prev.producto_id) return prev; // no sobrescribir si ya hay selección
+			const exists = productos.some(p => String(p.id) === pid);
+			return exists ? { ...prev, producto_id: pid } : prev;
+		});
+	}, [searchParams, productos]);
 
 	function resetForm() {
 		setForm(initialFormState);

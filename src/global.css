@@ -125,5 +125,28 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-size: 14px;
   }
+}
+
+/* Fuente y colores personalizados */
+:root {
+  /* Fuente base solicitada */
+  --font-sans: Geist, "Geist Fallback", sans-serif;
+  /* Colores para tabla (fallback primero para compatibilidad) */
+  --table-header-text-fallback: #444444;
+  --table-content-text-fallback: #222325;
+  --table-header-text: lab(48.496 0 0);
+  --table-content-text: lab(15.7118 0.831872 -2.88485);
+}
+
+/* Utilidades para aplicar colores de texto en tablas */
+.table-header-text {
+  color: var(--table-header-text-fallback);
+  color: var(--table-header-text);
+}
+.table-content-text {
+  color: var(--table-content-text-fallback);
+  color: var(--table-content-text);
 }

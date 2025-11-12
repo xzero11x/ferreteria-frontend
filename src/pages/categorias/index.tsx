@@ -1,39 +1,35 @@
-// Página de gestión de categorías con CRUD completo
-import { useCallback, useEffect, useState } from "react";
+// Página de gestión de categorías con CRUD en modales
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, RefreshCcw, Trash2 } from "lucide-react";
+import { Loader2, Trash2, MoreHorizontal, Pencil } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+// Filtros adicionales eliminados para una UI minimalista
 import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
-import type { Categoria, CategoriaCreateInput } from "@/services/categorias";
-import {
-	createCategoria,
-	deactivateCategoria,
-	listCategorias,
-	updateCategoria,
-} from "@/services/categorias";
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import type { ColumnDef } from "@tanstack/react-table";
+import { EntityDataTable } from "@/components/entity-data-table";
+import type { Categoria } from "@/services/categorias";
+import { deactivateCategoria, listCategorias } from "@/services/categorias";
+import CreateCategoryDialog from "@/components/CreateCategoryDialog";
+import EditCategoryDialog from "@/components/EditCategoryDialog";
 
-type FormMode = "create" | "edit";
-
-type FormState = {
-	nombre: string;
-	descripcion: string;
-};
-
-const emptyForm: FormState = {
-	nombre: "",
-	descripcion: "",
-};
+// Eliminamos formulario inline; se gestionará con modales
 
 function sortByNombre(items: Categoria[]) {
 	// Keep alphabetical order after mutations
@@ -45,13 +41,12 @@ const CategoriasPage = () => {
 		const [loading, setLoading] = useState(true);
 		const [error, setError] = useState<string | null>(null);
 
-	const [form, setForm] = useState<FormState>(emptyForm);
-	const [mode, setMode] = useState<FormMode>("create");
-	const [selected, setSelected] = useState<Categoria | null>(null);
-		const [saving, setSaving] = useState(false);
-		const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
-
-		const isEditing = mode === "edit" && !!selected;
+        const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
+        // Control externo de modales para evitar cierre inmediato al abrir desde el menú
+        const [editOpen, setEditOpen] = useState(false);
+        const [editingCategoria, setEditingCategoria] = useState<Categoria | null>(null);
+        const [deactivateOpen, setDeactivateOpen] = useState(false);
+        const [confirmCategoria, setConfirmCategoria] = useState<Categoria | null>(null);
 
 		const fetchCategorias = useCallback(async () => {
 		setLoading(true);
@@ -68,236 +63,173 @@ const CategoriasPage = () => {
 		}
 		}, []);
 
-		useEffect(() => {
+	useEffect(() => {
 			void fetchCategorias();
 		}, [fetchCategorias]);
 
-	function resetForm() {
-		setForm(emptyForm);
-		setMode("create");
-		setSelected(null);
-	}
-
-	function handleEdit(categoria: Categoria) {
-		setSelected(categoria);
-		setForm({ nombre: categoria.nombre, descripcion: categoria.descripcion ?? "" });
-		setMode("edit");
-	}
-
-		function buildPayload(): CategoriaCreateInput {
-		const nombre = form.nombre.trim();
-		const descripcion = form.descripcion.trim();
-		return {
-			nombre,
-			descripcion: descripcion ? descripcion : undefined,
-		};
-	}
-
-	async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-		e.preventDefault();
-		if (!form.nombre.trim()) {
-			toast.error("El nombre es obligatorio");
-			return;
-		}
-		setSaving(true);
-		const payload = buildPayload();
-		try {
-			if (isEditing && selected) {
-				const updated = await updateCategoria(selected.id, payload);
-				setCategorias((prev) =>
-					sortByNombre(prev.map((item) => (item.id === updated.id ? updated : item)))
-				);
-				toast.success("Categoría actualizada");
-			} else {
-						const created = await createCategoria(payload);
-				setCategorias((prev) => sortByNombre([...prev, created]));
-				toast.success("Categoría creada");
-			}
-			resetForm();
-		} catch (err: any) {
-			const message = err?.body?.message || err?.message || "Error al guardar";
-			toast.error(message);
-		} finally {
-			setSaving(false);
-		}
-	}
+    // La creación y edición ahora se gestionan mediante modales
 
 	async function handleDeactivate(categoria: Categoria) {
-		const confirmed = window.confirm(
-			`¿Desactivar la categoría "${categoria.nombre}"? Podrás crearla de nuevo si es necesario.`
-		);
-		if (!confirmed) return;
 		setDeactivatingId(categoria.id);
 		try {
-			await deactivateCategoria(categoria.id);
-			setCategorias((prev) => prev.filter((item) => item.id !== categoria.id));
-			if (selected?.id === categoria.id) {
-				resetForm();
-			}
-			toast.success("Categoría desactivada");
-		} catch (err: any) {
-			const message = err?.body?.message || err?.message || "No se pudo desactivar";
-			toast.error(message);
-		} finally {
-			setDeactivatingId(null);
-		}
-	}
+            await deactivateCategoria(categoria.id);
+            setCategorias((prev) => prev.filter((item) => item.id !== categoria.id));
+            toast.success("Categoría desactivada");
+        } catch (err: any) {
+            const message = err?.body?.message || err?.message || "No se pudo desactivar";
+            toast.error(message);
+        } finally {
+            setDeactivatingId(null);
+        }
+    }
+
+  const columns = useMemo<ColumnDef<Categoria>[]>(
+    () => [
+      { accessorKey: "id", header: "ID" },
+      {
+        accessorKey: "nombre",
+        header: "Nombre",
+        cell: ({ row }) => <span className="font-medium">{row.original.nombre}</span>,
+      },
+      {
+        id: "descripcion",
+        header: "Descripción",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground">{row.original.descripcion?.trim() || "—"}</span>
+        ),
+        enableSorting: false,
+      },
+      {
+        id: "actions",
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setEditingCategoria(row.original);
+                    setEditOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-2 size-4" /> Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={deactivatingId === row.original.id}
+                  onSelect={() => {
+                    if (deactivatingId === row.original.id) return;
+                    setConfirmCategoria(row.original);
+                    setDeactivateOpen(true);
+                  }}
+                >
+                  {deactivatingId === row.original.id ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" /> Desactivando
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Trash2 className="size-4" /> Desactivar
+                    </span>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+    ],
+    [deactivatingId]
+  );
 
 			function handleReload() {
 				void fetchCategorias();
 			}
 
-	return (
-		<div className="space-y-6 p-4 lg:p-6">
-					<Card>
-						<CardHeader>
-							<CardTitle className="text-lg font-semibold">
-								{isEditing ? "Editar categoría" : "Crear categoría"}
-							</CardTitle>
-						</CardHeader>
-				<CardContent>
-					<form onSubmit={handleSubmit} className="grid max-w-2xl gap-4">
-						<div className="grid gap-2">
-							<Label htmlFor="nombre">Nombre</Label>
-							<Input
-								id="nombre"
-								value={form.nombre}
-								onChange={(event) => setForm((prev) => ({ ...prev, nombre: event.target.value }))}
-								placeholder="Ej. Herramientas"
-								required
-								disabled={saving}
-							/>
-						</div>
-						<div className="grid gap-2">
-							<Label htmlFor="descripcion">Descripción</Label>
-							<textarea
-								id="descripcion"
-								value={form.descripcion}
-								onChange={(event) =>
-									setForm((prev) => ({ ...prev, descripcion: event.target.value }))
-								}
-								placeholder="Opcional"
-								rows={3}
-								disabled={saving}
-								className="min-h-[96px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-							/>
-						</div>
-						<div className="flex flex-wrap items-center gap-2">
-							<Button type="submit" disabled={saving}>
-								{saving ? (
-									<span className="flex items-center gap-2">
-										<Loader2 className="size-4 animate-spin" />
-										Guardando...
-									</span>
-								) : isEditing ? (
-									<span className="flex items-center gap-2">
-										<Pencil className="size-4" />
-										Actualizar categoría
-									</span>
-								) : (
-									<span className="flex items-center gap-2">
-										<Plus className="size-4" />
-										Crear categoría
-									</span>
-								)}
-							</Button>
-							{!isEditing ? null : (
-								<Button type="button" variant="outline" onClick={resetForm} disabled={saving}>
-									Cancelar
-								</Button>
-							)}
-						</div>
-					</form>
-				</CardContent>
-			</Card>
+  return (
+      <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+            <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Categorías</h1>
+                <div className="flex items-center gap-2">
+                    <CreateCategoryDialog
+                        onCreated={(created) => setCategorias((prev) => sortByNombre([...prev, created]))}
+                    />
+                </div>
+            </div>
 
-			<Card>
-				<CardHeader className="flex flex-row items-center justify-between">
-					<CardTitle className="text-lg font-semibold">Categorías activas</CardTitle>
-								<Button variant="outline" size="sm" onClick={handleReload} disabled={loading}>
-									{loading ? (
-							<span className="flex items-center gap-2">
-								<Loader2 className="size-4 animate-spin" />
-								Cargando
-							</span>
-						) : (
-							<span className="flex items-center gap-2">
-								<RefreshCcw className="size-4" />
-								Recargar
-							</span>
-						)}
-					</Button>
-				</CardHeader>
-				<CardContent>
-					{loading ? (
-						<div className="flex items-center gap-2 text-sm text-muted-foreground">
-							<Loader2 className="size-4 animate-spin" />
-							Cargando categorías...
-						</div>
-					) : error ? (
-						<div className="text-sm text-red-600" aria-live="assertive">
-							{error}
-						</div>
-					) : categorias.length === 0 ? (
-						<div className="text-sm text-muted-foreground">No hay categorías activas.</div>
-					) : (
-						<div className="overflow-x-auto">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead className="w-16">ID</TableHead>
-										<TableHead>Nombre</TableHead>
-										<TableHead>Descripción</TableHead>
-										<TableHead className="w-40 text-right">Acciones</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{categorias.map((categoria) => (
-										<TableRow key={categoria.id}>
-											<TableCell>{categoria.id}</TableCell>
-											<TableCell className="font-medium">{categoria.nombre}</TableCell>
-											<TableCell className="text-muted-foreground">
-												{categoria.descripcion?.trim() || "—"}
-											</TableCell>
-											<TableCell>
-												<div className="flex justify-end gap-2">
-													<Button
-														variant="outline"
-														size="sm"
-														onClick={() => handleEdit(categoria)}
-													>
-														<Pencil className="mr-1 size-4" /> Editar
-													</Button>
-													<Button
-														variant="destructive"
-														size="sm"
-														onClick={() => handleDeactivate(categoria)}
-														disabled={deactivatingId === categoria.id}
-													>
-														{deactivatingId === categoria.id ? (
-															<span className="flex items-center gap-2">
-																<Loader2 className="size-4 animate-spin" />
-																Desactivando
-															</span>
-														) : (
-															<span className="flex items-center gap-2">
-																<Trash2 className="size-4" />
-																Desactivar
-															</span>
-														)}
-													</Button>
-												</div>
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
-						</div>
-					)}
-				</CardContent>
-			</Card>
-		</div>
-	);
+			{loading ? (
+				<div className="flex items-center gap-2 text-sm text-muted-foreground">
+					<Loader2 className="size-4 animate-spin" />
+					Cargando categorías...
+				</div>
+			) : error ? (
+				<div className="text-sm text-red-600" aria-live="assertive">
+					{error}
+				</div>
+			) : categorias.length === 0 ? (
+				<div className="text-sm text-muted-foreground">No hay categorías activas.</div>
+      ) : (
+        <EntityDataTable
+          columns={columns}
+          data={categorias}
+          searchKey="nombre"
+        />
+      )}
+            {/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
+            {editingCategoria && (
+              <EditCategoryDialog
+                categoria={editingCategoria}
+                open={editOpen}
+                onOpenChange={(open) => {
+                  setEditOpen(open);
+                  if (!open) setEditingCategoria(null);
+                }}
+                onUpdated={(updated) =>
+                  setCategorias((prev) =>
+                    sortByNombre(prev.map((c) => (c.id === updated.id ? updated : c)))
+                  )
+                }
+              />
+            )}
+            <AlertDialog
+              open={deactivateOpen}
+              onOpenChange={(open) => {
+                setDeactivateOpen(open);
+                if (!open) setConfirmCategoria(null);
+              }}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Desactivar categoría</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    {confirmCategoria
+                      ? `¿Desactivar la categoría "${confirmCategoria.nombre}"? Podrás crearla de nuevo si es necesario.`
+                      : "¿Desactivar la categoría seleccionada?"}
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => {
+                      if (confirmCategoria) {
+                        handleDeactivate(confirmCategoria);
+                        setDeactivateOpen(false);
+                      }
+                    }}
+                  >
+                    Confirmar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            </div>
+          );
 };
 
 export default CategoriasPage;
