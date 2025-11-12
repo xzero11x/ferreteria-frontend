@@ -150,3 +150,14 @@
   color: var(--table-content-text-fallback);
   color: var(--table-content-text);
 }
+
+/* POS: ocultar spinners nativos en inputs numéricos para evitar redundancia con controles personalizados */
+.pos-page input[type="number"]::-webkit-outer-spin-button,
+.pos-page input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.pos-page input[type="number"] {
+  -moz-appearance: textfield;
+}

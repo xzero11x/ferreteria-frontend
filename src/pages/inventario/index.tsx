@@ -1,10 +1,9 @@
 // Página de gestión de ajustes de inventario
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Loader2, Package, Plus, RefreshCcw, History } from "lucide-react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,10 +23,14 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import type { ColumnDef } from "@tanstack/react-table";
+import { EntityDataTable } from "@/components/entity-data-table";
 import type { AjusteCreateInput, Ajuste } from "@/services/inventario";
 import { createAjuste, listAjustes } from "@/services/inventario";
 import type { Producto } from "@/services/productos";
 import { listProductos } from "@/services/productos";
+import { ProductSearchSelector } from "@/components/ProductSearchSelector";
 
 type AjusteFormState = {
 	producto_id: string;
@@ -44,13 +47,17 @@ const initialFormState: AjusteFormState = {
 };
 
 const InventarioPage = () => {
-	const [searchParams] = useSearchParams();
-	const [productos, setProductos] = useState<Producto[]>([]);
-	const [ajustes, setAjustes] = useState<Ajuste[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [loadingAjustes, setLoadingAjustes] = useState(true);
-	const [saving, setSaving] = useState(false);
-	const [form, setForm] = useState<AjusteFormState>(initialFormState);
+  const [searchParams] = useSearchParams();
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [ajustes, setAjustes] = useState<Ajuste[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadingAjustes, setLoadingAjustes] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<AjusteFormState>(initialFormState);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProductoInfo, setSelectedProductoInfo] = useState<Producto | null>(null);
+  const [toolbarSelectedProduct, setToolbarSelectedProduct] = useState<Producto | null>(null);
+  const cantidadRef = useRef<HTMLInputElement | null>(null);
 
 	const fetchProductos = useCallback(async () => {
 		setLoading(true);
@@ -128,12 +135,12 @@ const InventarioPage = () => {
 		};
 	}
 
-	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		setSaving(true);
-		try {
-			const payload = buildPayload();
-			await createAjuste(payload);
+async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+	event.preventDefault();
+	setSaving(true);
+	try {
+		const payload = buildPayload();
+		await createAjuste(payload);
 			
 			// Actualizar el stock del producto en la lista local
 			const producto = productos.find(p => p.id === payload.producto_id);
@@ -148,227 +155,297 @@ const InventarioPage = () => {
 				);
 			}
 
-			toast.success(`Ajuste de ${payload.tipo} registrado correctamente`);
+		// Determinar si el submit fue "Registrar y continuar"
+		const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+		const keepOpen = submitter?.dataset?.action === "continue";
+
+		toast.success(`Ajuste de ${payload.tipo} registrado correctamente`);
+
+		if (keepOpen) {
+			// Mantener producto, tipo y motivo; limpiar solo cantidad
+			setForm(prev => ({ ...prev, cantidad: "" }));
+		} else {
 			resetForm();
-			
-			// Recargar el historial de ajustes
-			await fetchAjustes();
-		} catch (err: any) {
-			const message = err?.message || err?.body?.message || "Error al registrar el ajuste";
-			toast.error(message);
-		} finally {
-			setSaving(false);
+			setDialogOpen(false);
 		}
+		
+		// Recargar el historial de ajustes
+		await fetchAjustes();
+	} catch (err: any) {
+		const message = err?.message || err?.body?.message || "Error al registrar el ajuste";
+		toast.error(message);
+	} finally {
+		setSaving(false);
 	}
+}
 
 	const selectedProducto = productos.find(p => p.id === Number(form.producto_id));
 
+	const columns = useMemo<ColumnDef<Ajuste>[]>(() => [
+    {
+      accessorKey: "fecha",
+      header: "Fecha",
+      cell: ({ row }) => (
+        <span className="text-sm tabular-nums">
+          {new Date(row.original.fecha).toLocaleString("es-PE", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </span>
+      ),
+    },
+    {
+      id: "producto",
+      header: "Producto",
+      cell: ({ row }) => (
+        <div>
+          <div className="font-medium">{row.original.producto?.nombre || "Producto desconocido"}</div>
+          {row.original.producto?.sku && (
+            <div className="text-xs text-muted-foreground">SKU: {row.original.producto.sku}</div>
+          )}
+        </div>
+      ),
+      accessorFn: (row) => row.producto?.nombre ?? "Producto desconocido",
+      enableSorting: true,
+    },
+    {
+      accessorKey: "tipo",
+      header: "Tipo",
+      cell: ({ row }) => (
+        <Badge variant={row.original.tipo === "entrada" ? "default" : "destructive"}>
+          {row.original.tipo === "entrada" ? "Entrada" : "Salida"}
+        </Badge>
+      ),
+      enableSorting: false,
+      filterFn: (row, _id, value?: "entrada" | "salida") => {
+        if (!value) return true;
+        return row.original.tipo === value;
+      },
+    },
+    {
+      accessorKey: "cantidad",
+      header: () => <div className="w-full text-right">Cantidad</div>,
+      cell: ({ row }) => (
+        <div className="w-full text-right font-medium tabular-nums">{row.original.tipo === "entrada" ? "+" : "-"}{row.original.cantidad}</div>
+      ),
+      enableSorting: true,
+    },
+    {
+      accessorKey: "motivo",
+      header: "Motivo",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground max-w-xs truncate block">{row.original.motivo || "—"}</span>,
+      enableSorting: false,
+    },
+    {
+      id: "usuario",
+      header: "Usuario",
+      accessorFn: (row) => row.usuario?.nombre ?? row.usuario?.email ?? "Usuario desconocido",
+      cell: ({ row }) => <span className="text-sm">{row.original.usuario?.nombre || row.original.usuario?.email || "Usuario desconocido"}</span>,
+      enableSorting: true,
+    },
+    {
+      id: "producto_id",
+      header: "",
+      accessorFn: (row) => row.producto_id,
+      cell: () => null,
+      enableHiding: false,
+    },
+  ], []);
+
 	return (
 		<div className="space-y-6 p-4 lg:p-6">
-			<Card>
-				<CardHeader>
-					<CardTitle className="text-lg font-semibold flex items-center gap-2">
-						<Package className="size-5" />
-						Registrar Ajuste de Inventario
-					</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<form onSubmit={handleSubmit} className="space-y-4">
-						<div className="grid gap-4 lg:grid-cols-2">
-							{/* Selector de Producto */}
-							<div className="grid gap-2">
-								<Label htmlFor="producto_id">Producto</Label>
-								{loading ? (
-									<div className="flex items-center gap-2 text-muted-foreground text-sm">
-										<Loader2 className="size-4 animate-spin" />
-										Cargando productos...
-									</div>
-								) : (
-									<Select
-										value={form.producto_id}
-										onValueChange={(value) => setForm(prev => ({ ...prev, producto_id: value }))}
-									>
-										<SelectTrigger id="producto_id" className="w-full">
-											<SelectValue placeholder="Seleccione un producto" />
-										</SelectTrigger>
-										<SelectContent>
-											{productos.map((producto) => (
-												<SelectItem key={producto.id} value={String(producto.id)}>
-													{producto.nombre} {producto.sku ? `(${producto.sku})` : ""}
-												</SelectItem>
-											))}
-										</SelectContent>
-									</Select>
-								)}
-								{selectedProducto && (
-									<p className="text-sm text-muted-foreground">
-										Stock actual: <span className="font-semibold">{selectedProducto.stock}</span> unidades
-									</p>
-								)}
-							</div>
-
-							{/* Selector de Tipo */}
-							<div className="grid gap-2">
-								<Label htmlFor="tipo">Tipo de Ajuste</Label>
-								<Select
-									value={form.tipo}
-									onValueChange={(value) => setForm(prev => ({ ...prev, tipo: value as "entrada" | "salida" }))}
-								>
-									<SelectTrigger id="tipo" className="w-full">
-										<SelectValue placeholder="Seleccione el tipo" />
-									</SelectTrigger>
-									<SelectContent>
-										<SelectItem value="entrada">Entrada (Sumar)</SelectItem>
-										<SelectItem value="salida">Salida (Restar)</SelectItem>
-									</SelectContent>
-								</Select>
-							</div>
-
-							{/* Campo de Cantidad */}
-							<div className="grid gap-2">
-								<Label htmlFor="cantidad">Cantidad</Label>
-								<Input
-									id="cantidad"
-									type="number"
-									min="1"
-									value={form.cantidad}
-									onChange={(event) => setForm(prev => ({ ...prev, cantidad: event.target.value }))}
-									placeholder="Ej: 10"
-								/>
-							</div>
-
-							{/* Campo de Motivo */}
-							<div className="grid gap-2 lg:col-span-2">
-								<Label htmlFor="motivo">Motivo del Ajuste</Label>
-								<Input
-									id="motivo"
-									value={form.motivo}
-									onChange={(event) => setForm(prev => ({ ...prev, motivo: event.target.value }))}
-									placeholder="Ej: Producto dañado en almacén, Corrección de inventario físico"
-								/>
-							</div>
-						</div>
-
-						{/* Botones de Acción */}
-						<div className="flex gap-2 pt-2">
-							<Button type="submit" disabled={saving}>
-								{saving ? (
-									<>
-										<Loader2 className="mr-2 size-4 animate-spin" />
-										Registrando...
-									</>
-								) : (
-									<>
-										<Plus className="mr-2 size-4" />
-										Registrar Ajuste
-									</>
-								)}
-							</Button>
-							<Button
-								type="button"
-								variant="outline"
-								onClick={resetForm}
-								disabled={saving}
-							>
-								Limpiar
-							</Button>
-						</div>
-					</form>
-				</CardContent>
-			</Card>
-
-			{/* Historial de Ajustes */}
-			<Card>
-				<CardHeader>
-					<div className="flex items-center justify-between">
-						<CardTitle className="text-lg font-semibold flex items-center gap-2">
-							<History className="size-5" />
-							Historial de Ajustes
-						</CardTitle>
-						<Button
-							type="button"
-							size="sm"
-							variant="outline"
-							onClick={() => void fetchAjustes()}
-							disabled={loadingAjustes}
-						>
-							<RefreshCcw className={`size-4 mr-2 ${loadingAjustes ? "animate-spin" : ""}`} />
-							Actualizar
+			{/* Header + Actions */}
+			<div className="flex items-center justify-between">
+				<div className="flex items-center gap-2">
+					<Package className="size-5" />
+					<h2 className="text-lg font-semibold">Ajustes de Inventario</h2>
+				</div>
+				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+					<DialogTrigger asChild>
+						<Button>
+							<Plus className="mr-2 size-4" /> Registrar Ajuste
 						</Button>
-					</div>
-				</CardHeader>
-				<CardContent>
-					{loadingAjustes ? (
-						<div className="flex items-center justify-center py-8">
-							<Loader2 className="size-6 animate-spin text-muted-foreground" />
-						</div>
-					) : ajustes.length === 0 ? (
-						<div className="text-center py-8 text-muted-foreground">
-							<History className="size-12 mx-auto mb-2 opacity-50" />
-							<p>No hay ajustes registrados</p>
-							<p className="text-sm">Los ajustes que registres aparecerán aquí</p>
-						</div>
-					) : (
-						<div className="overflow-x-auto">
-							<Table>
-								<TableHeader>
-									<TableRow>
-										<TableHead>Fecha</TableHead>
-										<TableHead>Producto</TableHead>
-										<TableHead>Tipo</TableHead>
-										<TableHead className="text-right">Cantidad</TableHead>
-										<TableHead>Motivo</TableHead>
-										<TableHead>Usuario</TableHead>
-									</TableRow>
-								</TableHeader>
-								<TableBody>
-									{ajustes.map((ajuste) => (
-										<TableRow key={ajuste.id}>
-											<TableCell className="text-sm">
-												{new Date(ajuste.fecha).toLocaleString("es-PE", {
-													year: "numeric",
-													month: "2-digit",
-													day: "2-digit",
-													hour: "2-digit",
-													minute: "2-digit",
-												})}
-											</TableCell>
-											<TableCell>
-												<div>
-													<div className="font-medium">
-														{ajuste.producto?.nombre || "Producto desconocido"}
-													</div>
-													{ajuste.producto?.sku && (
-														<div className="text-xs text-muted-foreground">
-															SKU: {ajuste.producto.sku}
-														</div>
-													)}
-												</div>
-											</TableCell>
-											<TableCell>
-												<Badge 
-													variant={ajuste.tipo === "entrada" ? "default" : "destructive"}
-												>
-													{ajuste.tipo === "entrada" ? "Entrada" : "Salida"}
-												</Badge>
-											</TableCell>
-											<TableCell className="text-right font-medium">
-												{ajuste.tipo === "entrada" ? "+" : "-"}{ajuste.cantidad}
-											</TableCell>
-											<TableCell className="text-sm text-muted-foreground max-w-xs truncate">
-												{ajuste.motivo || "—"}
-											</TableCell>
-											<TableCell className="text-sm">
-												{ajuste.usuario?.nombre || ajuste.usuario?.email || "Usuario desconocido"}
-											</TableCell>
-										</TableRow>
-									))}
-								</TableBody>
-							</Table>
+					</DialogTrigger>
+                    <DialogContent className="sm:max-w-xl">
+						<DialogHeader>
+							<DialogTitle>Registrar Ajuste</DialogTitle>
+							<DialogDescription>
+								Actualiza el stock de un producto. Los cambios se reflejan inmediatamente.
+							</DialogDescription>
+						</DialogHeader>
+						<form onSubmit={handleSubmit} className="space-y-4 mt-4">
+							<div className="grid gap-4">
+										{/* Selector de Producto */}
+										<div className="grid gap-2">
+											<Label htmlFor="producto_id">Producto</Label>
+                                            <ProductSearchSelector
+                                              selected={selectedProducto ?? selectedProductoInfo}
+                                              items={productos}
+                                              onSelect={(p) => {
+                                                setForm(prev => ({ ...prev, producto_id: String(p.id) }));
+                                                setSelectedProductoInfo(p);
+                                                // Foco ágil para ingresar cantidad tras seleccionar
+                                                setTimeout(() => cantidadRef.current?.focus(), 0);
+                                              }}
+                                              placeholder="Buscar por nombre, SKU o escanear código..."
+                                              disabled={saving}
+                                            />
+                                            {(selectedProducto ?? selectedProductoInfo) && (
+                                              <p className="text-sm text-muted-foreground">
+                                                    Stock actual: <span className="font-semibold">{(selectedProducto ?? selectedProductoInfo)!.stock}</span> unidades
+                                              </p>
+                                            )}
+										</div>
+
+										{/* Selector de Tipo */}
+										<div className="grid gap-2">
+											<Label htmlFor="tipo">Tipo de Ajuste</Label>
+											<Select
+												value={form.tipo}
+												onValueChange={(value) => setForm(prev => ({ ...prev, tipo: value as "entrada" | "salida" }))}
+											>
+												<SelectTrigger id="tipo" className="w-full">
+													<SelectValue placeholder="Seleccione el tipo" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="entrada">Entrada (Sumar)</SelectItem>
+													<SelectItem value="salida">Salida (Restar)</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+
+										{/* Campo de Cantidad */}
+										<div className="grid gap-2">
+											<Label htmlFor="cantidad">Cantidad</Label>
+                                            <Input
+                                              id="cantidad"
+                                              type="number"
+                                              min="1"
+                                              value={form.cantidad}
+                                              onChange={(event) => setForm(prev => ({ ...prev, cantidad: event.target.value }))}
+                                              ref={cantidadRef}
+                                              placeholder="Ej: 10"
+                                            />
+										</div>
+
+										{/* Campo de Motivo */}
+										<div className="grid gap-2">
+											<Label htmlFor="motivo">Motivo del Ajuste</Label>
+											<Input
+												id="motivo"
+												value={form.motivo}
+												onChange={(event) => setForm(prev => ({ ...prev, motivo: event.target.value }))}
+												placeholder="Ej: Producto dañado, Corrección de inventario físico"
+											/>
+										</div>
+							</div>
+
+                            <DialogFooter className="pt-2 flex-wrap">
+								<DialogClose asChild>
+									<Button type="button" variant="outline" disabled={saving}>
+										Cancelar
+									</Button>
+								</DialogClose>
+								<Button type="submit" disabled={saving}>
+									{saving ? (
+										<>
+											<Loader2 className="mr-2 size-4 animate-spin" />
+											Registrando...
+										</>
+									) : (
+										<>
+											<Plus className="mr-2 size-4" />
+											Registrar Ajuste
+										</>
+									)}
+								</Button>
+								<Button type="submit" data-action="continue" variant="secondary" disabled={saving}>
+									{saving ? (
+										<>
+											<Loader2 className="mr-2 size-4 animate-spin" />
+											Guardando...
+										</>
+									) : (
+										<>
+											<Plus className="mr-2 size-4" />
+											Registrar y continuar
+										</>
+									)}
+								</Button>
+							</DialogFooter>
+						</form>
+					</DialogContent>
+				</Dialog>
+			</div>
+
+			{/* Historial de Ajustes: tabla de frente (sin envoltorio) */}
+			{loadingAjustes ? (
+				<div className="flex items-center justify-center py-8">
+					<Loader2 className="size-6 animate-spin text-muted-foreground" />
+				</div>
+			) : (
+				<EntityDataTable<Ajuste>
+					columns={columns}
+					data={ajustes}
+					searchKey={"producto"}
+					toolbarRender={(table) => (
+						<div className="flex items-center gap-2">
+							{/* Filtro por tipo */}
+							<Select
+								value={(table.getColumn("tipo")?.getFilterValue() as string) ?? "all"}
+								onValueChange={(value) => table.getColumn("tipo")?.setFilterValue(value === "all" ? undefined : value)}
+							>
+								<SelectTrigger className="h-9 w-40">
+									<SelectValue placeholder="Tipo" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">Todos</SelectItem>
+									<SelectItem value="entrada">Entrada</SelectItem>
+									<SelectItem value="salida">Salida</SelectItem>
+								</SelectContent>
+							</Select>
+
+                          {/* Filtro por producto: buscador inteligente */}
+                          <div className="flex items-center gap-2">
+                            <ProductSearchSelector
+                              selected={toolbarSelectedProduct}
+                              items={productos}
+                              placeholder="Filtrar por producto..."
+                              onSelect={(p) => {
+                                setToolbarSelectedProduct(p);
+                                table.getColumn("producto_id")?.setFilterValue(p.id);
+                              }}
+                            />
+                            {toolbarSelectedProduct && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setToolbarSelectedProduct(null);
+                                  table.getColumn("producto_id")?.setFilterValue(undefined);
+                                }}
+                              >
+                                Todos
+                              </Button>
+                            )}
+                          </div>
+
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => void fetchAjustes()}
+								disabled={loadingAjustes}
+							>
+								<RefreshCcw className={`mr-2 size-4 ${loadingAjustes ? "animate-spin" : ""}`} />
+								Actualizar
+							</Button>
 						</div>
 					)}
-				</CardContent>
-			</Card>
+				/>
+			)}
 		</div>
 	);
 };

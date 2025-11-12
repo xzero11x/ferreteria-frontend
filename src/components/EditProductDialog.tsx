@@ -119,8 +119,15 @@ export default function EditProductDialog({ producto, onUpdated, children, open:
       if (values.categoria_id !== undefined) payload.categoria_id = values.categoria_id;
 
       const updated = await updateProducto(producto.id, payload);
+      // Completar nombre de categoría inmediatamente si el backend no lo devuelve poblado
+      const catId = updated.categoria_id ?? null;
+      const cat = catId != null ? categorias.find((c) => c.id === catId) : null;
+      const updatedWithCategoria: Producto = {
+        ...updated,
+        categoria: updated.categoria ?? (cat ? { nombre: cat.nombre } : null),
+      };
       toast.success("Producto actualizado correctamente");
-      onUpdated?.(updated);
+      onUpdated?.(updatedWithCategoria);
       setOpen(false);
     } catch (err: any) {
       const message = err?.body?.message || err?.message || "Error al actualizar el producto";
