@@ -21,7 +21,6 @@ import { EntityDataTable } from "@/components/entity-data-table";
 import type { AjusteCreateInput, Ajuste } from "@/services/inventario";
 import { createAjuste, listAjustes } from "@/services/inventario";
 import type { Producto } from "@/services/productos";
-import { listProductos } from "@/services/productos";
 import { ProductSearchSelector } from "@/components/ProductSearchSelector";
 
 type AjusteFormState = {
@@ -40,50 +39,51 @@ const initialFormState: AjusteFormState = {
 
 const InventarioPage = () => {
   const [searchParams] = useSearchParams();
-  const [productos, setProductos] = useState<Producto[]>([]);
+  const [productos] = useState<Producto[]>([]); // Solo para referencia de filtro, ProductSearchSelector hace su propia búsqueda
   const [ajustes, setAjustes] = useState<Ajuste[]>([]);
-  const [loadingProductos, setLoadingProductos] = useState(true);
   const [loadingAjustes, setLoadingAjustes] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<AjusteFormState>(initialFormState);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProductoInfo, setSelectedProductoInfo] = useState<Producto | null>(null);
-  const [toolbarSelectedProduct, setToolbarSelectedProduct] = useState<Producto | null>(null);
   const cantidadRef = useRef<HTMLInputElement | null>(null);
+  
+  // Estados de paginación server-side para ajustes
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  
+  // Estados de filtros server-side
+  const [tipoFilter, setTipoFilter] = useState<"entrada" | "salida" | "all">("all");
+  const [productoIdFilter, setProductoIdFilter] = useState<number | null>(null);
 
-	const fetchProductos = useCallback(async () => {
-		setLoadingProductos(true);
-		try {
-			const response = await listProductos({ limit: 1000 }); // Cargar todos los productos para selección
-			setProductos(response.data.sort((a, b) => a.nombre.localeCompare(b.nombre, "es")));
-		} catch (err: any) {
-			const message = err?.body?.message || err?.message || "No se pudieron cargar los productos";
-			toast.error(message);
-		} finally {
-			setLoadingProductos(false);
-		}
-	}, []);
-
-	const fetchAjustes = useCallback(async () => {
+	// Cargar ajustes con filtros server-side
+	const fetchAjustes = useCallback(async (
+		page: number, 
+		limit: number, 
+		search: string,
+		tipo?: "entrada" | "salida",
+		productoId?: number
+	) => {
 		setLoadingAjustes(true);
 		try {
-			const response = await listAjustes(); // Devuelve { data: [...], meta: {...} }
-			console.log('📊 Respuesta COMPLETA de API:', response);
-			console.log('📊 Ajustes (data):', response.data);
-			console.log('📊 Paginación (meta):', response.meta);
-			
-			// ✅ SOLUCIÓN: Extraer solo el array de 'data'
-			const ajustesData = response.data;
-			
-			// Ordenar por fecha descendente (más recientes primero)
-			const sorted = ajustesData.sort((a, b) => {
-				const dateA = new Date(a.created_at || 0).getTime();
-				const dateB = new Date(b.created_at || 0).getTime();
-				return dateB - dateA;
+			const response = await listAjustes({ 
+				page, 
+				limit, 
+				q: search || undefined,
+				tipo: tipo || undefined,
+				producto_id: productoId || undefined
 			});
 			
-			console.log('📊 Total ajustes recibidos:', sorted.length);
-			setAjustes(sorted);
+			setAjustes(response.data);
+			setTotalPages(response.meta.totalPages);
+			setTotalItems(response.meta.total);
+			setCurrentPage(response.meta.page);
+			
+			console.log('📊 Total ajustes en esta página:', response.data.length);
+			console.log('📊 Total de registros:', response.meta.total);
 		} catch (err: any) {
 			const message = err?.body?.message || err?.message || "No se pudieron cargar los ajustes";
 			toast.error(message);
@@ -93,10 +93,41 @@ const InventarioPage = () => {
 		}
 	}, []);
 
-	useEffect(() => {
-		void fetchProductos();
-		void fetchAjustes();
-	}, [fetchProductos, fetchAjustes]);
+	// Ref para controlar si es el primer renderizado absoluto
+    const isFirstRender = useRef(true);
+	// 1. Efecto para CARGA INICIAL (Se ejecuta 1 sola vez, Inmediato)
+    useEffect(() => {
+        // Hacemos la carga inicial sin esperas
+        void fetchAjustes(
+            1, 
+            pageSize, 
+            "", 
+            tipoFilter === "all" ? undefined : tipoFilter,
+            productoIdFilter || undefined
+        );
+    }, []); // Array vacío: Solo al montar
+	
+	// 2. Efecto para CAMBIOS (Se ejecuta cuando cambian los filtros, con Debounce)
+    useEffect(() => {
+        // SI ES LA PRIMERA VEZ: NO HACER NADA.
+        // Esto evita el parpadeo porque no dispara la segunda petición.
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+
+        const timer = setTimeout(() => {
+            void fetchAjustes(
+                currentPage, 
+                pageSize, 
+                searchTerm,
+                tipoFilter === "all" ? undefined : tipoFilter,
+                productoIdFilter || undefined
+            );
+        }, 300);
+        
+        return () => clearTimeout(timer);
+    }, [fetchAjustes, currentPage, pageSize, searchTerm, tipoFilter, productoIdFilter]);
 
 	// Si viene productoId en el query, preseleccionarlo cuando los productos estén cargados
 	useEffect(() => {
@@ -154,19 +185,6 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		console.log('📝 Registrando ajuste:', payload);
 		const ajusteCreado = await createAjuste(payload);
 		console.log('✅ Ajuste creado:', ajusteCreado);
-			
-			// Actualizar el stock del producto en la lista local
-			const producto = productos.find(p => p.id === payload.producto_id);
-			if (producto) {
-				const ajuste = payload.tipo === "entrada" ? payload.cantidad : -payload.cantidad;
-				setProductos(prev => 
-					prev.map(p => 
-						p.id === payload.producto_id 
-							? { ...p, stock: p.stock + ajuste }
-							: p
-					)
-				);
-			}
 
 		// Determinar si el submit fue "Registrar y continuar"
 		const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
@@ -175,16 +193,31 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		toast.success(`Ajuste de ${payload.tipo} registrado correctamente`);
 
 		if (keepOpen) {
+			// Actualizar stock optimísticamente en el display
+			if (selectedProductoInfo) {
+				const ajuste = payload.tipo === "entrada" ? payload.cantidad : -payload.cantidad;
+				setSelectedProductoInfo(prev => prev ? {...prev, stock: prev.stock + ajuste} : null);
+			}
+			
 			// Mantener producto, tipo y motivo; limpiar solo cantidad
 			setForm(prev => ({ ...prev, cantidad: "" }));
+			
+			// Foco rápido en cantidad para el siguiente ajuste
+			setTimeout(() => cantidadRef.current?.focus(), 0);
 		} else {
 			resetForm();
 			setDialogOpen(false);
 		}
 		
-		// Recargar el historial de ajustes
+		// Recargar el historial de ajustes con filtros actuales
 		console.log('🔄 Recargando historial de ajustes...');
-		await fetchAjustes();
+		await fetchAjustes(
+			currentPage, 
+			pageSize, 
+			searchTerm,
+			tipoFilter === "all" ? undefined : tipoFilter,
+			productoIdFilter || undefined
+		);
 	} catch (err: any) {
 		const message = err?.message || err?.body?.message || "Error al registrar el ajuste";
 		toast.error(message);
@@ -276,213 +309,291 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
   ], []);
 
 	return (
-		<div className="space-y-6 p-4 lg:p-6">
-			{/* Header + Actions */}
-			<div className="flex items-center justify-between">
-				<div className="flex items-center gap-2">
-					<Package className="size-5" />
-					<h2 className="text-lg font-semibold">Ajustes de Inventario</h2>
-				</div>
-				<Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-					<DialogTrigger asChild>
-						<Button>
-							<Plus className="mr-2 size-4" /> Registrar Ajuste
-						</Button>
-					</DialogTrigger>
+        <div className="space-y-6 p-4 lg:p-6">
+            {/* Header + Actions */}
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Package className="size-5" />
+                    <h2 className="text-lg font-semibold">Ajustes de Inventario</h2>
+                </div>
+                <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button>
+                            <Plus className="mr-2 size-4" /> Registrar Ajuste
+                        </Button>
+                    </DialogTrigger>
                     <DialogContent className="sm:max-w-xl">
-						<DialogHeader>
-							<DialogTitle>Registrar Ajuste</DialogTitle>
-							<DialogDescription>
-								Actualiza el stock de un producto. Los cambios se reflejan inmediatamente.
-							</DialogDescription>
-						</DialogHeader>
-						<form onSubmit={handleSubmit} className="space-y-4 mt-4">
-							<div className="grid gap-4">
-										{/* Selector de Producto */}
-										<div className="grid gap-2">
-											<Label htmlFor="producto_id">Producto</Label>
-                                            {loadingProductos ? (
-                                              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
-                                                <Loader2 className="size-4 animate-spin" />
-                                                Cargando productos...
-                                              </div>
-                                            ) : (
-                                            <ProductSearchSelector
-                                              selected={selectedProducto ?? selectedProductoInfo}
-                                              items={productos}
-                                              onSelect={(p) => {
-                                                setForm(prev => ({ ...prev, producto_id: String(p.id) }));
-                                                setSelectedProductoInfo(p);
-                                                // Foco ágil para ingresar cantidad tras seleccionar
-                                                setTimeout(() => cantidadRef.current?.focus(), 0);
-                                              }}
-                                              placeholder="Buscar por nombre, SKU o escanear código..."
-                                              disabled={saving}
-                                            />
-                                            )}
-                                            {(selectedProducto ?? selectedProductoInfo) && (
-                                              <p className="text-sm text-muted-foreground">
-                                                    Stock actual: <span className="font-semibold">{(selectedProducto ?? selectedProductoInfo)!.stock}</span> unidades
-                                              </p>
-                                            )}
-										</div>
+                        <DialogHeader>
+                            <DialogTitle>Registrar Ajuste</DialogTitle>
+                            <DialogDescription>
+                                Actualiza el stock de un producto. Los cambios se reflejan inmediatamente.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleSubmit} className="space-y-4 mt-4">
+                            <div className="grid gap-4">
+                                {/* Selector de Producto */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="producto_id">Producto</Label>
+                                    <ProductSearchSelector
+                                        selected={selectedProducto ?? selectedProductoInfo}
+                                        items={productos}
+                                        onSelect={(p) => {
+                                            setForm(prev => ({ ...prev, producto_id: String(p.id) }));
+                                            setSelectedProductoInfo(p);
+                                            setTimeout(() => cantidadRef.current?.focus(), 0);
+                                        }}
+                                        placeholder="Buscar por nombre, SKU o escanear código..."
+                                        disabled={saving}
+                                    />
+                                    {(selectedProducto ?? selectedProductoInfo) && (
+                                        <p className="text-sm text-muted-foreground">
+                                            Stock actual: <span className="font-semibold">{(selectedProducto ?? selectedProductoInfo)!.stock}</span> unidades
+                                        </p>
+                                    )}
+                                </div>
 
-										{/* Selector de Tipo */}
-										<div className="grid gap-2">
-											<Label htmlFor="tipo">Tipo de Ajuste</Label>
-											<Select
-												value={form.tipo}
-												onValueChange={(value) => setForm(prev => ({ ...prev, tipo: value as "entrada" | "salida" }))}
-											>
-												<SelectTrigger id="tipo" className="w-full">
-													<SelectValue placeholder="Seleccione el tipo" />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="entrada">Entrada (Sumar)</SelectItem>
-													<SelectItem value="salida">Salida (Restar)</SelectItem>
-												</SelectContent>
-											</Select>
-										</div>
+                                {/* Selector de Tipo */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="tipo">Tipo de Ajuste</Label>
+                                    <Select
+                                        value={form.tipo}
+                                        onValueChange={(value) => setForm(prev => ({ ...prev, tipo: value as "entrada" | "salida" }))}
+                                    >
+                                        <SelectTrigger id="tipo" className="w-full">
+                                            <SelectValue placeholder="Seleccione el tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="entrada">Entrada (Sumar)</SelectItem>
+                                            <SelectItem value="salida">Salida (Restar)</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-										{/* Campo de Cantidad */}
-										<div className="grid gap-2">
-											<Label htmlFor="cantidad">Cantidad</Label>
-                                            <Input
-                                              id="cantidad"
-                                              type="number"
-                                              min="1"
-                                              value={form.cantidad}
-                                              onChange={(event) => setForm(prev => ({ ...prev, cantidad: event.target.value }))}
-                                              ref={cantidadRef}
-                                              placeholder="Ej: 10"
-                                            />
-										</div>
+                                {/* Campo de Cantidad */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="cantidad">Cantidad</Label>
+                                    <Input
+                                        id="cantidad"
+                                        type="number"
+                                        min="1"
+                                        value={form.cantidad}
+                                        onChange={(event) => setForm(prev => ({ ...prev, cantidad: event.target.value }))}
+                                        ref={cantidadRef}
+                                        placeholder="Ej: 10"
+                                    />
+                                </div>
 
-										{/* Campo de Motivo */}
-										<div className="grid gap-2">
-											<Label htmlFor="motivo">Motivo del Ajuste</Label>
-											<Input
-												id="motivo"
-												value={form.motivo}
-												onChange={(event) => setForm(prev => ({ ...prev, motivo: event.target.value }))}
-												placeholder="Ej: Producto dañado, Corrección de inventario físico"
-											/>
-										</div>
-							</div>
+                                {/* Campo de Motivo */}
+                                <div className="grid gap-2">
+                                    <Label htmlFor="motivo">Motivo del Ajuste</Label>
+                                    <Input
+                                        id="motivo"
+                                        value={form.motivo}
+                                        onChange={(event) => setForm(prev => ({ ...prev, motivo: event.target.value }))}
+                                        placeholder="Ej: Producto dañado, Corrección de inventario físico"
+                                    />
+                                </div>
+                            </div>
 
                             <DialogFooter className="pt-2 flex-wrap">
-								<DialogClose asChild>
-									<Button type="button" variant="outline" disabled={saving}>
-										Cancelar
-									</Button>
-								</DialogClose>
-								<Button type="submit" disabled={saving}>
-									{saving ? (
-										<>
-											<Loader2 className="mr-2 size-4 animate-spin" />
-											Registrando...
-										</>
-									) : (
-										<>
-											<Plus className="mr-2 size-4" />
-											Registrar Ajuste
-										</>
-									)}
-								</Button>
-								<Button type="submit" data-action="continue" variant="secondary" disabled={saving}>
-									{saving ? (
-										<>
-											<Loader2 className="mr-2 size-4 animate-spin" />
-											Guardando...
-										</>
-									) : (
-										<>
-											<Plus className="mr-2 size-4" />
-											Registrar y continuar
-										</>
-									)}
-								</Button>
-							</DialogFooter>
-						</form>
-					</DialogContent>
-				</Dialog>
-			</div>
+                                <DialogClose asChild>
+                                    <Button type="button" variant="outline" disabled={saving}>
+                                        Cancelar
+                                    </Button>
+                                </DialogClose>
+                                <Button type="submit" disabled={saving}>
+                                    {saving ? (
+                                        <>
+                                            <Loader2 className="mr-2 size-4 animate-spin" />
+                                            Registrando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="mr-2 size-4" />
+                                            Registrar Ajuste
+                                        </>
+                                    )}
+                                </Button>
+                                <Button type="submit" data-action="continue" variant="secondary" disabled={saving}>
+                                    {saving ? (
+                                        <>
+                                            <Loader2 className="mr-2 size-4 animate-spin" />
+                                            Guardando...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Plus className="mr-2 size-4" />
+                                            Registrar y continuar
+                                        </>
+                                    )}
+                                </Button>
+                            </DialogFooter>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
 
-			{/* Historial de Ajustes: tabla de frente (sin envoltorio) */}
-			{loadingAjustes ? (
-				<div className="flex items-center justify-center py-8">
-					<Loader2 className="size-6 animate-spin text-muted-foreground" />
-				</div>
-			) : ajustes.length === 0 ? (
-				<div className="text-center py-8 text-sm text-muted-foreground">
-					No hay ajustes registrados aún.
-				</div>
-			) : (
-				<>
-					<div className="text-sm text-muted-foreground mb-2">
-						Total de ajustes: {ajustes.length}
-					</div>
-					<EntityDataTable<Ajuste>
-						columns={columns}
-						data={ajustes}
-						toolbarRender={(table) => (
-						<div className="flex items-center gap-2">
-							{/* Filtro por tipo */}
-							<Select
-								value={(table.getColumn("tipo")?.getFilterValue() as string) ?? "all"}
-								onValueChange={(value) => table.getColumn("tipo")?.setFilterValue(value === "all" ? undefined : value)}
-							>
-								<SelectTrigger className="h-9 w-40">
-									<SelectValue placeholder="Tipo" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectItem value="all">Todos</SelectItem>
-									<SelectItem value="entrada">Entrada</SelectItem>
-									<SelectItem value="salida">Salida</SelectItem>
-								</SelectContent>
-							</Select>
+            {/* Barra de búsqueda */}
+            <div className="flex items-center gap-4">
+                <input
+                    type="text"
+                    placeholder="Buscar por producto, motivo o usuario..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                />
+                <div className="text-sm text-muted-foreground">
+                    {totalItems} ajustes encontrados
+                </div>
+            </div>
 
-                          {/* Filtro por producto: buscador inteligente */}
-                          <div className="flex items-center gap-2">
-                            <ProductSearchSelector
-                              selected={toolbarSelectedProduct}
-                              items={productos}
-                              placeholder="Filtrar por producto..."
-                              onSelect={(p) => {
-                                setToolbarSelectedProduct(p);
-                                table.getColumn("producto_id")?.setFilterValue(p.id);
-                              }}
-                            />
-                            {toolbarSelectedProduct && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => {
-                                  setToolbarSelectedProduct(null);
-                                  table.getColumn("producto_id")?.setFilterValue(undefined);
-                                }}
-                              >
-                                Todos
-                              </Button>
+            {/* Lógica de Renderizado Estable (Sin Parpadeos) */}
+            
+            {/* CASO 1: Carga Inicial Absoluta (Solo si no hay datos previos) */}
+            {loadingAjustes && ajustes.length === 0 ? (
+                <div className="flex items-center justify-center py-8">
+                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                </div>
+            ) : ajustes.length === 0 ? (
+                /* CASO 2: Estado Vacío Real (Cargó y no había nada) */
+                <div className="text-center py-8 text-sm text-muted-foreground">
+                    No hay ajustes registrados aún.
+                </div>
+            ) : (
+                /* CASO 3: Visualización de Datos (Siempre visible si existen datos) */
+                <div className="relative">
+                    {/* Indicador sutil de carga en segundo plano */}
+                    {loadingAjustes && (
+                        <div className="absolute top-2 right-2 z-10">
+                            <Loader2 className="size-4 animate-spin text-primary" />
+                        </div>
+                    )}
+                    
+                    {/* Contenedor de Tabla + Paginación */}
+                    {/* Usamos pointer-events-none para bloquear clics mientras carga, pero sin borrar nada */}
+                    <div className={loadingAjustes ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
+                        
+                        {/* TABLA */}
+                        <EntityDataTable<Ajuste>
+                            columns={columns}
+                            data={ajustes}
+                            manualPagination={true}
+                            toolbarRender={() => (
+                                <div className="flex items-center gap-2">
+                                    {/* Filtro por tipo */}
+                                    <Select
+                                        value={tipoFilter}
+                                        onValueChange={(value: "entrada" | "salida" | "all") => {
+                                            setTipoFilter(value);
+                                            setCurrentPage(1);
+                                        }}
+                                    >
+                                        <SelectTrigger className="h-9 w-40">
+                                            <SelectValue placeholder="Tipo" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">Todos</SelectItem>
+                                            <SelectItem value="entrada">Entrada</SelectItem>
+                                            <SelectItem value="salida">Salida</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+
+                                    {/* Filtro por producto */}
+                                    <div className="flex items-center gap-2">
+                                        <ProductSearchSelector
+                                            selected={productos.find(p => p.id === productoIdFilter) || null}
+                                            placeholder="Filtrar por producto..."
+                                            onSelect={(p) => {
+                                                setProductoIdFilter(p.id);
+                                                setCurrentPage(1);
+                                            }}
+                                            items={productos}
+                                        />
+                                        {productoIdFilter && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => {
+                                                    setProductoIdFilter(null);
+                                                    setCurrentPage(1);
+                                                }}
+                                            >
+                                                Limpiar
+                                            </Button>
+                                        )}
+                                    </div>
+
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => void fetchAjustes(
+                                            currentPage, 
+                                            pageSize, 
+                                            searchTerm,
+                                            tipoFilter === "all" ? undefined : tipoFilter,
+                                            productoIdFilter || undefined
+                                        )}
+                                        disabled={loadingAjustes}
+                                    >
+                                        <RefreshCcw className={`mr-2 size-4 ${loadingAjustes ? "animate-spin" : ""}`} />
+                                        Actualizar
+                                    </Button>
+                                </div>
                             )}
-                          </div>
+                        />
 
-							<Button
-								variant="outline"
-								size="sm"
-								onClick={() => void fetchAjustes()}
-								disabled={loadingAjustes}
-							>
-								<RefreshCcw className={`mr-2 size-4 ${loadingAjustes ? "animate-spin" : ""}`} />
-								Actualizar
-							</Button>
-						</div>
-					)}
-				/>
-				</>
-			)}
-		</div>
-	);
+                        {/* --- AQUÍ ESTÁ LA PAGINACIÓN RESTAURADA --- */}
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1 || loadingAjustes}
+                                >
+                                    Anterior
+                                </Button>
+                                <div className="text-sm text-muted-foreground">
+                                    Página {currentPage} de {totalPages}
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages || loadingAjustes}
+                                >
+                                    Siguiente
+                                </Button>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">Filas por página:</span>
+                                <Select
+                                    value={String(pageSize)}
+                                    onValueChange={(v) => {
+                                        setPageSize(Number(v));
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <SelectTrigger className="h-8 w-20">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                        <SelectItem value="100">100</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        {/* --- FIN PAGINACIÓN --- */}
+
+                    </div>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default InventarioPage;

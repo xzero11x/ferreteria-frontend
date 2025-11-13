@@ -1,4 +1,4 @@
-// Página de gestión de clientes refactorizada para usar modales
+// Página de gestión de clientes refactorizada para usar modales (Optimizada)
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Pencil, Trash2, MoreHorizontal } from "lucide-react";
@@ -44,10 +44,13 @@ const ClientesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState(10);
   
-  // Control externo de modales para evitar cierre inmediato al abrir desde el menú
+  // Búsqueda optimizada
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Control externo de modales
   const [editOpen, setEditOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deactivateOpen, setDeactivateOpen] = useState(false);
@@ -71,14 +74,19 @@ const ClientesPage = () => {
     }
   }, []);
 
-  // Consolidado: un solo useEffect con debounce para evitar doble carga
+  // --- 1. EFECTO DE DEBOUNCE (Solo retarda el texto) ---
   useEffect(() => {
     const timer = setTimeout(() => {
-      void fetchClientes(currentPage, pageSize, searchTerm);
+      setDebouncedSearch(searchTerm);
     }, 300);
-    
     return () => clearTimeout(timer);
-  }, [fetchClientes, currentPage, pageSize, searchTerm]);
+  }, [searchTerm]);
+
+  // --- 2. EFECTO DE CARGA (Inmediato ante cambios reales) ---
+  useEffect(() => {
+    // Carga inmediata al montar, cambiar página o terminar el debounce
+    void fetchClientes(currentPage, pageSize, debouncedSearch);
+  }, [fetchClientes, currentPage, pageSize, debouncedSearch]);
 
   const columns = useMemo<ColumnDef<Cliente>[]>(
     () => [
@@ -87,7 +95,8 @@ const ClientesPage = () => {
         accessorKey: "nombre",
         header: "Nombre",
         cell: ({ row }) => <span className="font-medium">{row.original.nombre}</span>,
-        // Búsqueda combinada por Nombre/Email/Documento
+        // Nota: El filtrado local (filterFn) ya no es estrictamente necesario si el backend filtra,
+        // pero lo dejamos por si acaso se usa en modo manual en el futuro.
         filterFn: (row, _id, val?: string) => {
           const q = (val ?? "").toString().toLowerCase();
           if (!q) return true;
@@ -185,13 +194,13 @@ const ClientesPage = () => {
   }
 
   return (
-		<div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Clientes</h1>
         <div className="flex items-center gap-2">
           <CreateClientDialog onCreated={(created) => {
             setClientes((prev) => [created, ...prev]);
-            void fetchClientes(currentPage, pageSize, searchTerm);
+            void fetchClientes(currentPage, pageSize, debouncedSearch);
           }} />
         </div>
       </div>
@@ -202,7 +211,10 @@ const ClientesPage = () => {
           type="text"
           placeholder="Buscar por nombre, documento, email o teléfono..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => {
+              setSearchTerm(e.target.value);
+              if (e.target.value === "") setCurrentPage(1);
+          }}
           className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
         />
         <div className="text-sm text-muted-foreground">
@@ -210,74 +222,88 @@ const ClientesPage = () => {
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          Cargando clientes...
-        </div>
-      ) : error ? (
+      {/* Mensajes de error */}
+      {error && (
         <div className="text-sm text-red-600" aria-live="assertive">
           {error}
         </div>
-      ) : clientes.length === 0 ? (
-        <div className="text-sm text-muted-foreground">No hay clientes activos.</div>
-      ) : (
-        <EntityDataTable
-          columns={columns}
-          data={clientes}
-          manualPagination={true}
-        />
       )}
 
-      {/* Controles de paginación */}
-      {!loading && !error && clientes.length > 0 && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1 || loading}
-            >
-              Anterior
-            </Button>
-            <div className="text-sm text-muted-foreground">
-              Página {currentPage} de {totalPages}
+      {/* Lógica de Renderizado Estable (Sin Parpadeos) */}
+      {loading && clientes.length === 0 ? (
+        // CASO 1: Carga inicial absoluta (Spinner Grande)
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : clientes.length === 0 && !error ? (
+        // CASO 2: No hay datos
+        <div className="text-sm text-muted-foreground">No hay clientes activos.</div>
+      ) : (
+        // CASO 3: Tabla siempre visible
+        <div className="relative">
+            {loading && (
+                <div className="absolute top-2 right-2 z-10">
+                    <Loader2 className="size-4 animate-spin text-primary" />
+                </div>
+            )}
+            
+            <div className={loading ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
+                <EntityDataTable
+                    columns={columns}
+                    data={clientes}
+                    manualPagination={true}
+                />
+
+                {/* Controles de paginación */}
+                <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1 || loading}
+                    >
+                        Anterior
+                    </Button>
+                    <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
+                    </div>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages || loading}
+                    >
+                        Siguiente
+                    </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                    <span className="text-sm text-muted-foreground">Filas por página:</span>
+                    <Select
+                        value={String(pageSize)}
+                        onValueChange={(v) => {
+                        setPageSize(Number(v));
+                        setCurrentPage(1);
+                        }}
+                    >
+                        <SelectTrigger className="h-8 w-20">
+                        <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                        <SelectItem value="10">10</SelectItem>
+                        <SelectItem value="20">20</SelectItem>
+                        <SelectItem value="50">50</SelectItem>
+                        <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    </div>
+                </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages || loading}
-            >
-              Siguiente
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Filas por página:</span>
-            <Select
-              value={String(pageSize)}
-              onValueChange={(v) => {
-                setPageSize(Number(v));
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-20">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-                <SelectItem value="100">100</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       )}
 
-      {/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
+      {/* Modales */}
       {editingCliente && (
         <EditClientDialog
           cliente={editingCliente}

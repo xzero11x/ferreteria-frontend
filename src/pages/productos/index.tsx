@@ -1,4 +1,4 @@
-// Página de gestión de productos con CRUD completo (migrada a modales)
+// Página de gestión de productos con CRUD completo (Optimizada V3)
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Trash2, PlusCircle, MoreHorizontal, Pencil, Settings } from "lucide-react";
@@ -33,23 +33,22 @@ import type { ColumnDef } from "@tanstack/react-table";
 import { EntityDataTable } from "@/components/entity-data-table";
 import type { Producto } from "@/services/productos";
 import {
-	deactivateProducto,
-	listProductos,
+  deactivateProducto,
+  listProductos,
 } from "@/services/productos";
 import CreateProductDialog from "@/components/CreateProductDialog";
 import EditProductDialog from "@/components/EditProductDialog";
 
 // Utilidad local para mostrar moneda
-
 function formatCurrency(value: string | number | null | undefined) {
-	if (value === null || value === undefined) return "—";
-	const num = typeof value === "string" ? Number(value) : value;
-	if (Number.isNaN(num)) return String(value);
-	return new Intl.NumberFormat("es-PE", {
-		style: "currency",
-		currency: "PEN",
-		minimumFractionDigits: 2,
-	}).format(num);
+  if (value === null || value === undefined) return "—";
+  const num = typeof value === "string" ? Number(value) : value;
+  if (Number.isNaN(num)) return String(value);
+  return new Intl.NumberFormat("es-PE", {
+    style: "currency",
+    currency: "PEN",
+    minimumFractionDigits: 2,
+  }).format(num);
 }
 
 const ProductosPage = () => {
@@ -58,14 +57,17 @@ const ProductosPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
   
-  // Estados de paginación server-side
+  // Estados de paginación y búsqueda
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [searchTerm, setSearchTerm] = useState("");
   const [pageSize, setPageSize] = useState(10);
   
-  // Control externo de modales para evitar cierre inmediato al abrir desde el menú
+  const [searchTerm, setSearchTerm] = useState("");
+  // Estado intermedio para el valor "confirmado" después de los 300ms
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  // Control de modales
   const [editOpen, setEditOpen] = useState(false);
   const [editingProducto, setEditingProducto] = useState<Producto | null>(null);
   const [deactivateOpen, setDeactivateOpen] = useState(false);
@@ -73,33 +75,41 @@ const ProductosPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-	const fetchProductos = useCallback(async (page: number, limit: number, search: string) => {
-		setLoading(true);
-		setError(null);
-		try {
-			const response = await listProductos({ page, limit, q: search || undefined });
-			setProductos(response.data);
-			setTotalPages(response.meta.totalPages);
-			setTotalItems(response.meta.total);
-			setCurrentPage(response.meta.page);
-		} catch (err: any) {
-			const message = err?.body?.message || err?.message || "No se pudieron cargar los productos";
-			setError(message);
-			toast.error(message);
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+  const fetchProductos = useCallback(async (page: number, limit: number, search: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await listProductos({ page, limit, q: search || undefined });
+      setProductos(response.data);
+      setTotalPages(response.meta.totalPages);
+      setTotalItems(response.meta.total);
+      setCurrentPage(response.meta.page);
+    } catch (err: any) {
+      const message = err?.body?.message || err?.message || "No se pudieron cargar los productos";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Consolidado: un solo useEffect con debounce para evitar doble carga
+  // --- 1. EFECTO DE DEBOUNCE (Solo afecta al escribir) ---
   useEffect(() => {
+    // Si el texto cambia, esperamos 300ms antes de actualizar la variable "real"
     const timer = setTimeout(() => {
-      void fetchProductos(currentPage, pageSize, searchTerm);
+      setDebouncedSearch(searchTerm);
     }, 300);
-    
     return () => clearTimeout(timer);
-  }, [fetchProductos, currentPage, pageSize, searchTerm]);
+  }, [searchTerm]);
 
+  // --- 2. EFECTO DE CARGA (Reacciona INMEDIATAMENTE a cambios reales) ---
+  useEffect(() => {
+    // Si cambias de página -> Carga YA.
+    // Si cambias el límite -> Carga YA.
+    // Si el debounce terminó -> Carga YA.
+    // Si entras por primera vez -> Carga YA.
+    void fetchProductos(currentPage, pageSize, debouncedSearch);
+  }, [fetchProductos, currentPage, pageSize, debouncedSearch]);
 
 
   async function handleDeactivate(producto: Producto) {
@@ -234,238 +244,257 @@ const ProductosPage = () => {
         enableHiding: false,
       },
     ],
-    [deactivatingId, user?.rol]
+    [deactivatingId, user?.rol, navigate]
   );
 
   return (
-		<div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
-			<div className="flex items-center justify-between">
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+      <div className="flex items-center justify-between">
             <h1 className="text-2xl font-semibold">Productos</h1>
-				<div className="flex items-center gap-2">
-					<CreateProductDialog
-						onCreated={(created) => {
-							setProductos((prev) => [created, ...prev]);
-							void fetchProductos(currentPage, pageSize, searchTerm);
-						}}
-					/>
-				</div>
-			</div>
-
-			{/* Barra de búsqueda */}
-			<div className="flex items-center gap-4">
-				<input
-					type="text"
-					placeholder="Buscar por nombre, SKU o descripción..."
-					value={searchTerm}
-					onChange={(e) => setSearchTerm(e.target.value)}
-					className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-				/>
-				<div className="text-sm text-muted-foreground">
-					{totalItems} productos encontrados
-				</div>
-			</div>
-
-			{loading ? (
-				<div className="flex items-center gap-2 text-sm text-muted-foreground">
-					<Loader2 className="size-4 animate-spin" />
-					Cargando productos...
-				</div>
-			) : error ? (
-				<div className="text-sm text-red-600" aria-live="assertive">
-					{error}
-				</div>
-			) : productos.length === 0 ? (
-				<div className="text-sm text-muted-foreground">No hay productos activos.</div>
-			) : (
-			<EntityDataTable
-        columns={columns}
-        data={productos}
-        manualPagination={true}
-        toolbarRender={(table) => {
-          // Compute unique category options from current products
-          const categoryMap = new Map<number, string>();
-          for (const p of productos) {
-            if (p.categoria_id != null) {
-              categoryMap.set(Number(p.categoria_id), String(p.categoria?.nombre ?? `#${p.categoria_id}`));
-            }
-          }
-          const categoryOptions = Array.from(categoryMap.entries());
-          const priceRanges = [
-            { label: "Cualquiera", value: undefined },
-            { label: "< 50", value: { max: 50 } },
-            { label: "50–100", value: { min: 50, max: 100 } },
-            { label: "100–200", value: { min: 100, max: 200 } },
-            { label: "> 200", value: { min: 200 } },
-          ];
-          const currentPrice = table.getColumn("precio_venta")?.getFilterValue() as any;
-          const priceLabel = priceRanges.find((r) => JSON.stringify(r.value) === JSON.stringify(currentPrice))?.label ?? "Cualquiera";
-
-          return (
-            <div className="flex items-center gap-2">
-              {/* Estado */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  {(() => {
-                    const val = (table.getColumn("stock")?.getFilterValue() as string) || "all";
-                    const label =
-                      val === "in_stock"
-                        ? "Con stock"
-                        : val === "out_of_stock"
-                        ? "Sin stock"
-                        : val === "low_stock"
-                        ? "Bajo stock"
-                        : "Todos";
-                    return (
-                      <Button variant="outline" className="h-9">
-                        <PlusCircle className="mr-2 size-4" /> Estado: {label}
-                      </Button>
-                    );
-                  })()}
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40">
-                  <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("all")}>Todos</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("in_stock")}>Con stock</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("out_of_stock")}>Sin stock</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("low_stock")}>Bajo stock</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Select
-                value={(table.getColumn("categoria")?.getFilterValue() as any) ?? undefined}
-                onValueChange={(v) => table.getColumn("categoria")?.setFilterValue(v === "all" ? "all" : v)}
-              >
-                <SelectTrigger size="default" className="h-9 w-44">
-                  <PlusCircle className="mr-2 size-4" />
-                  <SelectValue placeholder="Categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas</SelectItem>
-                  <SelectItem value="none">Sin categoría</SelectItem>
-                  {categoryOptions.map(([id, name]) => (
-                    <SelectItem key={id} value={String(id)}>
-                      {name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              {/* Precio */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="h-9">
-                    <span className="text-muted-foreground">Precio:</span>
-                    <span className="ml-1">{priceLabel}</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-40">
-                  {priceRanges.map((r) => (
-                    <DropdownMenuItem key={r.label} onClick={() => table.getColumn("precio_venta")?.setFilterValue(r.value)}>
-                      {r.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          );
-        }}
-      />
-			)}
-			
-			{/* Controles de paginación */}
-			{!loading && !error && productos.length > 0 && (
-				<div className="flex items-center justify-between">
-					<div className="flex items-center gap-2">
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-							disabled={currentPage === 1 || loading}
-						>
-							Anterior
-						</Button>
-						<div className="text-sm text-muted-foreground">
-							Página {currentPage} de {totalPages}
-						</div>
-						<Button
-							variant="outline"
-							size="sm"
-							onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-							disabled={currentPage === totalPages || loading}
-						>
-							Siguiente
-						</Button>
-					</div>
-					
-					<div className="flex items-center gap-2">
-						<span className="text-sm text-muted-foreground">Filas por página:</span>
-						<Select
-							value={String(pageSize)}
-							onValueChange={(v) => {
-								setPageSize(Number(v));
-								setCurrentPage(1);
-							}}
-						>
-							<SelectTrigger className="h-8 w-20">
-								<SelectValue />
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="10">10</SelectItem>
-								<SelectItem value="20">20</SelectItem>
-								<SelectItem value="50">50</SelectItem>
-								<SelectItem value="100">100</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
-				</div>
-			)}
-			
-				{/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
-        {editingProducto && (
-          <EditProductDialog
-            producto={editingProducto}
-            open={editOpen}
-            onOpenChange={(open) => {
-              setEditOpen(open);
-              if (!open) setEditingProducto(null);
+        <div className="flex items-center gap-2">
+          <CreateProductDialog
+            onCreated={(created) => {
+              setProductos((prev) => [created, ...prev]);
+              void fetchProductos(currentPage, pageSize, debouncedSearch);
             }}
-            onUpdated={(updated) =>
-              setProductos((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
-            }
           />
-        )}
-        <AlertDialog
-          open={deactivateOpen}
-          onOpenChange={(open) => {
-            setDeactivateOpen(open);
-            if (!open) setConfirmProducto(null);
+        </div>
+      </div>
+
+      {/* Barra de búsqueda */}
+      <div className="flex items-center gap-4">
+        <input
+          type="text"
+          placeholder="Buscar por nombre, SKU o descripción..."
+          value={searchTerm}
+          onChange={(e) => {
+              setSearchTerm(e.target.value);
+              // Opcional: Si borra todo, reseteamos a pág 1
+              if (e.target.value === "") setCurrentPage(1);
           }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Desactivar producto</AlertDialogTitle>
-              <AlertDialogDescription>
-                {confirmProducto
-                  ? `¿Desactivar el producto "${confirmProducto.nombre}"? Ya no aparecerá en los listados.`
-                  : "¿Desactivar el producto seleccionado?"}
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={() => {
-                  if (confirmProducto) {
-                    handleDeactivate(confirmProducto);
-                    setDeactivateOpen(false);
-                  }
-                }}
-              >
-                Confirmar
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-				</div>
-		  );
+          className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <div className="text-sm text-muted-foreground">
+          {totalItems} productos encontrados
+        </div>
+      </div>
+
+      {/* Mensaje de Error */}
+      {error && (
+        <div className="text-sm text-red-600" aria-live="assertive">
+          {error}
+        </div>
+      )}
+
+      {/* Lógica de Renderizado Estable (Igual que Inventario) */}
+      {loading && productos.length === 0 ? (
+        // CASO 1: Carga inicial absoluta
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="size-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : productos.length === 0 && !error ? (
+        // CASO 2: Vacío real
+        <div className="text-sm text-muted-foreground">No hay productos activos.</div>
+      ) : (
+        // CASO 3: Tabla siempre visible + Indicador de carga sutil
+        <div className="relative">
+            {loading && (
+                <div className="absolute top-2 right-2 z-10">
+                    <Loader2 className="size-4 animate-spin text-primary" />
+                </div>
+            )}
+            
+            {/* Mantenemos la tabla visible, solo bloqueamos clics si carga */}
+            <div className={loading ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
+                <EntityDataTable
+                    columns={columns}
+                    data={productos}
+                    manualPagination={true}
+                    toolbarRender={(table) => {
+                        // ... (Tu código de toolbar se mantiene igual) ...
+                        const categoryMap = new Map<number, string>();
+                        for (const p of productos) {
+                            if (p.categoria_id != null) {
+                            categoryMap.set(Number(p.categoria_id), String(p.categoria?.nombre ?? `#${p.categoria_id}`));
+                            }
+                        }
+                        const categoryOptions = Array.from(categoryMap.entries());
+                        const priceRanges = [
+                            { label: "Cualquiera", value: undefined },
+                            { label: "< 50", value: { max: 50 } },
+                            { label: "50–100", value: { min: 50, max: 100 } },
+                            { label: "100–200", value: { min: 100, max: 200 } },
+                            { label: "> 200", value: { min: 200 } },
+                        ];
+                        const currentPrice = table.getColumn("precio_venta")?.getFilterValue() as any;
+                        const priceLabel = priceRanges.find((r) => JSON.stringify(r.value) === JSON.stringify(currentPrice))?.label ?? "Cualquiera";
+
+                        return (
+                            <div className="flex items-center gap-2">
+                            {/* Estado */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                {(() => {
+                                    const val = (table.getColumn("stock")?.getFilterValue() as string) || "all";
+                                    const label =
+                                    val === "in_stock"
+                                        ? "Con stock"
+                                        : val === "out_of_stock"
+                                        ? "Sin stock"
+                                        : val === "low_stock"
+                                        ? "Bajo stock"
+                                        : "Todos";
+                                    return (
+                                    <Button variant="outline" className="h-9">
+                                        <PlusCircle className="mr-2 size-4" /> Estado: {label}
+                                    </Button>
+                                    );
+                                })()}
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-40">
+                                <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("all")}>Todos</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("in_stock")}>Con stock</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("out_of_stock")}>Sin stock</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => table.getColumn("stock")?.setFilterValue("low_stock")}>Bajo stock</DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
+                            <Select
+                                value={(table.getColumn("categoria")?.getFilterValue() as any) ?? undefined}
+                                onValueChange={(v) => table.getColumn("categoria")?.setFilterValue(v === "all" ? "all" : v)}
+                            >
+                                <SelectTrigger size="default" className="h-9 w-44">
+                                <PlusCircle className="mr-2 size-4" />
+                                <SelectValue placeholder="Categoría" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                <SelectItem value="all">Todas</SelectItem>
+                                <SelectItem value="none">Sin categoría</SelectItem>
+                                {categoryOptions.map(([id, name]) => (
+                                    <SelectItem key={id} value={String(id)}>
+                                    {name}
+                                    </SelectItem>
+                                ))}
+                                </SelectContent>
+                            </Select>
+
+                            {/* Precio */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="h-9">
+                                    <span className="text-muted-foreground">Precio:</span>
+                                    <span className="ml-1">{priceLabel}</span>
+                                </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-40">
+                                {priceRanges.map((r) => (
+                                    <DropdownMenuItem key={r.label} onClick={() => table.getColumn("precio_venta")?.setFilterValue(r.value)}>
+                                    {r.label}
+                                    </DropdownMenuItem>
+                                ))}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                            </div>
+                        );
+                    }}
+                />
+
+                {/* Controles de paginación SIEMPRE VISIBLES */}
+                <div className="flex items-center justify-between mt-4">
+                    <div className="flex items-center gap-2">
+                        <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1 || loading}
+                        >
+                        Anterior
+                        </Button>
+                        <div className="text-sm text-muted-foreground">
+                        Página {currentPage} de {totalPages}
+                        </div>
+                        <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages || loading}
+                        >
+                        Siguiente
+                        </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-muted-foreground">Filas por página:</span>
+                        <Select
+                        value={String(pageSize)}
+                        onValueChange={(v) => {
+                            setPageSize(Number(v));
+                            setCurrentPage(1);
+                        }}
+                        >
+                        <SelectTrigger className="h-8 w-20">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="10">10</SelectItem>
+                            <SelectItem value="20">20</SelectItem>
+                            <SelectItem value="50">50</SelectItem>
+                            <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
+      
+      {/* Modales ... (El resto del código se mantiene igual) */}
+      {editingProducto && (
+        <EditProductDialog
+          producto={editingProducto}
+          open={editOpen}
+          onOpenChange={(open) => {
+            setEditOpen(open);
+            if (!open) setEditingProducto(null);
+          }}
+          onUpdated={(updated) =>
+            setProductos((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
+          }
+        />
+      )}
+      <AlertDialog
+        open={deactivateOpen}
+        onOpenChange={(open) => {
+          setDeactivateOpen(open);
+          if (!open) setConfirmProducto(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Desactivar producto</AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmProducto
+                ? `¿Desactivar el producto "${confirmProducto.nombre}"? Ya no aparecerá en los listados.`
+                : "¿Desactivar el producto seleccionado?"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (confirmProducto) {
+                  handleDeactivate(confirmProducto);
+                  setDeactivateOpen(false);
+                }
+              }}
+            >
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </div>
+  );
 };
 
 export default ProductosPage;
