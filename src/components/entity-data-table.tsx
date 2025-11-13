@@ -54,6 +54,7 @@ type EntityDataTableProps<TData> = {
   searchKey?: string
   pageSizeOptions?: number[]
   toolbarRender?: (table: ReactTable<TData>) => React.ReactNode
+  manualPagination?: boolean // Nueva prop para desactivar paginación interna
 }
 
 export function EntityDataTable<TData>({
@@ -62,6 +63,7 @@ export function EntityDataTable<TData>({
   searchKey,
   pageSizeOptions = [10, 20, 50],
   toolbarRender,
+  manualPagination = false,
 }: EntityDataTableProps<TData>) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
@@ -84,12 +86,15 @@ export function EntityDataTable<TData>({
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    initialState: {
-      pagination: {
-        pageSize: pageSizeOptions[0] ?? 10,
+    // Solo usar paginación interna si no es manual
+    ...(manualPagination ? {} : { 
+      getPaginationRowModel: getPaginationRowModel(),
+      initialState: {
+        pagination: {
+          pageSize: pageSizeOptions[0] ?? 10,
+        },
       },
-    },
+    }),
   })
 
   const filterValue = (table.getColumn(searchKey ?? "")?.getFilterValue() as string) ?? ""
@@ -172,6 +177,8 @@ export function EntityDataTable<TData>({
         </Table>
       </div>
 
+      {/* Solo mostrar controles de paginación si no es manual */}
+      {!manualPagination && (
       <div className="flex items-center justify-between gap-2">
         <div className="hidden flex-1 text-sm text-muted-foreground lg:flex">
           {table.getFilteredSelectedRowModel().rows.length} seleccionado(s) de {table.getFilteredRowModel().rows.length}
@@ -244,6 +251,7 @@ export function EntityDataTable<TData>({
           </div>
         </div>
       </div>
+      )}
     </div>
   )
 }

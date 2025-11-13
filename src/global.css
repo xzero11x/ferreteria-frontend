@@ -161,3 +161,52 @@
 .pos-page input[type="number"] {
   -moz-appearance: textfield;
 }
+/* Modern Scrollbar: container-scoped, no layout shift, only bar */
+:root {
+  --scrollbar-size: 8px;
+  --scrollbar-radius: 999px;
+  --scrollbar-thumb: hsl(var(--muted-foreground));
+  --scrollbar-thumb-hover: hsl(var(--foreground));
+}
+
+/* Reserve gutter to avoid content movement when scrollbar appears */
+[data-scrollable="true"] {
+  scrollbar-gutter: stable both-edges;
+}
+
+/* Firefox: thin bar; invisible by default for each container */
+[data-scrollable="true"] {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+[data-scrollable="true"][data-scrolling="true"] {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* WebKit: keep size constant; thumb transparent until scroll/hover */
+[data-scrollable="true"]::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+[data-scrollable="true"]::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: var(--scrollbar-radius);
+}
+[data-scrollable="true"][data-scrolling="true"]::-webkit-scrollbar-thumb {
+  background-color: var(--scrollbar-thumb);
+}
+[data-scrollable="true"]::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+  background: transparent;
+}
+[data-scrollable="true"]::-webkit-scrollbar-track,
+[data-scrollable="true"]::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Sidebar content uses same behavior */
+[data-sidebar="content"] {
+  overscroll-behavior: contain;
+}

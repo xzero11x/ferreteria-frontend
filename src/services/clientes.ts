@@ -1,6 +1,7 @@
 // Servicio de API para gestión de clientes
 import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";
+import type { PaginationParams, PaginatedResponse } from "@/types/api";
 
 export type Cliente = {
   id: number;
@@ -25,8 +26,23 @@ export type ClienteUpdateInput = Partial<ClienteCreateInput> & {
   nombre?: string;
 };
 
-export async function listClientes() {
-  return http.get<Cliente[]>(endpoints.clientes.list());
+// V2: Retorna respuesta paginada completa con metadata
+export async function listClientes(params: PaginationParams = {}): Promise<PaginatedResponse<Cliente>> {
+  const { page, limit, q } = params;
+  const qs = new URLSearchParams();
+  if (page != null) qs.set("page", String(page));
+  if (limit != null) qs.set("limit", String(limit));
+  if (q) qs.set("q", q);
+  const url = `${endpoints.clientes.list()}${qs.toString() ? `?${qs.toString()}` : ""}`;
+  const res = await http.get<PaginatedResponse<Cliente>>(url);
+  return res;
+}
+
+// Búsqueda remota de clientes por término (nombre, documento, email, teléfono)
+// Retorna solo el array de clientes para compatibilidad con selectores
+export async function searchClientes(term: string, params: Omit<PaginationParams, "q"> = {}): Promise<Cliente[]> {
+  const response = await listClientes({ ...params, q: term });
+  return response.data;
 }
 
 export async function createCliente(data: ClienteCreateInput) {

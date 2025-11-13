@@ -2,19 +2,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Loader2, Package, Plus, RefreshCcw, History } from "lucide-react";
+import { Loader2, Package, Plus, RefreshCcw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-	Table,
-	TableBody,
-	TableCell,
-	TableHead,
-	TableHeader,
-	TableRow,
-} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import {
 	Select,
@@ -50,7 +42,7 @@ const InventarioPage = () => {
   const [searchParams] = useSearchParams();
   const [productos, setProductos] = useState<Producto[]>([]);
   const [ajustes, setAjustes] = useState<Ajuste[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingProductos, setLoadingProductos] = useState(true);
   const [loadingAjustes, setLoadingAjustes] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<AjusteFormState>(initialFormState);
@@ -60,27 +52,42 @@ const InventarioPage = () => {
   const cantidadRef = useRef<HTMLInputElement | null>(null);
 
 	const fetchProductos = useCallback(async () => {
-		setLoading(true);
+		setLoadingProductos(true);
 		try {
-			const data = await listProductos();
-			setProductos(data.sort((a, b) => a.nombre.localeCompare(b.nombre, "es")));
+			const response = await listProductos({ limit: 1000 }); // Cargar todos los productos para selección
+			setProductos(response.data.sort((a, b) => a.nombre.localeCompare(b.nombre, "es")));
 		} catch (err: any) {
 			const message = err?.body?.message || err?.message || "No se pudieron cargar los productos";
 			toast.error(message);
 		} finally {
-			setLoading(false);
+			setLoadingProductos(false);
 		}
 	}, []);
 
 	const fetchAjustes = useCallback(async () => {
 		setLoadingAjustes(true);
 		try {
-			const data = await listAjustes();
+			const response = await listAjustes(); // Devuelve { data: [...], meta: {...} }
+			console.log('📊 Respuesta COMPLETA de API:', response);
+			console.log('📊 Ajustes (data):', response.data);
+			console.log('📊 Paginación (meta):', response.meta);
+			
+			// ✅ SOLUCIÓN: Extraer solo el array de 'data'
+			const ajustesData = response.data;
+			
 			// Ordenar por fecha descendente (más recientes primero)
-			setAjustes(data.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime()));
+			const sorted = ajustesData.sort((a, b) => {
+				const dateA = new Date(a.created_at || 0).getTime();
+				const dateB = new Date(b.created_at || 0).getTime();
+				return dateB - dateA;
+			});
+			
+			console.log('📊 Total ajustes recibidos:', sorted.length);
+			setAjustes(sorted);
 		} catch (err: any) {
 			const message = err?.body?.message || err?.message || "No se pudieron cargar los ajustes";
 			toast.error(message);
+			console.error('❌ Error cargando ajustes:', err);
 		} finally {
 			setLoadingAjustes(false);
 		}
@@ -96,11 +103,15 @@ const InventarioPage = () => {
 		const pid = searchParams.get("productoId");
 		if (!pid) return;
 		if (productos.length === 0) return;
-		setForm(prev => {
-			if (prev.producto_id) return prev; // no sobrescribir si ya hay selección
-			const exists = productos.some(p => String(p.id) === pid);
-			return exists ? { ...prev, producto_id: pid } : prev;
-		});
+		
+		const productoId = pid;
+		const exists = productos.find(p => String(p.id) === productoId);
+		
+		if (exists) {
+			setForm(prev => ({ ...prev, producto_id: productoId }));
+			setSelectedProductoInfo(exists);
+			setDialogOpen(true); // Abrir el modal automáticamente
+		}
 	}, [searchParams, productos]);
 
 	function resetForm() {
@@ -140,7 +151,9 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 	setSaving(true);
 	try {
 		const payload = buildPayload();
-		await createAjuste(payload);
+		console.log('📝 Registrando ajuste:', payload);
+		const ajusteCreado = await createAjuste(payload);
+		console.log('✅ Ajuste creado:', ajusteCreado);
 			
 			// Actualizar el stock del producto en la lista local
 			const producto = productos.find(p => p.id === payload.producto_id);
@@ -170,10 +183,12 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		}
 		
 		// Recargar el historial de ajustes
+		console.log('🔄 Recargando historial de ajustes...');
 		await fetchAjustes();
 	} catch (err: any) {
 		const message = err?.message || err?.body?.message || "Error al registrar el ajuste";
 		toast.error(message);
+		console.error('❌ Error al registrar ajuste:', err);
 	} finally {
 		setSaving(false);
 	}
@@ -183,19 +198,24 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 
 	const columns = useMemo<ColumnDef<Ajuste>[]>(() => [
     {
-      accessorKey: "fecha",
+      id: "fecha",
       header: "Fecha",
-      cell: ({ row }) => (
-        <span className="text-sm tabular-nums">
-          {new Date(row.original.fecha).toLocaleString("es-PE", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
-        </span>
-      ),
+      accessorFn: (row) => row.created_at, // ✅ Campo real del backend
+      cell: ({ getValue }) => {
+        const fechaStr = getValue<string>();
+        if (!fechaStr) return "—";
+        return (
+          <span className="text-sm tabular-nums">
+            {new Date(fechaStr).toLocaleString("es-PE", {
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </span>
+        );
+      },
     },
     {
       id: "producto",
@@ -281,6 +301,12 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 										{/* Selector de Producto */}
 										<div className="grid gap-2">
 											<Label htmlFor="producto_id">Producto</Label>
+                                            {loadingProductos ? (
+                                              <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                                                <Loader2 className="size-4 animate-spin" />
+                                                Cargando productos...
+                                              </div>
+                                            ) : (
                                             <ProductSearchSelector
                                               selected={selectedProducto ?? selectedProductoInfo}
                                               items={productos}
@@ -293,6 +319,7 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
                                               placeholder="Buscar por nombre, SKU o escanear código..."
                                               disabled={saving}
                                             />
+                                            )}
                                             {(selectedProducto ?? selectedProductoInfo) && (
                                               <p className="text-sm text-muted-foreground">
                                                     Stock actual: <span className="font-semibold">{(selectedProducto ?? selectedProductoInfo)!.stock}</span> unidades
@@ -386,12 +413,19 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 				<div className="flex items-center justify-center py-8">
 					<Loader2 className="size-6 animate-spin text-muted-foreground" />
 				</div>
+			) : ajustes.length === 0 ? (
+				<div className="text-center py-8 text-sm text-muted-foreground">
+					No hay ajustes registrados aún.
+				</div>
 			) : (
-				<EntityDataTable<Ajuste>
-					columns={columns}
-					data={ajustes}
-					searchKey={"producto"}
-					toolbarRender={(table) => (
+				<>
+					<div className="text-sm text-muted-foreground mb-2">
+						Total de ajustes: {ajustes.length}
+					</div>
+					<EntityDataTable<Ajuste>
+						columns={columns}
+						data={ajustes}
+						toolbarRender={(table) => (
 						<div className="flex items-center gap-2">
 							{/* Filtro por tipo */}
 							<Select
@@ -445,6 +479,7 @@ async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 						</div>
 					)}
 				/>
+				</>
 			)}
 		</div>
 	);
