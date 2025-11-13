@@ -46,66 +46,38 @@ const data = {
     avatar: "/avatars/shadcn.jpg",
   },
   navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: LayoutDashboardIcon,
-    },
-    {
-      title: "Productos",
-      url: "/dashboard/productos",
-      icon: BoxIcon,
-    },
-    {
-      title: "Categorías",
-      url: "/dashboard/categorias",
-      icon: TagsIcon,
-    },
-    {
-      title: "Inventario",
-      url: "/dashboard/inventario",
-      icon: BoxesIcon,
-    },
-    {
-      title: "Usuarios",
-      url: "/dashboard/usuarios",
-      icon: UserCogIcon,
-    },
-    {
-      title: "Clientes",
-      url: "/dashboard/clientes",
-      icon: UsersIcon,
-    },
-    {
-      title: "Proveedores",
-      url: "/dashboard/proveedores",
-      icon: TruckIcon,
-    },
-    {
-      title: "Pedidos",
-      url: "/dashboard/pedidos",
-      icon: ClipboardCheckIcon,
-    },
-    {
-      title: "Ventas",
-      url: "/dashboard/ventas",
-      icon: ShoppingCartIcon,
-    },
-    {
-      title: "Compras",
-      url: "/dashboard/compras",
-      icon: ShoppingBagIcon,
-    },
-    {
-      title: "Reportes",
-      url: "/dashboard/reportes",
-      icon: BarChartIcon,
-    },
-    {
-      title: "Configuración",
-      url: "/dashboard/configuracion",
-      icon: SettingsIcon,
-    },
+    // Dashboard
+    { label: "Dashboard-Inicio" },
+    { title: "Dashboard", url: "/dashboard", icon: LayoutDashboardIcon },
+
+    // Ventas (POS)
+    { label: "Ventas (POS)" },
+    { title: "Ventas", url: "/dashboard/ventas", icon: ShoppingCartIcon },
+    { title: "Clientes", url: "/dashboard/clientes", icon: UsersIcon },
+    { title: "Pedidos", url: "/dashboard/pedidos", icon: ClipboardCheckIcon },
+
+    // Catálogo
+    { label: "Catálogo" },
+    { title: "Productos", url: "/dashboard/productos", icon: BoxIcon },
+    { title: "Categorías", url: "/dashboard/categorias", icon: TagsIcon },
+
+    // Inventario
+    { label: "Inventario" },
+    { title: "Inventario", url: "/dashboard/inventario", icon: BoxesIcon },
+
+    // Compras
+    { label: "Compras" },
+    { title: "Compras", url: "/dashboard/compras", icon: ShoppingBagIcon },
+    { title: "Proveedores", url: "/dashboard/proveedores", icon: TruckIcon },
+
+    // Reportes
+    { label: "Reportes" },
+    { title: "Reportes", url: "/dashboard/reportes", icon: BarChartIcon },
+
+    // Configuración
+    { label: "Configuración" },
+    { title: "Configuración", url: "/dashboard/configuracion", icon: SettingsIcon },
+    { title: "Usuarios", url: "/dashboard/usuarios", icon: UserCogIcon },
   ],
   navClouds: [
     {

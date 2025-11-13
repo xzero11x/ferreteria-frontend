@@ -2,13 +2,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Trash2, PlusCircle, MoreHorizontal, Pencil, Settings } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -53,15 +52,19 @@ function formatCurrency(value: string | number | null | undefined) {
 	}).format(num);
 }
 
-function sortByNombre(items: Producto[]) {
-	return [...items].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-}
-
 const ProductosPage = () => {
   const [productos, setProductos] = useState<Producto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
+  
+  // Estados de paginación server-side
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  
   // Control externo de modales para evitar cierre inmediato al abrir desde el menú
   const [editOpen, setEditOpen] = useState(false);
   const [editingProducto, setEditingProducto] = useState<Producto | null>(null);
@@ -70,12 +73,15 @@ const ProductosPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-	const fetchProductos = useCallback(async () => {
+	const fetchProductos = useCallback(async (page: number, limit: number, search: string) => {
 		setLoading(true);
 		setError(null);
 		try {
-			const data = await listProductos();
-			setProductos(sortByNombre(data));
+			const response = await listProductos({ page, limit, q: search || undefined });
+			setProductos(response.data);
+			setTotalPages(response.meta.totalPages);
+			setTotalItems(response.meta.total);
+			setCurrentPage(response.meta.page);
 		} catch (err: any) {
 			const message = err?.body?.message || err?.message || "No se pudieron cargar los productos";
 			setError(message);
@@ -85,9 +91,14 @@ const ProductosPage = () => {
 		}
 	}, []);
 
+  // Consolidado: un solo useEffect con debounce para evitar doble carga
   useEffect(() => {
-    void fetchProductos();
-  }, [fetchProductos]);
+    const timer = setTimeout(() => {
+      void fetchProductos(currentPage, pageSize, searchTerm);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [fetchProductos, currentPage, pageSize, searchTerm]);
 
 
 
@@ -96,6 +107,7 @@ const ProductosPage = () => {
     try {
       await deactivateProducto(producto.id);
       setProductos((prev) => prev.filter((item) => item.id !== producto.id));
+      setTotalItems((prev) => prev - 1);
       toast.success("Producto desactivado");
     } catch (err: any) {
       const message = err?.body?.message || err?.message || "No se pudo desactivar";
@@ -104,10 +116,6 @@ const ProductosPage = () => {
       setDeactivatingId(null);
     }
   }
-
-	function handleReload() {
-		void fetchProductos();
-	}
 
   const columns = useMemo<ColumnDef<Producto>[]>(
     () => [
@@ -235,11 +243,27 @@ const ProductosPage = () => {
             <h1 className="text-2xl font-semibold">Productos</h1>
 				<div className="flex items-center gap-2">
 					<CreateProductDialog
-						onCreated={(created) => setProductos((prev) => sortByNombre([...prev, created]))}
+						onCreated={(created) => {
+							setProductos((prev) => [created, ...prev]);
+							void fetchProductos(currentPage, pageSize, searchTerm);
+						}}
 					/>
 				</div>
 			</div>
 
+			{/* Barra de búsqueda */}
+			<div className="flex items-center gap-4">
+				<input
+					type="text"
+					placeholder="Buscar por nombre, SKU o descripción..."
+					value={searchTerm}
+					onChange={(e) => setSearchTerm(e.target.value)}
+					className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+				/>
+				<div className="text-sm text-muted-foreground">
+					{totalItems} productos encontrados
+				</div>
+			</div>
 
 			{loading ? (
 				<div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -256,7 +280,7 @@ const ProductosPage = () => {
 			<EntityDataTable
         columns={columns}
         data={productos}
-        searchKey="nombre"
+        manualPagination={true}
         toolbarRender={(table) => {
           // Compute unique category options from current products
           const categoryMap = new Map<number, string>();
@@ -346,6 +370,55 @@ const ProductosPage = () => {
         }}
       />
 			)}
+			
+			{/* Controles de paginación */}
+			{!loading && !error && productos.length > 0 && (
+				<div className="flex items-center justify-between">
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+							disabled={currentPage === 1 || loading}
+						>
+							Anterior
+						</Button>
+						<div className="text-sm text-muted-foreground">
+							Página {currentPage} de {totalPages}
+						</div>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+							disabled={currentPage === totalPages || loading}
+						>
+							Siguiente
+						</Button>
+					</div>
+					
+					<div className="flex items-center gap-2">
+						<span className="text-sm text-muted-foreground">Filas por página:</span>
+						<Select
+							value={String(pageSize)}
+							onValueChange={(v) => {
+								setPageSize(Number(v));
+								setCurrentPage(1);
+							}}
+						>
+							<SelectTrigger className="h-8 w-20">
+								<SelectValue />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="10">10</SelectItem>
+								<SelectItem value="20">20</SelectItem>
+								<SelectItem value="50">50</SelectItem>
+								<SelectItem value="100">100</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+				</div>
+			)}
+			
 				{/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
         {editingProducto && (
           <EditProductDialog
@@ -356,7 +429,7 @@ const ProductosPage = () => {
               if (!open) setEditingProducto(null);
             }}
             onUpdated={(updated) =>
-              setProductos((prev) => sortByNombre(prev.map((p) => (p.id === updated.id ? updated : p))))
+              setProductos((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))
             }
           />
         )}

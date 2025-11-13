@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Search, X } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui/command";
 import type { Producto } from "@/services/productos";
@@ -43,15 +42,24 @@ export function ProductSearchSelector({
       }
       setLoading(true);
       try {
-        const remote = await searchProductos(term);
-        // Si la API no filtra, usamos items como base; si no, usamos remote
-        const base = items.length ? items : remote;
-        const filtered = (base || []).filter((p) => {
+        let productList: Producto[] = [];
+        
+        // Si hay items locales, usar solo esos (sin llamada remota)
+        if (items.length > 0) {
+          productList = items;
+        } else {
+          // Solo hacer llamada remota si no hay items locales
+          productList = await searchProductos(term);
+        }
+        
+        // Filtrar localmente
+        const filtered = productList.filter((p) => {
           const byName = p.nombre?.toLowerCase().includes(t);
           const bySku = p.sku ? p.sku.toLowerCase().includes(t) : false;
           const byId = String(p.id).includes(t);
           return byName || bySku || byId;
         });
+        
         // Ordenar por nombre para consistencia
         filtered.sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
         setResults(filtered);

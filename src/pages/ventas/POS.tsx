@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, ShoppingCart, DollarSign, Plus, Minus, Trash2, Search, X } from "lucide-react";
+import { Loader2, ShoppingCart, DollarSign, Plus, Minus, Search, X } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table,
   TableBody,
@@ -34,6 +35,7 @@ import { listCategorias } from "@/services/categorias";
 import type { VentaCreateInput } from "@/services/ventas";
 import { createVenta } from "@/services/ventas";
 import CreateProductDialog from "@/components/CreateProductDialog";
+import ClientSelector from "@/components/ClientSelector";
 
 interface CarritoItem {
   productoId: number;
@@ -61,6 +63,9 @@ export default function POSPage() {
   const [search, setSearch] = useState("");
   const [selectedCategoriaId, setSelectedCategoriaId] = useState<string>("all");
 
+  // Cliente seleccionado (null = Público General)
+  const [selectedClienteId, setSelectedClienteId] = useState<number | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"efectivo" | "tarjeta" | "yape">("efectivo");
@@ -68,8 +73,8 @@ export default function POSPage() {
 
   const fetchProductos = useCallback(async () => {
     try {
-      const data = await listProductos();
-      setProductos(data);
+      const response = await listProductos({ limit: 100 });
+      setProductos(response.data);
     } catch (err: any) {
       toast.error(err?.body?.message || "Error al cargar productos");
     }
@@ -201,7 +206,8 @@ export default function POSPage() {
     setSaving(true);
     try {
       const payload: VentaCreateInput = {
-        cliente_id: null,
+        cliente_id: selectedClienteId,
+        metodo_pago: paymentMethod,
         detalles: carrito.map((i) => ({
           producto_id: i.productoId,
           cantidad: i.cantidad,
@@ -212,6 +218,7 @@ export default function POSPage() {
       toast.success("¡Venta registrada exitosamente!");
       setCarrito([]);
       setMontoRecibido("");
+      setSelectedClienteId(null);
       await fetchProductos();
     } catch (err: any) {
       const message = err?.body?.message || err?.message || "Error al registrar la venta";
@@ -266,7 +273,7 @@ export default function POSPage() {
           </div>
 
           {/* Productos ocupan el espacio restante y scrollean dentro */}
-          <div className="flex-1 overflow-y-auto">
+          <ScrollArea className="flex-1">
             <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-3">
               {filteredProductos.map((p) => (
                 <Card key={p.id} className="overflow-hidden hover:shadow-md transition-shadow">
@@ -310,7 +317,7 @@ export default function POSPage() {
                 </div>
               )}
             </div>
-          </div>
+          </ScrollArea>
         </div>
 
         {/* DERECHA: Panel fijo del carrito y acciones con separadores */}
@@ -324,8 +331,20 @@ export default function POSPage() {
               <span className="text-sm text-muted-foreground">({carrito.length})</span>
             </div>
 
+            {/* Selector de Cliente */}
+            <div className="py-3">
+              <label className="text-sm font-medium mb-2 block">Cliente</label>
+              <ClientSelector
+                value={selectedClienteId}
+                onChange={(clienteId) => {
+                  setSelectedClienteId(clienteId);
+                }}
+                disabled={saving}
+              />
+            </div>
+
             {/* Lista del carrito scroleable */}
-            <div className="flex-1 overflow-y-auto">
+            <ScrollArea className="flex-1">
               {carrito.length === 0 ? (
                 <div className="text-center py-8 text-muted-foreground">
                   <ShoppingCart className="size-12 mx-auto mb-2 opacity-50" />
@@ -414,7 +433,7 @@ export default function POSPage() {
                   </TableBody>
                 </Table>
               )}
-            </div>
+            </ScrollArea>
 
             {/* Footer de pago moderno con cálculo de vuelto */}
             <div className="border-t bg-background px-3 py-3">

@@ -1,6 +1,7 @@
 // Servicio de API para gestión de ventas
 import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";
+import type { PaginatedResponse, PaginationParams } from "@/types/api";
 
 export type VentaDetalle = {
   id: number;
@@ -19,7 +20,10 @@ export type Venta = {
   id: number;
   cliente_id: number | null;
   usuario_id: number;
-  fecha: string;
+  // Algunos backends retornan `created_at`; mantenemos `fecha` como compatibilidad
+  fecha?: string;
+  created_at?: string;
+  metodo_pago?: string;
   total: string;
   tenant_id: number;
   cliente?: {
@@ -41,11 +45,25 @@ export type VentaDetalleInput = {
 
 export type VentaCreateInput = {
   cliente_id?: number | null;
+  metodo_pago: string;
   detalles: VentaDetalleInput[];
 };
 
-export async function listVentas() {
-  return http.get<Venta[]>(endpoints.ventas.list());
+export async function listVentas(params: PaginationParams = {}): Promise<PaginatedResponse<Venta>> {
+  const { page, limit, q, cliente_id, fecha_inicio, fecha_fin } = params;
+  const qs = new URLSearchParams();
+  if (page != null) qs.set("page", String(page));
+  if (limit != null) qs.set("limit", String(limit));
+  if (q) qs.set("q", q);
+  if (cliente_id != null) qs.set("cliente_id", String(cliente_id));
+  if (fecha_inicio) qs.set("fecha_inicio", fecha_inicio);
+  if (fecha_fin) qs.set("fecha_fin", fecha_fin);
+  const url = `${endpoints.ventas.list()}${qs.toString() ? `?${qs.toString()}` : ""}`;
+  return http.get<PaginatedResponse<Venta>>(url);
+}
+
+export async function getVentaById(id: number): Promise<Venta> {
+  return http.get<Venta>(`/api/ventas/${id}`);
 }
 
 export async function createVenta(data: VentaCreateInput) {

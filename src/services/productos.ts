@@ -1,6 +1,7 @@
 // Servicio de API para gestión de productos del inventario
 import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";
+import type { PaginationParams, PaginatedResponse } from "@/types/api";
 
 export type Producto = {
   id: number;
@@ -30,15 +31,23 @@ export type ProductoUpdateInput = Partial<ProductoCreateInput> & {
   nombre?: string;
 };
 
-export async function listProductos() {
-  return http.get<Producto[]>(endpoints.productos.list());
+// V2: Retorna respuesta paginada completa con metadata
+export async function listProductos(params: PaginationParams = {}): Promise<PaginatedResponse<Producto>> {
+  const { page, limit, q } = params;
+  const qs = new URLSearchParams();
+  if (page != null) qs.set("page", String(page));
+  if (limit != null) qs.set("limit", String(limit));
+  if (q) qs.set("q", q);
+  const url = `${endpoints.productos.list()}${qs.toString() ? `?${qs.toString()}` : ""}`;
+  const res = await http.get<PaginatedResponse<Producto>>(url);
+  return res;
 }
 
-// Búsqueda asíncrona de productos por término (nombre, SKU, código).
-// Si el backend no soporta el parámetro `search`, retornará la lista completa; el componente puede filtrar localmente.
-export async function searchProductos(searchTerm: string) {
-  const url = `${endpoints.productos.list()}?search=${encodeURIComponent(searchTerm)}`;
-  return http.get<Producto[]>(url);
+// Búsqueda remota de productos por término (nombre, SKU, código)
+// Retorna solo el array de productos para compatibilidad con selectores
+export async function searchProductos(term: string, params: Omit<PaginationParams, "q"> = {}): Promise<Producto[]> {
+  const response = await listProductos({ ...params, q: term });
+  return response.data;
 }
 
 export async function createProducto(data: ProductoCreateInput) {

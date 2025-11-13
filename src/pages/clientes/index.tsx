@@ -1,12 +1,11 @@
 // Página de gestión de clientes refactorizada para usar modales
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Pencil, Trash2, MoreHorizontal, Plus } from "lucide-react";
+import { Loader2, Pencil, Trash2, MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogTrigger,
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
@@ -15,9 +14,15 @@ import {
   AlertDialogCancel,
   AlertDialogAction,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
 import type { ColumnDef } from "@tanstack/react-table";
 import { EntityDataTable } from "@/components/entity-data-table";
-// Filtros adicionales eliminados para una búsqueda rápida y simple; modernizamos acciones
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -29,27 +34,34 @@ import { deactivateCliente, listClientes } from "@/services/clientes";
 import CreateClientDialog from "@/components/CreateClientDialog";
 import EditClientDialog from "@/components/EditClientDialog";
 
-function sortByNombre(items: Cliente[]) {
-  return [...items].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-}
-
 const ClientesPage = () => {
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
+  
+  // Estados de paginación server-side
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [pageSize, setPageSize] = useState(10);
+  
   // Control externo de modales para evitar cierre inmediato al abrir desde el menú
   const [editOpen, setEditOpen] = useState(false);
   const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
   const [deactivateOpen, setDeactivateOpen] = useState(false);
   const [confirmCliente, setConfirmCliente] = useState<Cliente | null>(null);
 
-  const fetchClientes = useCallback(async () => {
+  const fetchClientes = useCallback(async (page: number, limit: number, search: string) => {
     setLoading(true);
     setError(null);
     try {
-      const data = await listClientes();
-      setClientes(sortByNombre(data));
+      const response = await listClientes({ page, limit, q: search || undefined });
+      setClientes(response.data);
+      setTotalPages(response.meta.totalPages);
+      setTotalItems(response.meta.total);
+      setCurrentPage(response.meta.page);
     } catch (err: any) {
       const message = err?.body?.message || err?.message || "No se pudo cargar la lista";
       setError(message);
@@ -59,9 +71,14 @@ const ClientesPage = () => {
     }
   }, []);
 
+  // Consolidado: un solo useEffect con debounce para evitar doble carga
   useEffect(() => {
-    void fetchClientes();
-  }, [fetchClientes]);
+    const timer = setTimeout(() => {
+      void fetchClientes(currentPage, pageSize, searchTerm);
+    }, 300);
+    
+    return () => clearTimeout(timer);
+  }, [fetchClientes, currentPage, pageSize, searchTerm]);
 
   const columns = useMemo<ColumnDef<Cliente>[]>(
     () => [
@@ -157,6 +174,7 @@ const ClientesPage = () => {
     try {
       await deactivateCliente(cliente.id);
       setClientes((prev) => prev.filter((item) => item.id !== cliente.id));
+      setTotalItems((prev) => prev - 1);
       toast.success("Cliente desactivado");
     } catch (err: any) {
       const message = err?.body?.message || err?.message || "No se pudo desactivar";
@@ -166,20 +184,29 @@ const ClientesPage = () => {
     }
   }
 
-  function handleReload() {
-    void fetchClientes();
-  }
-
   return (
 		<div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Clientes</h1>
         <div className="flex items-center gap-2">
-          <CreateClientDialog onCreated={(created) => setClientes((prev) => sortByNombre([...prev, created]))}>
-            <Button>
-<Plus className="mr-2 size-4" /> Crear Cliente
-            </Button>
-          </CreateClientDialog>
+          <CreateClientDialog onCreated={(created) => {
+            setClientes((prev) => [created, ...prev]);
+            void fetchClientes(currentPage, pageSize, searchTerm);
+          }} />
+        </div>
+      </div>
+
+      {/* Barra de búsqueda */}
+      <div className="flex items-center gap-4">
+        <input
+          type="text"
+          placeholder="Buscar por nombre, documento, email o teléfono..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        />
+        <div className="text-sm text-muted-foreground">
+          {totalItems} clientes encontrados
         </div>
       </div>
 
@@ -198,9 +225,58 @@ const ClientesPage = () => {
         <EntityDataTable
           columns={columns}
           data={clientes}
-          searchKey="nombre"
+          manualPagination={true}
         />
       )}
+
+      {/* Controles de paginación */}
+      {!loading && !error && clientes.length > 0 && (
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1 || loading}
+            >
+              Anterior
+            </Button>
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages || loading}
+            >
+              Siguiente
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Filas por página:</span>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => {
+                setPageSize(Number(v));
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="20">20</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      )}
+
       {/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
       {editingCliente && (
         <EditClientDialog
@@ -211,7 +287,7 @@ const ClientesPage = () => {
             if (!open) setEditingCliente(null);
           }}
           onUpdated={(updated) =>
-            setClientes((prev) => sortByNombre(prev.map((item) => (item.id === updated.id ? updated : item))))
+            setClientes((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
           }
         />
       )}

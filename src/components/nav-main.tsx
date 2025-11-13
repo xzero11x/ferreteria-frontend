@@ -5,6 +5,7 @@ import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import {
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuButton,
@@ -14,11 +15,16 @@ import {
 export function NavMain({
   items,
 }: {
-  items: {
-    title: string
-    url: string
-    icon?: LucideIcon
-  }[]
+  items: (
+    | {
+        title: string
+        url: string
+        icon?: LucideIcon
+      }
+    | {
+        label: string
+      }
+  )[]
 }) {
   return (
     <SidebarGroup>
@@ -43,16 +49,25 @@ export function NavMain({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton asChild tooltip={item.title}>
-                <Link to={item.url}>
-                  {item.icon && <item.icon />}
-                  <span>{item.title}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            if ("label" in item) {
+              return (
+                <SidebarMenuItem key={`label-${item.label}`}>
+                  <SidebarGroupLabel>{item.label}</SidebarGroupLabel>
+                </SidebarMenuItem>
+              )
+            }
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton asChild tooltip={item.title}>
+                  <Link to={item.url}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

@@ -18,6 +18,7 @@ import CategoriasPage from "@/pages/categorias/index";
 import InventarioPage from "@/pages/inventario/index";
 import ComprasPage from "@/pages/compras/index";
 import POSPage from "@/pages/ventas/POS";
+import HistorialVentasPage from "@/pages/ventas/historial";
 import ReportesPage from "@/pages/reportes/index";
 import ConfiguracionPage from "@/pages/configuracion/index";
 import ClientesPage from "@/pages/clientes/index";
@@ -58,6 +59,7 @@ const AppRouter: React.FC = () => {
                         <Route path="compras" element={<ComprasPage />} />
 
                         <Route path="ventas" element={<POSPage />} />
+                        <Route path="ventas/historial" element={<HistorialVentasPage />} />
 
                         <Route path="reportes" element={<ReportesPage />} />
 
