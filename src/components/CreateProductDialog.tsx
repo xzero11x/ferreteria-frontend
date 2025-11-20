@@ -19,6 +19,12 @@ import { listCategorias, type Categoria } from "@/services/categorias";
 
 const createProductSchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
+  imagen: z
+  .instanceof(File)
+  .optional()
+  .refine((file) => !file || file.size <= 5 * 1024 * 1024, {
+    message: "La imagen debe ser menor a 5MB",
+  }),
   sku: z
     .string()
     .trim()

@@ -8,6 +8,7 @@ export type Producto = {
   nombre: string;
   sku: string | null;
   descripcion: string | null;
+  imagen_url: string | null;
   precio_venta: string;
   costo_compra: string | null;
   stock: number;
