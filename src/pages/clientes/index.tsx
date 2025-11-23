@@ -1,305 +1,453 @@
-// Página de gestión de clientes refactorizada para usar modales (Optimizada)
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { Loader2, Pencil, Trash2, MoreHorizontal } from "lucide-react";
+"use client"
 
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import {
-  Select,
-  SelectTrigger,
-  SelectContent,
-  SelectItem,
-  SelectValue,
-} from "@/components/ui/select";
-import type { ColumnDef } from "@tanstack/react-table";
-import { EntityDataTable } from "@/components/entity-data-table";
+import * as React from "react"
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+
+import { useGetApiClientes, usePatchApiClientesIdDesactivar } from "@/api/generated/clientes/clientes"
+import type { Cliente } from "@/api/generated/model"
+
+import { Button } from "@/components/ui_official/button"
+import { Checkbox } from "@/components/ui_official/checkbox"
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import type { Cliente } from "@/services/clientes";
-import { deactivateCliente, listClientes } from "@/services/clientes";
-import CreateClientDialog from "@/components/CreateClientDialog";
-import EditClientDialog from "@/components/EditClientDialog";
+  DropdownMenuTrigger,
+} from "@/components/ui_official/dropdown-menu"
+import { Input } from "@/components/ui_official/input"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui_official/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui_official/table"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui_official/alert-dialog"
 
-const ClientesPage = () => {
-  const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
-  
+import CreateClientDialog from "@/components/CreateClientDialog"
+import EditClientDialog from "@/components/EditClientDialog"
+
+export default function ClientesPageV2() {
+  const queryClient = useQueryClient()
+
   // Estados de paginación server-side
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [pageSize, setPageSize] = useState(10);
-  
-  // Búsqueda optimizada
-  const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [currentPage, setCurrentPage] = React.useState(1)
+  const [pageSize, setPageSize] = React.useState(10)
 
-  // Control externo de modales
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingCliente, setEditingCliente] = useState<Cliente | null>(null);
-  const [deactivateOpen, setDeactivateOpen] = useState(false);
-  const [confirmCliente, setConfirmCliente] = useState<Cliente | null>(null);
+  // Estados de tabla
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
 
-  const fetchClientes = useCallback(async (page: number, limit: number, search: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const response = await listClientes({ page, limit, q: search || undefined });
-      setClientes(response.data);
-      setTotalPages(response.meta.totalPages);
-      setTotalItems(response.meta.total);
-      setCurrentPage(response.meta.page);
-    } catch (err: any) {
-      const message = err?.body?.message || err?.message || "No se pudo cargar la lista";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Búsqueda con debounce
+  const [searchTerm, setSearchTerm] = React.useState("")
+  const [debouncedSearch, setDebouncedSearch] = React.useState("")
 
-  // --- 1. EFECTO DE DEBOUNCE (Solo retarda el texto) ---
-  useEffect(() => {
+  // Control de modales
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [editingCliente, setEditingCliente] = React.useState<Cliente | null>(null)
+  const [deactivateOpen, setDeactivateOpen] = React.useState(false)
+  const [confirmCliente, setConfirmCliente] = React.useState<Cliente | null>(null)
+
+  // Debounce para búsqueda
+  React.useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+      setDebouncedSearch(searchTerm)
+      setCurrentPage(1)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
 
-  // --- 2. EFECTO DE CARGA (Inmediato ante cambios reales) ---
-  useEffect(() => {
-    // Carga inmediata al montar, cambiar página o terminar el debounce
-    void fetchClientes(currentPage, pageSize, debouncedSearch);
-  }, [fetchClientes, currentPage, pageSize, debouncedSearch]);
+  // Fetch data
+  const { data, isLoading, error } = useGetApiClientes({
+    page: currentPage,
+    limit: pageSize,
+  })
 
-  const columns = useMemo<ColumnDef<Cliente>[]>(
+  const allClientes = data?.data || []
+  
+  // Filtrar localmente por búsqueda
+  const clientes = React.useMemo(() => {
+    if (!debouncedSearch) return allClientes
+    const search = debouncedSearch.toLowerCase()
+    return allClientes.filter(c => 
+      c.nombre?.toLowerCase().includes(search) ||
+      c.documento_identidad?.toLowerCase().includes(search) ||
+      c.ruc?.toLowerCase().includes(search) ||
+      c.email?.toLowerCase().includes(search)
+    )
+  }, [allClientes, debouncedSearch])
+
+  const totalPages = data?.meta?.totalPages || 1
+
+  // Mutation para desactivar
+  const desactivarMutation = usePatchApiClientesIdDesactivar({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/clientes"] })
+        toast.success("Cliente desactivado")
+        setDeactivateOpen(false)
+        setConfirmCliente(null)
+      },
+      onError: (err: any) => {
+        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
+        toast.error(message)
+      },
+    },
+  })
+
+  // Definición de columnas
+  const columns = React.useMemo<ColumnDef<Cliente>[]>(
     () => [
-      { accessorKey: "id", header: "ID" },
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
       {
         accessorKey: "nombre",
-        header: "Nombre",
-        cell: ({ row }) => <span className="font-medium">{row.original.nombre}</span>,
-        // Nota: El filtrado local (filterFn) ya no es estrictamente necesario si el backend filtra,
-        // pero lo dejamos por si acaso se usa en modo manual en el futuro.
-        filterFn: (row, _id, val?: string) => {
-          const q = (val ?? "").toString().toLowerCase();
-          if (!q) return true;
-          const nombre = (row.original.nombre ?? "").toLowerCase();
-          const email = (row.original.email ?? "").toLowerCase();
-          const doc = (row.original.documento_identidad ?? "").toLowerCase();
-          return nombre.includes(q) || email.includes(q) || doc.includes(q);
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Nombre
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
         },
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.nombre}</span>
+        ),
       },
       {
         accessorKey: "documento_identidad",
         header: "Documento",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.documento_identidad || "—"}</span>
+          <span className="text-muted-foreground text-sm">
+            {row.original.documento_identidad || "—"}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "ruc",
+        header: "RUC",
+        cell: ({ row }) => (
+          <span className="text-muted-foreground text-sm">
+            {row.original.ruc || "—"}
+          </span>
         ),
       },
       {
         accessorKey: "email",
         header: "Email",
-        cell: ({ row }) => row.original.email || "—",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.email || "—"}</span>
+        ),
       },
       {
         accessorKey: "telefono",
         header: "Teléfono",
-        cell: ({ row }) => row.original.telefono || "—",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.telefono || "—"}</span>
+        ),
       },
       {
         id: "direccion",
         header: "Dirección",
-        cell: ({ row }) => row.original.direccion?.trim() || "—",
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
+            {row.original.direccion?.trim() || "—"}
+          </span>
+        ),
         enableSorting: false,
       },
       {
         id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem
-                  onSelect={() => {
-                    setEditingCliente(row.original);
-                    setEditOpen(true);
-                  }}
-                >
-                  <Pencil className="mr-2 size-4" /> Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={deactivatingId === row.original.id}
-                  onSelect={() => {
-                    if (deactivatingId === row.original.id) return;
-                    setConfirmCliente(row.original);
-                    setDeactivateOpen(true);
-                  }}
-                >
-                  {deactivatingId === row.original.id ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="size-4 animate-spin" /> Desactivando
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Trash2 className="size-4" /> Desactivar
-                    </span>
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ),
-        enableSorting: false,
         enableHiding: false,
+        cell: ({ row }) => {
+          const cliente = row.original
+
+          return (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setEditingCliente(cliente)
+                      setEditOpen(true)
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={desactivarMutation.isPending}
+                    onSelect={() => {
+                      setConfirmCliente(cliente)
+                      setDeactivateOpen(true)
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Desactivar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+        enableSorting: false,
       },
     ],
-    [deactivatingId]
-  );
+    [desactivarMutation.isPending]
+  )
 
-  async function handleDeactivate(cliente: Cliente) {
-    setDeactivatingId(cliente.id);
-    try {
-      await deactivateCliente(cliente.id);
-      setClientes((prev) => prev.filter((item) => item.id !== cliente.id));
-      setTotalItems((prev) => prev - 1);
-      toast.success("Cliente desactivado");
-    } catch (err: any) {
-      const message = err?.body?.message || err?.message || "No se pudo desactivar";
-      toast.error(message);
-    } finally {
-      setDeactivatingId(null);
-    }
+  const table = useReactTable({
+    data: clientes,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
+
+  // Manejo de errores críticos
+  if (error && clientes.length === 0 && !isLoading) {
+    return (
+      <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+        <h1 className="text-2xl font-semibold">Clientes</h1>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">
+            Error al cargar clientes: {error instanceof Error ? error.message : "Error desconocido"}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Clientes</h1>
         <div className="flex items-center gap-2">
-          <CreateClientDialog onCreated={(created) => {
-            setClientes((prev) => [created, ...prev]);
-            void fetchClientes(currentPage, pageSize, debouncedSearch);
-          }} />
+          <CreateClientDialog
+            onCreated={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/clientes"] })
+            }}
+          />
         </div>
       </div>
 
-      {/* Barra de búsqueda */}
-      <div className="flex items-center gap-4">
-        <input
-          type="text"
-          placeholder="Buscar por nombre, documento, email o teléfono..."
-          value={searchTerm}
-          onChange={(e) => {
-              setSearchTerm(e.target.value);
-              if (e.target.value === "") setCurrentPage(1);
-          }}
-          className="flex h-10 w-full max-w-sm rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-        />
-        <div className="text-sm text-muted-foreground">
-          {totalItems} clientes encontrados
-        </div>
-      </div>
-
-      {/* Mensajes de error */}
+      {/* Mensaje de Error */}
       {error && (
         <div className="text-sm text-red-600" aria-live="assertive">
-          {error}
+          {error instanceof Error ? error.message : "Error al cargar clientes"}
         </div>
       )}
 
-      {/* Lógica de Renderizado Estable (Sin Parpadeos) */}
-      {loading && clientes.length === 0 ? (
-        // CASO 1: Carga inicial absoluta (Spinner Grande)
+      {/* Tabla */}
+      {isLoading && clientes.length === 0 ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="size-8 animate-spin text-muted-foreground" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : clientes.length === 0 && !error ? (
-        // CASO 2: No hay datos
         <div className="text-sm text-muted-foreground">No hay clientes activos.</div>
       ) : (
-        // CASO 3: Tabla siempre visible
         <div className="relative">
-            {loading && (
-                <div className="absolute top-2 right-2 z-10">
-                    <Loader2 className="size-4 animate-spin text-primary" />
-                </div>
-            )}
-            
-            <div className={loading ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
-                <EntityDataTable
-                    columns={columns}
-                    data={clientes}
-                    manualPagination={true}
-                />
-
-                {/* Controles de paginación */}
-                <div className="flex items-center justify-between mt-4">
-                    <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                        disabled={currentPage === 1 || loading}
-                    >
-                        Anterior
-                    </Button>
-                    <div className="text-sm text-muted-foreground">
-                        Página {currentPage} de {totalPages}
-                    </div>
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                        disabled={currentPage === totalPages || loading}
-                    >
-                        Siguiente
-                    </Button>
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground">Filas por página:</span>
-                    <Select
-                        value={String(pageSize)}
-                        onValueChange={(v) => {
-                        setPageSize(Number(v));
-                        setCurrentPage(1);
-                        }}
-                    >
-                        <SelectTrigger className="h-8 w-20">
-                        <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                        <SelectItem value="10">10</SelectItem>
-                        <SelectItem value="20">20</SelectItem>
-                        <SelectItem value="50">50</SelectItem>
-                        <SelectItem value="100">100</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    </div>
-                </div>
+          {isLoading && (
+            <div className="absolute top-2 right-2 z-10">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
             </div>
+          )}
+
+          <div className={isLoading ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
+            <div className="w-full">
+              {/* Toolbar */}
+              <div className="flex items-center gap-2 py-4">
+                <Input
+                  placeholder="Buscar por nombre, documento, RUC o email..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value)
+                    if (e.target.value === "") setCurrentPage(1)
+                  }}
+                  className="h-9 w-96"
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="ml-auto">
+                      Columns <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            className="capitalize"
+                            checked={column.getIsVisible()}
+                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                          >
+                            {column.id}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-hidden rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </TableHead>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between space-x-2 py-4">
+                <div className="flex-1 text-sm text-muted-foreground">
+                  {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
+                  selected.
+                </div>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-muted-foreground">
+                    Página {currentPage} de {totalPages}
+                  </span>
+                  <Select
+                    value={String(pageSize)}
+                    onValueChange={(v) => {
+                      setPageSize(Number(v))
+                      setCurrentPage(1)
+                    }}
+                  >
+                    <SelectTrigger className="h-8 w-[70px]">
+                      <SelectValue placeholder={pageSize} />
+                    </SelectTrigger>
+                    <SelectContent side="top">
+                      {[10, 20, 30, 40, 50].map((size) => (
+                        <SelectItem key={size} value={String(size)}>
+                          {size}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -309,19 +457,17 @@ const ClientesPage = () => {
           cliente={editingCliente}
           open={editOpen}
           onOpenChange={(open) => {
-            setEditOpen(open);
-            if (!open) setEditingCliente(null);
+            setEditOpen(open)
+            if (!open) setEditingCliente(null)
           }}
-          onUpdated={(updated) =>
-            setClientes((prev) => prev.map((item) => (item.id === updated.id ? updated : item)))
-          }
+          onUpdated={() => queryClient.invalidateQueries({ queryKey: ["/api/clientes"] })}
         />
       )}
       <AlertDialog
         open={deactivateOpen}
         onOpenChange={(open) => {
-          setDeactivateOpen(open);
-          if (!open) setConfirmCliente(null);
+          setDeactivateOpen(open)
+          if (!open) setConfirmCliente(null)
         }}
       >
         <AlertDialogContent>
@@ -329,8 +475,8 @@ const ClientesPage = () => {
             <AlertDialogTitle>Desactivar cliente</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmCliente
-                ? `¿Desactivar al cliente "${confirmCliente.nombre}"? Podrás registrarlo nuevamente si lo necesitas.`
-                : "¿Desactivar el cliente seleccionado?"}
+                ? `¿Desactivar al cliente "${confirmCliente.nombre}"? El cliente ya no aparecerá en los listados.`
+                : "¿Desactivar al cliente seleccionado?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -338,8 +484,7 @@ const ClientesPage = () => {
             <AlertDialogAction
               onClick={() => {
                 if (confirmCliente) {
-                  handleDeactivate(confirmCliente);
-                  setDeactivateOpen(false);
+                  desactivarMutation.mutate({ id: confirmCliente.id })
                 }
               }}
             >
@@ -349,7 +494,5 @@ const ClientesPage = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-};
-
-export default ClientesPage;
+  )
+}

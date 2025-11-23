@@ -1,226 +1,398 @@
-// Página de gestión de proveedores refactorizada para usar modales
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
-import { Loader2, Pencil, Trash2, MoreHorizontal, Plus } from "lucide-react";
+"use client"
+
+import * as React from "react"
+import type {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+} from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react"
+import { useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
+
+import { useGetApiProveedores, usePatchApiProveedoresIdDesactivar } from "@/api/generated/proveedores/proveedores"
+import type { Proveedor } from "@/api/generated/model"
+
+import { Button } from "@/components/ui_official/button"
+import { Checkbox } from "@/components/ui_official/checkbox"
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-
-import { Button } from "@/components/ui/button";
+  DropdownMenuTrigger,
+} from "@/components/ui_official/dropdown-menu"
+import { Input } from "@/components/ui_official/input"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui_official/table"
 import {
   AlertDialog,
-  AlertDialogTrigger,
+  AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
   AlertDialogDescription,
   AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui/alert-dialog";
-import type { ColumnDef } from "@tanstack/react-table";
-import { EntityDataTable } from "@/components/entity-data-table";
-// Filtros adicionales eliminados para una búsqueda rápida
-import type { Proveedor } from "@/services/proveedores";
-import { deactivateProveedor, listProveedores } from "@/services/proveedores";
-import CreateProviderDialog from "@/components/CreateProviderDialog";
-import EditProviderDialog from "@/components/EditProviderDialog";
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui_official/alert-dialog"
 
-function sortByNombre(items: Proveedor[]) {
-  return [...items].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"));
-}
+import CreateProviderDialog from "@/components/CreateProviderDialog"
+import EditProviderDialog from "@/components/EditProviderDialog"
 
-const ProveedoresPage = () => {
-  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
-  // Control externo de modales para evitar cierre inmediato al abrir desde el menú
-  const [editOpen, setEditOpen] = useState(false);
-  const [editingProveedor, setEditingProveedor] = useState<Proveedor | null>(null);
-  const [deactivateOpen, setDeactivateOpen] = useState(false);
-  const [confirmProveedor, setConfirmProveedor] = useState<Proveedor | null>(null);
+export default function ProveedoresPageV2() {
+  const queryClient = useQueryClient()
 
-  const fetchProveedores = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await listProveedores();
-      setProveedores(sortByNombre(data));
-    } catch (err: any) {
-      const message = err?.body?.message || err?.message || "No se pudo cargar la lista";
-      setError(message);
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  // Estados de tabla (client-side)
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
 
-  useEffect(() => {
-    void fetchProveedores();
-  }, [fetchProveedores]);
+  // Control de modales
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [editingProveedor, setEditingProveedor] = React.useState<Proveedor | null>(null)
+  const [deactivateOpen, setDeactivateOpen] = React.useState(false)
+  const [confirmProveedor, setConfirmProveedor] = React.useState<Proveedor | null>(null)
 
-  const columns = useMemo<ColumnDef<Proveedor>[]>(
+  // Fetch data (sin paginación server-side)
+  const { data, isLoading, error } = useGetApiProveedores()
+  const proveedores = data?.data || []
+
+  // Mutation para desactivar
+  const desactivarMutation = usePatchApiProveedoresIdDesactivar({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/proveedores"] })
+        toast.success("Proveedor desactivado")
+        setDeactivateOpen(false)
+        setConfirmProveedor(null)
+      },
+      onError: (err: any) => {
+        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
+        toast.error(message)
+      },
+    },
+  })
+
+  // Definición de columnas
+  const columns = React.useMemo<ColumnDef<Proveedor>[]>(
     () => [
-      { accessorKey: "id", header: "ID" },
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
       {
         accessorKey: "nombre",
-        header: "Nombre",
-        cell: ({ row }) => <span className="font-medium">{row.original.nombre}</span>,
-        // Búsqueda combinada por Nombre/RUC
-        filterFn: (row, _id, val?: string) => {
-          const q = (val ?? "").toString().toLowerCase();
-          if (!q) return true;
-          const nombre = (row.original.nombre ?? "").toLowerCase();
-          const ruc = (row.original.ruc_identidad ?? "").toLowerCase();
-          return nombre.includes(q) || ruc.includes(q);
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Nombre
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
         },
+        cell: ({ row }) => (
+          <span className="font-medium">{row.original.nombre}</span>
+        ),
       },
       {
         accessorKey: "ruc_identidad",
-        header: "Documento",
+        header: "RUC / Documento",
         cell: ({ row }) => (
-          <span className="text-muted-foreground">{row.original.ruc_identidad || "—"}</span>
+          <span className="text-muted-foreground text-sm">
+            {row.original.ruc_identidad || "—"}
+          </span>
         ),
       },
       {
         accessorKey: "email",
         header: "Email",
-        cell: ({ row }) => row.original.email || "—",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.email || "—"}</span>
+        ),
       },
       {
         accessorKey: "telefono",
         header: "Teléfono",
-        cell: ({ row }) => row.original.telefono || "—",
+        cell: ({ row }) => (
+          <span className="text-sm">{row.original.telefono || "—"}</span>
+        ),
       },
       {
         id: "direccion",
         header: "Dirección",
-        cell: ({ row }) => row.original.direccion?.trim() || "—",
+        cell: ({ row }) => (
+          <span className="text-sm text-muted-foreground truncate max-w-[200px] block">
+            {row.original.direccion?.trim() || "—"}
+          </span>
+        ),
         enableSorting: false,
       },
       {
         id: "actions",
-        header: "",
-        cell: ({ row }) => (
-          <div className="flex justify-end">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreHorizontal className="size-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-44">
-                <DropdownMenuItem
-                  onSelect={() => {
-                    setEditingProveedor(row.original);
-                    setEditOpen(true);
-                  }}
-                >
-                  <Pencil className="mr-2 size-4" /> Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={deactivatingId === row.original.id}
-                  onSelect={() => {
-                    if (deactivatingId === row.original.id) return;
-                    setConfirmProveedor(row.original);
-                    setDeactivateOpen(true);
-                  }}
-                >
-                  {deactivatingId === row.original.id ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="size-4 animate-spin" /> Desactivando
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Trash2 className="size-4" /> Desactivar
-                    </span>
-                  )}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        ),
-        enableSorting: false,
         enableHiding: false,
+        cell: ({ row }) => {
+          const proveedor = row.original
+
+          return (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setEditingProveedor(proveedor)
+                      setEditOpen(true)
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={desactivarMutation.isPending}
+                    onSelect={() => {
+                      setConfirmProveedor(proveedor)
+                      setDeactivateOpen(true)
+                    }}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" /> Desactivar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+        enableSorting: false,
       },
     ],
-    [deactivatingId]
-  );
+    [desactivarMutation.isPending]
+  )
 
-  async function handleDeactivate(proveedor: Proveedor) {
-    setDeactivatingId(proveedor.id);
-    try {
-      await deactivateProveedor(proveedor.id);
-      setProveedores((prev) => prev.filter((item) => item.id !== proveedor.id));
-      toast.success("Proveedor desactivado");
-    } catch (err: any) {
-      const message = err?.body?.message || err?.message || "No se pudo desactivar";
-      toast.error(message);
-    } finally {
-      setDeactivatingId(null);
-    }
-  }
+  const table = useReactTable({
+    data: proveedores,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
 
-  function handleReload() {
-    void fetchProveedores();
+  // Manejo de errores críticos
+  if (error && proveedores.length === 0 && !isLoading) {
+    return (
+      <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+        <h1 className="text-2xl font-semibold">Proveedores</h1>
+        <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
+          <p className="text-sm text-destructive">
+            Error al cargar proveedores: {error instanceof Error ? error.message : "Error desconocido"}
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
-      <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Proveedores</h1>
         <div className="flex items-center gap-2">
-          <CreateProviderDialog onCreated={(created) => setProveedores((prev) => sortByNombre([...prev, created]))}>
-            <Button>
-<Plus className="mr-2 size-4" /> Crear Proveedor
-            </Button>
-          </CreateProviderDialog>
+          <CreateProviderDialog
+            onCreated={() => {
+              queryClient.invalidateQueries({ queryKey: ["/api/proveedores"] })
+            }}
+          />
         </div>
       </div>
 
-      {loading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" />
-          Cargando proveedores...
-        </div>
-      ) : error ? (
+      {/* Mensaje de Error */}
+      {error && (
         <div className="text-sm text-red-600" aria-live="assertive">
-          {error}
+          {error instanceof Error ? error.message : "Error al cargar proveedores"}
         </div>
-      ) : proveedores.length === 0 ? (
+      )}
+
+      {/* Tabla */}
+      {isLoading && proveedores.length === 0 ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : proveedores.length === 0 && !error ? (
         <div className="text-sm text-muted-foreground">No hay proveedores activos.</div>
       ) : (
-        <EntityDataTable
-          columns={columns}
-          data={proveedores}
-          searchKey="nombre"
-        />
+        <div className="relative">
+          {isLoading && (
+            <div className="absolute top-2 right-2 z-10">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+            </div>
+          )}
+
+          <div className={isLoading ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
+            <div className="w-full">
+              {/* Toolbar */}
+              <div className="flex items-center gap-2 py-4">
+                <Input
+                  placeholder="Buscar por nombre, RUC o documento..."
+                  value={(table.getColumn("nombre")?.getFilterValue() as string) ?? ""}
+                  onChange={(event) => table.getColumn("nombre")?.setFilterValue(event.target.value)}
+                  className="h-9 w-96"
+                />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" className="ml-auto">
+                      Columns <ChevronDown className="ml-2 h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    {table
+                      .getAllColumns()
+                      .filter((column) => column.getCanHide())
+                      .map((column) => {
+                        return (
+                          <DropdownMenuCheckboxItem
+                            key={column.id}
+                            className="capitalize"
+                            checked={column.getIsVisible()}
+                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                          >
+                            {column.id}
+                          </DropdownMenuCheckboxItem>
+                        )
+                      })}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Table */}
+              <div className="overflow-hidden rounded-md border">
+                <Table>
+                  <TableHeader>
+                    {table.getHeaderGroups().map((headerGroup) => (
+                      <TableRow key={headerGroup.id}>
+                        {headerGroup.headers.map((header) => {
+                          return (
+                            <TableHead key={header.id}>
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(header.column.columnDef.header, header.getContext())}
+                            </TableHead>
+                          )
+                        })}
+                      </TableRow>
+                    ))}
+                  </TableHeader>
+                  <TableBody>
+                    {table.getRowModel().rows?.length ? (
+                      table.getRowModel().rows.map((row) => (
+                        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                          {row.getVisibleCells().map((cell) => (
+                            <TableCell key={cell.id}>
+                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                            </TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                          No results.
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-between space-x-2 py-4">
+                <div className="flex-1 text-sm text-muted-foreground">
+                  {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
+                  selected.
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                  >
+                    Previous
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                  >
+                    Next
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
-      {/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
+
+      {/* Modales */}
       {editingProveedor && (
         <EditProviderDialog
           proveedor={editingProveedor}
           open={editOpen}
           onOpenChange={(open) => {
-            setEditOpen(open);
-            if (!open) setEditingProveedor(null);
+            setEditOpen(open)
+            if (!open) setEditingProveedor(null)
           }}
-          onUpdated={(updated) =>
-            setProveedores((prev) =>
-              sortByNombre(prev.map((item) => (item.id === updated.id ? updated : item)))
-            )
-          }
+          onUpdated={() => queryClient.invalidateQueries({ queryKey: ["/api/proveedores"] })}
         />
       )}
       <AlertDialog
         open={deactivateOpen}
         onOpenChange={(open) => {
-          setDeactivateOpen(open);
-          if (!open) setConfirmProveedor(null);
+          setDeactivateOpen(open)
+          if (!open) setConfirmProveedor(null)
         }}
       >
         <AlertDialogContent>
@@ -228,8 +400,8 @@ const ProveedoresPage = () => {
             <AlertDialogTitle>Desactivar proveedor</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmProveedor
-                ? `¿Desactivar al proveedor "${confirmProveedor.nombre}"? Ya no aparecerá en los listados.`
-                : "¿Desactivar el proveedor seleccionado?"}
+                ? `¿Desactivar al proveedor "${confirmProveedor.nombre}"? El proveedor ya no aparecerá en los listados.`
+                : "¿Desactivar al proveedor seleccionado?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -237,8 +409,7 @@ const ProveedoresPage = () => {
             <AlertDialogAction
               onClick={() => {
                 if (confirmProveedor) {
-                  handleDeactivate(confirmProveedor);
-                  setDeactivateOpen(false);
+                  desactivarMutation.mutate({ id: confirmProveedor.id })
                 }
               }}
             >
@@ -248,7 +419,5 @@ const ProveedoresPage = () => {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
-};
-
-export default ProveedoresPage;
+  )
+}

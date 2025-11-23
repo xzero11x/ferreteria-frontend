@@ -9,26 +9,44 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui_official/dialog";
+import { Button } from "@/components/ui_official/button";
+import { ScrollArea } from "@/components/ui_official/scroll-area";
 import ProviderForm from "@/components/ProviderForm";
 import { toast } from "sonner";
-import { updateProveedor, type Proveedor, type ProveedorUpdateInput } from "@/services/proveedores";
+import { usePutApiProveedoresId } from "@/api/generated/proveedores/proveedores";
+import type { Proveedor } from "@/api/generated/model";
+import { useQueryClient } from "@tanstack/react-query";
+
+type ProveedorUpdateInput = {
+  nombre?: string;
+  ruc_identidad?: string;
+  email?: string;
+  telefono?: string;
+  direccion?: string;
+};
 
 const editProviderSchema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio").max(200, "Máximo 200 caracteres"),
   ruc_identidad: z
     .string()
     .trim()
-    .max(50, "Máximo 50 caracteres")
+    .refine(
+      (val) => !val || /^[0-9]{8}$|^[0-9]{11}$/.test(val),
+      "El documento debe ser DNI (8 dígitos) o RUC (11 dígitos)"
+    )
     .optional()
     .or(z.literal("")),
   email: z
     .string()
     .trim()
-    .email("Email inválido")
+    .refine(
+      (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+      "Email inválido"
+    )
     .optional()
     .or(z.literal("")),
+
   telefono: z
     .string()
     .trim()
@@ -57,6 +75,9 @@ export default function EditProviderDialog({ proveedor, onUpdated, children, ope
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateProveedor } = usePutApiProveedoresId();
+
   const form = useForm<EditProviderFormValues>({
     resolver: zodResolver(editProviderSchema),
     defaultValues: {
@@ -91,12 +112,13 @@ export default function EditProviderDialog({ proveedor, onUpdated, children, ope
         direccion: values.direccion?.trim() ? values.direccion.trim() : undefined,
       };
 
-      const updated = await updateProveedor(proveedor.id, payload);
+      const updated = await updateProveedor({ id: proveedor.id!, data: payload });
+      await queryClient.invalidateQueries({ queryKey: ['api', 'proveedores'] });
       toast.success("Proveedor actualizado correctamente");
       onUpdated?.(updated);
       setOpen(false);
     } catch (err: any) {
-      const message = err?.body?.message || err?.message || "Error al actualizar el proveedor";
+      const message = err?.response?.data?.message || err?.message || "Error al actualizar el proveedor";
       toast.error(message);
     }
   }
@@ -106,12 +128,16 @@ export default function EditProviderDialog({ proveedor, onUpdated, children, ope
       {children ? (
         <DialogTrigger asChild>{children}</DialogTrigger>
       ) : null}
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>Editar proveedor</DialogTitle>
-          <DialogDescription>Actualiza los datos del proveedor seleccionado.</DialogDescription>
+          <DialogDescription>Actualiza los datos del proveedor seleccionado</DialogDescription>
         </DialogHeader>
-        <ProviderForm form={form} onSubmit={onSubmit} submitLabel="Guardar cambios" />
+        <ScrollArea className="max-h-[calc(90vh-8rem)] px-6 pb-6">
+          <div className="space-y-6 pb-6">
+            <ProviderForm form={form} onSubmit={onSubmit} submitLabel="Actualizar proveedor" />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

@@ -1,6 +1,7 @@
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui_official/form";
+import { Input } from "@/components/ui_official/input";
+import { Button } from "@/components/ui_official/button";
+import { Textarea } from "@/components/ui_official/textarea";
 import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
 
 type ClientFormProps<TValues extends FieldValues = FieldValues> = {
@@ -17,7 +18,7 @@ export default function ClientForm<TValues extends FieldValues>({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {/* Nombre (requerido) */}
           <FormField
             control={form.control}
@@ -42,6 +43,36 @@ export default function ClientForm<TValues extends FieldValues>({
                 <FormLabel>Documento de identidad</FormLabel>
                 <FormControl>
                   <Input placeholder="Opcional" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* RUC (opcional) */}
+          <FormField
+            control={form.control}
+            name={"ruc" as FieldPath<TValues>}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>RUC</FormLabel>
+                <FormControl>
+                  <Input placeholder="11 dígitos (opcional)" maxLength={11} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Razón Social (opcional, requerido si tiene RUC) */}
+          <FormField
+            control={form.control}
+            name={"razon_social" as FieldPath<TValues>}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Razón Social</FormLabel>
+                <FormControl>
+                  <Input placeholder="Requerido si tiene RUC" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -83,18 +114,18 @@ export default function ClientForm<TValues extends FieldValues>({
             control={form.control}
             name={"direccion" as FieldPath<TValues>}
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="md:col-span-2">
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
-                  <textarea
-                    placeholder="Opcional"
+                  <Textarea
+                    placeholder="Dirección completa..."
                     rows={3}
                     value={(field.value as any) ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref as any}
-                    className="min-h-[96px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="resize-none"
                   />
                 </FormControl>
                 <FormMessage />

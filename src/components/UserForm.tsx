@@ -1,9 +1,9 @@
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui_official/form";
+import { Input } from "@/components/ui_official/input";
+import { Button } from "@/components/ui_official/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui_official/select";
 import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
-import type { RolUsuario } from "@/services/usuarios";
+import type { RolUsuario } from "@/api/generated/model";
 
 interface BaseUserFormValues extends FieldValues {
   email: string;
@@ -26,6 +26,7 @@ export default function UserForm<TValues extends BaseUserFormValues>({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="grid gap-4 md:grid-cols-2">
         <FormField
           control={form.control}
           name={"email" as FieldPath<TValues>}
@@ -45,9 +46,9 @@ export default function UserForm<TValues extends BaseUserFormValues>({
           name={"nombre" as FieldPath<TValues>}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre</FormLabel>
+              <FormLabel>Nombre completo (opcional)</FormLabel>
               <FormControl>
-                <Input placeholder="Nombre (opcional)" value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
+                <Input placeholder="Ej: Juan Pérez" value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -76,7 +77,7 @@ export default function UserForm<TValues extends BaseUserFormValues>({
               <FormLabel>Rol</FormLabel>
               <FormControl>
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger>
+                  <SelectTrigger className="w-full">
                     <SelectValue placeholder="Selecciona un rol" />
                   </SelectTrigger>
                   <SelectContent>
@@ -89,6 +90,7 @@ export default function UserForm<TValues extends BaseUserFormValues>({
             </FormItem>
           )}
         />
+        </div>
 
         <div className="pt-2">
           <Button type="submit" disabled={form.formState.isSubmitting}>
