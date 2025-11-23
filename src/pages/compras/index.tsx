@@ -1,4 +1,5 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 // Página de gestión de órdenes de compra con información fiscal (Historial + Detalle con Sheet)
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
@@ -182,6 +183,8 @@ const ComprasPage = () => {
           </p>
         </div>
 =======
+=======
+>>>>>>> Stashed changes
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, Minus, Search, X, FileInput, Save } from "lucide-react";
@@ -422,12 +425,16 @@ export default function ComprasPage() {
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="size-8 animate-spin text-muted-foreground" />
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       </div>
     );
   }
 
   return (
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     <div className="space-y-6 px-4 lg:px-6 pt-1 md:pt-2 pb-8">
       {/* Header */}
@@ -920,6 +927,8 @@ export default function ComprasPage() {
 
 export default ComprasPage;
 =======
+=======
+>>>>>>> Stashed changes
     <div className="pos-page px-4 lg:px-6 -my-3 md:-my-3 h-[calc(100svh-var(--header-height))] md:h-[calc(100svh-var(--header-height)-1rem)] overflow-hidden">
       <div className="grid h-full min-h-0 overflow-hidden gap-0" style={{ gridTemplateColumns: "minmax(0,1fr) 420px" }}>
         {/* IZQUIERDA: controles fijos y productos con scroll interno */}
@@ -1204,5 +1213,9 @@ export default ComprasPage;
       </div>
     </div>
   );
+<<<<<<< Updated upstream
+}
+>>>>>>> Stashed changes
+=======
 }
 >>>>>>> Stashed changes
