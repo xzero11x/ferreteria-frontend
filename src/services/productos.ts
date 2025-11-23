@@ -10,7 +10,7 @@ export type Producto = {
   descripcion: string | null;
   imagen_url: string | null;
   precio_venta: string;
-  costo_compra: string | null;
+  costo_compra: string ;
   stock: number;
   stock_minimo: number | null;
   categoria_id: number | null;

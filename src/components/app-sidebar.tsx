@@ -139,16 +139,7 @@ const data = {
     },
   ],
   navSecondary: [
-    {
-      title: "Settings",
-      url: "/dashboard/configuracion",
-      icon: SettingsIcon,
-    },
-    {
-      title: "Search",
-      url: "/dashboard",
-      icon: SearchIcon,
-    },
+    
   ],
   documents: [
     {
@@ -200,7 +191,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={displayUser} />
