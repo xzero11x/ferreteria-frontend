@@ -17,8 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useGetApiClientes } from "@/api/generated/clientes/clientes";
-import type { Cliente } from "@/api/generated/model";
+import { searchClientes, type Cliente } from "@/services/clientes";
 import CreateClientDialog from "@/components/CreateClientDialog";
 
 type ClientSelectorProps = {
@@ -30,31 +29,35 @@ type ClientSelectorProps = {
 export default function ClientSelector({ value, onChange, disabled = false }: ClientSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
 
   // Debounce para búsqueda remota
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchTerm);
+      if (searchTerm.trim().length > 0) {
+        void fetchClientes(searchTerm);
+      } else {
+        setClientes([]);
+      }
     }, 300);
 
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
-  const { data: clientesResponse, isLoading: loading } = useGetApiClientes(
-    { limit: 50 }
-  );
-
-  const allClientes = clientesResponse?.data ?? [];
-  
-  // Filtrar localmente por búsqueda
-  const clientes = debouncedSearch
-    ? allClientes.filter(c => 
-        c.nombre?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-        c.documento_identidad?.toLowerCase().includes(debouncedSearch.toLowerCase())
-      )
-    : allClientes;
+  const fetchClientes = useCallback(async (term: string) => {
+    setLoading(true);
+    try {
+      const results = await searchClientes(term, { limit: 10 });
+      setClientes(results);
+    } catch (error) {
+      console.error("Error al buscar clientes:", error);
+      setClientes([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const handleSelect = (cliente: Cliente | null) => {
     setSelectedCliente(cliente);

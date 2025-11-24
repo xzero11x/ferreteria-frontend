@@ -1,425 +1,290 @@
-"use client"
+// Página de gestión de usuarios del tenant con CRUD completo
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { Loader2, Pencil, Trash2, MoreHorizontal } from "lucide-react";
 
-import * as React from "react"
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-} from "@tanstack/react-table"
-import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
-import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Pencil, Trash2 } from "lucide-react"
-import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-
-import { useAuth } from "@/auth/AuthContext"
-import { useGetApiUsuarios, usePatchApiUsuariosIdDesactivar } from "@/api/generated/usuarios/usuarios"
-import type { Usuario } from "@/api/generated/model"
-
-import { Button } from "@/components/ui_official/button"
-import { Checkbox } from "@/components/ui_official/checkbox"
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui_official/dropdown-menu"
-import { Input } from "@/components/ui_official/input"
-import { Badge } from "@/components/ui_official/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui_official/table"
+import { useAuth } from "@/auth/AuthContext";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
+  AlertDialogTrigger,
   AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui_official/alert-dialog"
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+import type { ColumnDef } from "@tanstack/react-table";
+import { EntityDataTable } from "@/components/entity-data-table";
+import { Badge } from "@/components/ui/badge";
+// Filtros adicionales eliminados; mantenemos solo Select para Rol y modernizamos acciones
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import CreateUserDialog from "@/components/CreateUserDialog";
+import EditUserDialog from "@/components/EditUserDialog";
+import type {
+  RolUsuario,
+  Usuario,
+} from "@/services/usuarios";
+import {
+  deactivateUsuario,
+  listUsuarios,
+} from "@/services/usuarios";
 
-import CreateUserDialog from "@/components/CreateUserDialog"
-import EditUserDialog from "@/components/EditUserDialog"
-
-const rolLabels: Record<string, string> = {
+const rolLabels: Record<RolUsuario, string> = {
   admin: "Administrador",
   empleado: "Empleado",
+};
+
+// Eliminado: formulario interno, migrado a modales
+
+function normalizeId(id: string | number | undefined | null) {
+  if (id === null || id === undefined) return null;
+  if (typeof id === "number" && Number.isFinite(id)) return id;
+  if (typeof id === "string") {
+    const parsed = Number.parseInt(id, 10);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+  return null;
 }
 
-const rolColors: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-  admin: "destructive",
-  empleado: "secondary",
+function sortByEmail(items: Usuario[]) {
+  return [...items].sort((a, b) => a.email.localeCompare(b.email, "es"));
 }
 
-export default function UsuariosPageV2() {
-  const { user } = useAuth()
-  const queryClient = useQueryClient()
+const UsuariosPage = () => {
+  const { user } = useAuth();
+  const currentUserId = useMemo(() => normalizeId(user?.id), [user?.id]);
 
-  // Estados de tabla (client-side)
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [deactivatingId, setDeactivatingId] = useState<number | null>(null);
+  // Control externo de modales para evitar cierre inmediato al abrir desde el menú
+  const [editOpen, setEditOpen] = useState(false);
+  const [editingUsuario, setEditingUsuario] = useState<Usuario | null>(null);
+  const [deactivateOpen, setDeactivateOpen] = useState(false);
+  const [confirmUsuario, setConfirmUsuario] = useState<Usuario | null>(null);
+  
 
-  // Control de modales
-  const [editOpen, setEditOpen] = React.useState(false)
-  const [editingUsuario, setEditingUsuario] = React.useState<Usuario | null>(null)
-  const [deactivateOpen, setDeactivateOpen] = React.useState(false)
-  const [confirmUsuario, setConfirmUsuario] = React.useState<Usuario | null>(null)
+  const fetchUsuarios = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await listUsuarios();
+      setUsuarios(sortByEmail(data));
+    } catch (err: any) {
+      const message = err?.body?.message || err?.message || "No se pudo cargar la lista";
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Fetch data (sin paginación server-side)
-  const { data, isLoading, error } = useGetApiUsuarios()
-  const usuarios = React.useMemo(() => {
-    const items = data?.data || []
-    return items.sort((a, b) => a.email.localeCompare(b.email, "es"))
-  }, [data?.data])
+  useEffect(() => {
+    void fetchUsuarios();
+  }, [fetchUsuarios]);
 
-  // Mutation para desactivar
-  const desactivarMutation = usePatchApiUsuariosIdDesactivar({
-    mutation: {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["/api/usuarios"] })
-        toast.success("Usuario desactivado")
-        setDeactivateOpen(false)
-        setConfirmUsuario(null)
-      },
-      onError: (err: any) => {
-        const message = err?.response?.data?.message || err?.message || "No se pudo desactivar"
-        toast.error(message)
-      },
-    },
-  })
+  // Edición ahora se maneja con EditUserDialog
 
-  // Definición de columnas
-  const columns = React.useMemo<ColumnDef<Usuario>[]>(
+  // Creación manejada por CreateUserDialog
+
+  // Actualización migrada a EditUserDialog
+
+  // Submit eliminado; creación/edición via modales
+
+  async function handleDeactivate(usuario: Usuario) {
+    if (currentUserId && currentUserId === usuario.id) {
+      toast.error("No puedes desactivar tu propia cuenta");
+      return;
+    }
+    setDeactivatingId(usuario.id);
+    try {
+      await deactivateUsuario(usuario.id);
+      setUsuarios((prev) => prev.filter((item) => item.id !== usuario.id));
+      // Ya no se mantiene selección de edición
+      toast.success("Usuario desactivado");
+    } catch (err: any) {
+      const message = err?.body?.message || err?.message || "No se pudo desactivar";
+      toast.error(message);
+    } finally {
+      setDeactivatingId(null);
+    }
+  }
+
+  function handleReload() {
+    void fetchUsuarios();
+  }
+
+  const columns = useMemo<ColumnDef<Usuario>[]>(
     () => [
-      {
-        id: "select",
-        header: ({ table }) => (
-          <Checkbox
-            checked={
-              table.getIsAllPageRowsSelected() ||
-              (table.getIsSomePageRowsSelected() && "indeterminate")
-            }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-            aria-label="Select all"
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            onCheckedChange={(value) => row.toggleSelected(!!value)}
-            aria-label="Select row"
-          />
-        ),
-        enableSorting: false,
-        enableHiding: false,
-      },
+      { accessorKey: "id", header: "ID" },
       {
         accessorKey: "email",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Email
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
-        },
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{row.original.email}</span>
-            {row.original.id === user?.id && (
-              <Badge variant="outline" className="text-xs">
-                Tú
-              </Badge>
-            )}
-          </div>
-        ),
+        header: "Email",
+        cell: ({ row }) => <span className="font-medium">{row.original.email}</span>,
       },
       {
         accessorKey: "nombre",
-        header: ({ column }) => {
-          return (
-            <Button
-              variant="ghost"
-              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-            >
-              Nombre
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </Button>
-          )
+        header: "Nombre",
+        cell: ({ row }) => row.original.nombre?.trim() || "—",
+        // Búsqueda combinada por Nombre/Email
+        filterFn: (row, _id, val?: string) => {
+          const q = (val ?? "").toString().toLowerCase();
+          if (!q) return true;
+          const nombre = (row.original.nombre ?? "").toLowerCase();
+          const email = (row.original.email ?? "").toLowerCase();
+          return nombre.includes(q) || email.includes(q);
         },
-        cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
-            {row.original.nombre || "—"}
-          </span>
-        ),
       },
       {
         accessorKey: "rol",
         header: "Rol",
-        cell: ({ row }) => {
-          const rol = row.original.rol
-          return (
-            <Badge variant={rolColors[rol] || "default"}>
-              {rolLabels[rol] || rol}
-            </Badge>
-          )
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id))
+        cell: ({ row }) => (
+          <Badge variant={row.original.rol === "admin" ? "default" : "secondary"}>
+            {rolLabels[row.original.rol]}
+          </Badge>
+        ),
+        filterFn: (row, _id, val?: RolUsuario | "all") => {
+          if (!val || val === "all") return true;
+          return row.original.rol === val;
         },
       },
       {
         id: "actions",
-        enableHiding: false,
-        cell: ({ row }) => {
-          const usuario = row.original
-          const isCurrentUser = usuario.id === user?.id
-
-          return (
-            <div className="flex justify-end">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-44">
-                  <DropdownMenuItem
-                    onSelect={() => {
-                      setEditingUsuario(usuario)
-                      setEditOpen(true)
-                    }}
-                  >
-                    <Pencil className="mr-2 h-4 w-4" /> Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    disabled={isCurrentUser || desactivarMutation.isPending}
-                    onSelect={() => {
-                      if (!isCurrentUser) {
-                        setConfirmUsuario(usuario)
-                        setDeactivateOpen(true)
-                      }
-                    }}
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" /> Desactivar
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )
-        },
+        header: "",
+        cell: ({ row }) => (
+          <div className="flex justify-end">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  onSelect={() => {
+                    setEditingUsuario(row.original);
+                    setEditOpen(true);
+                  }}
+                >
+                  <Pencil className="mr-2 size-4" /> Editar
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={deactivatingId === row.original.id || currentUserId === row.original.id}
+                  onSelect={() => {
+                    if (deactivatingId === row.original.id || currentUserId === row.original.id) return;
+                    setConfirmUsuario(row.original);
+                    setDeactivateOpen(true);
+                  }}
+                >
+                  {deactivatingId === row.original.id ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="size-4 animate-spin" /> Desactivando
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Trash2 className="size-4" /> Desactivar
+                    </span>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ),
         enableSorting: false,
+        enableHiding: false,
       },
     ],
-    [desactivarMutation.isPending, user?.id]
-  )
-
-  const table = useReactTable({
-    data: usuarios,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  })
-
-  // Manejo de errores críticos
-  if (error && usuarios.length === 0 && !isLoading) {
-    return (
-      <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
-        <h1 className="text-2xl font-semibold">Usuarios</h1>
-        <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
-          <p className="text-sm text-destructive">
-            Error al cargar usuarios: {error instanceof Error ? error.message : "Error desconocido"}
-          </p>
-        </div>
-      </div>
-    )
-  }
+    [deactivatingId, currentUserId]
+  );
 
   return (
     <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
-      {/* Header */}
+      {/* Formulario eliminado: la creación y edición se realizan con modales */}
+
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Usuarios</h1>
+        <div className="text-2xl font-semibold">Usuarios</div>
         <div className="flex items-center gap-2">
           <CreateUserDialog
-            onCreated={() => {
-              queryClient.invalidateQueries({ queryKey: ["/api/usuarios"] })
-            }}
+            onCreated={(created) =>
+              setUsuarios((prev) => sortByEmail([...prev, created]))
+            }
           />
         </div>
       </div>
 
-      {/* Mensaje de Error */}
-      {error && (
+      {loading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Cargando usuarios...
+        </div>
+      ) : error ? (
         <div className="text-sm text-red-600" aria-live="assertive">
-          {error instanceof Error ? error.message : "Error al cargar usuarios"}
+          {error}
         </div>
-      )}
-
-      {/* Tabla */}
-      {isLoading && usuarios.length === 0 ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : usuarios.length === 0 && !error ? (
-        <div className="text-sm text-muted-foreground">No hay usuarios registrados.</div>
+      ) : usuarios.length === 0 ? (
+        <div className="text-sm text-muted-foreground">No hay usuarios activos.</div>
       ) : (
-        <div className="relative">
-          {isLoading && (
-            <div className="absolute top-2 right-2 z-10">
-              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+        <EntityDataTable
+          columns={columns}
+          data={usuarios}
+          searchKey="nombre"
+          toolbarRender={(table) => (
+            <div className="flex items-center gap-2">
+              {/* Filtro por Rol */}
+              <Select
+                value={(table.getColumn("rol")?.getFilterValue() as any) ?? undefined}
+                onValueChange={(v) => table.getColumn("rol")?.setFilterValue(v === "all" ? "all" : v)}
+              >
+                <SelectTrigger size="default" className="h-9 w-44">
+                  <SelectValue placeholder="Rol" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="admin">Administrador</SelectItem>
+                  <SelectItem value="empleado">Empleado</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           )}
-
-          <div className={isLoading ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
-            <div className="w-full">
-              {/* Toolbar */}
-              <div className="flex items-center gap-2 py-4">
-                <Input
-                  placeholder="Buscar por email..."
-                  value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-                  onChange={(event) => table.getColumn("email")?.setFilterValue(event.target.value)}
-                  className="h-9 w-96"
-                />
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" className="ml-auto">
-                      Columns <ChevronDown className="ml-2 h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    {table
-                      .getAllColumns()
-                      .filter((column) => column.getCanHide())
-                      .map((column) => {
-                        return (
-                          <DropdownMenuCheckboxItem
-                            key={column.id}
-                            className="capitalize"
-                            checked={column.getIsVisible()}
-                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                          >
-                            {column.id}
-                          </DropdownMenuCheckboxItem>
-                        )
-                      })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Table */}
-              <div className="overflow-hidden rounded-md border">
-                <Table>
-                  <TableHeader>
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => {
-                          return (
-                            <TableHead key={header.id}>
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(header.column.columnDef.header, header.getContext())}
-                            </TableHead>
-                          )
-                        })}
-                      </TableRow>
-                    ))}
-                  </TableHeader>
-                  <TableBody>
-                    {table.getRowModel().rows?.length ? (
-                      table.getRowModel().rows.map((row) => (
-                        <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                          {row.getVisibleCells().map((cell) => (
-                            <TableCell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24 text-center">
-                          No results.
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {/* Pagination */}
-              <div className="flex items-center justify-between space-x-2 py-4">
-                <div className="flex-1 text-sm text-muted-foreground">
-                  {table.getFilteredSelectedRowModel().rows.length} of {table.getFilteredRowModel().rows.length} row(s)
-                  selected.
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                  >
-                    Previous
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                  >
-                    Next
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        />
       )}
-
-      {/* Modales */}
+      {/* Modales controlados de forma externa para evitar cierre al abrir desde el menú */}
       {editingUsuario && (
         <EditUserDialog
           usuario={editingUsuario}
           open={editOpen}
           onOpenChange={(open) => {
-            setEditOpen(open)
-            if (!open) setEditingUsuario(null)
+            setEditOpen(open);
+            if (!open) setEditingUsuario(null);
           }}
-          onUpdated={() => queryClient.invalidateQueries({ queryKey: ["/api/usuarios"] })}
+          onUpdated={(updated) =>
+            setUsuarios((prev) =>
+              sortByEmail(prev.map((item) => (item.id === updated.id ? updated : item)))
+            )
+          }
         />
       )}
       <AlertDialog
         open={deactivateOpen}
         onOpenChange={(open) => {
-          setDeactivateOpen(open)
-          if (!open) setConfirmUsuario(null)
+          setDeactivateOpen(open);
+          if (!open) setConfirmUsuario(null);
         }}
       >
         <AlertDialogContent>
@@ -427,8 +292,8 @@ export default function UsuariosPageV2() {
             <AlertDialogTitle>Desactivar usuario</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmUsuario
-                ? `¿Desactivar al usuario "${confirmUsuario.email}"? El usuario ya no podrá acceder al sistema.`
-                : "¿Desactivar al usuario seleccionado?"}
+                ? `¿Desactivar al usuario "${confirmUsuario.email}"? Podrás asignarlo nuevamente si lo necesitas.`
+                : "¿Desactivar el usuario seleccionado?"}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -436,7 +301,8 @@ export default function UsuariosPageV2() {
             <AlertDialogAction
               onClick={() => {
                 if (confirmUsuario) {
-                  desactivarMutation.mutate({ id: confirmUsuario.id })
+                  handleDeactivate(confirmUsuario);
+                  setDeactivateOpen(false);
                 }
               }}
             >
@@ -446,5 +312,7 @@ export default function UsuariosPageV2() {
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
-}
+  );
+};
+
+export default UsuariosPage;

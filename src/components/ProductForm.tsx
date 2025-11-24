@@ -1,11 +1,9 @@
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui_official/form";
-import { Input } from "@/components/ui_official/input";
-import { Button } from "@/components/ui_official/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui_official/select";
-import { Switch } from "@/components/ui_official/switch";
-import { Textarea } from "@/components/ui_official/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
-import type { Categoria, Marca, UnidadMedida } from "@/api/generated/model";
+import type { Categoria } from "@/services/categorias";
 
 type ProductFormProps<TValues extends FieldValues = FieldValues> = {
   form: UseFormReturn<TValues, any, TValues>;
@@ -13,11 +11,6 @@ type ProductFormProps<TValues extends FieldValues = FieldValues> = {
   submitLabel?: string;
   categorias?: Categoria[];
   categoriasLoading?: boolean;
-  marcas?: Marca[];
-  marcasLoading?: boolean;
-  unidadesMedida?: UnidadMedida[];
-  unidadesMedidaLoading?: boolean;
-  showAfectacionIgv?: boolean; // Solo se muestra si el tenant NO es exonerado_regional
 };
 
 export default function ProductForm<TValues extends FieldValues>({
@@ -26,16 +19,11 @@ export default function ProductForm<TValues extends FieldValues>({
   submitLabel = "Guardar",
   categorias = [],
   categoriasLoading = false,
-  marcas = [],
-  marcasLoading = false,
-  unidadesMedida = [],
-  unidadesMedidaLoading = false,
-  showAfectacionIgv = false,
 }: ProductFormProps<TValues>) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-2">
           {/* Nombre */}
           <FormField
             control={form.control}
@@ -107,30 +95,30 @@ export default function ProductForm<TValues extends FieldValues>({
               <FormItem>
                 <FormLabel>SKU</FormLabel>
                 <FormControl>
-                  <Input placeholder="Código único" value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
+                  <Input placeholder="Opcional" value={field.value ?? ""} onChange={field.onChange} onBlur={field.onBlur} name={field.name} ref={field.ref} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Descripción (campo completo en 2 columnas) */}
+          {/* Descripción (opcional) */}
           <FormField
             control={form.control}
             name={"descripcion" as FieldPath<TValues>}
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem className="lg:col-span-2">
                 <FormLabel>Descripción</FormLabel>
                 <FormControl>
-                  <Textarea 
-                    placeholder="Descripción detallada del producto..." 
-                    className="resize-none" 
+                  <textarea
+                    placeholder="Detalle del producto"
                     rows={3}
-                    value={field.value ?? ""} 
-                    onChange={field.onChange} 
-                    onBlur={field.onBlur} 
-                    name={field.name} 
-                    ref={field.ref}
+                    value={field.value ?? ""}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    name={field.name}
+                    ref={field.ref as any}
+                    className="min-h-[96px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
                 </FormControl>
                 <FormMessage />
@@ -231,7 +219,7 @@ export default function ProductForm<TValues extends FieldValues>({
                     }
                     disabled={categoriasLoading}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger>
                       <SelectValue placeholder={categoriasLoading ? "Cargando…" : "Sin categoría"} />
                     </SelectTrigger>
                     <SelectContent>
@@ -248,93 +236,6 @@ export default function ProductForm<TValues extends FieldValues>({
               </FormItem>
             )}
           />
-
-          {/* Marca */}
-          <FormField
-            control={form.control}
-            name={"marca_id" as FieldPath<TValues>}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Marca</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value == null ? "" : String(field.value)}
-                    onValueChange={(val) =>
-                      field.onChange(val === "none" ? null : Number(val))
-                    }
-                    disabled={marcasLoading}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={marcasLoading ? "Cargando…" : "Sin marca"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Sin marca</SelectItem>
-                      {marcas.map((marca) => (
-                        <SelectItem key={marca.id} value={String(marca.id)}>
-                          {marca.nombre}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Unidad de medida */}
-          <FormField
-            control={form.control}
-            name={"unidad_medida_id" as FieldPath<TValues>}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Unidad de medida</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value == null ? "" : String(field.value)}
-                    onValueChange={(val) => field.onChange(Number(val))}
-                    disabled={unidadesMedidaLoading}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder={unidadesMedidaLoading ? "Cargando…" : "Seleccionar"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unidadesMedida.map((unidad) => (
-                        <SelectItem key={unidad.id} value={String(unidad.id)}>
-                          {unidad.nombre} ({unidad.codigo})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          {/* Afectación IGV - Solo visible si el tenant NO es exonerado_regional */}
-          {showAfectacionIgv && (
-            <FormField
-              control={form.control}
-              name={"afectacion_igv" as FieldPath<TValues>}
-              render={({ field }) => (
-                <FormItem className="md:col-span-2 flex items-center justify-between p-2">
-                  <div className="space-y-0.5">
-                    <FormLabel>IGV exonerado</FormLabel>
-                    <p className="text-xs text-muted-foreground">Solo productos sin IGV</p>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value === "EXONERADO"}
-                      onCheckedChange={(checked) =>
-                        field.onChange(checked ? "EXONERADO" : "GRAVADO")
-                      }
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          )}
         </div>
 
         <div className="pt-2">

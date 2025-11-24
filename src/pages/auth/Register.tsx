@@ -1,7 +1,8 @@
 // Página de registro de nuevo tenant
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { usePostApiAuthRegister } from "@/api/generated/autenticación/autenticación";
+import { http } from "@/services/http";
+import { endpoints } from "@/services/endpoints";
 import AuthLayout from "@/components/auth/AuthLayout";
 import { PasswordInput } from "@/components/auth/PasswordInput";
 import { Label } from "@/components/ui/label";
@@ -9,78 +10,41 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 // Iconos eliminados para un estilo más minimalista
 
+type RegisterResponse = {
+  message?: string;
+  tenantId?: number;
+};
+
 export default function RegisterPage() {
   const [nombre_empresa, setNombreEmpresa] = useState("");
   const [subdominio, setSubdominio] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const registerMutation = usePostApiAuthRegister({
-    mutation: {
-      onSuccess: (data) => {
-        setSuccess(data.message || "Registro exitoso. Revisa tu consola para la activación manual");
-        console.log("Registro de tenant", data);
-      },
-      onError: (err: any) => {
-        console.error("=== ERROR REGISTRO ===");
-        console.error("Full error:", err);
-        console.error("Error response data (JSON):", JSON.stringify(err?.response?.data, null, 2));
-        console.error("Status:", err?.response?.status);
-        
-        let apiMsg = "Error en el registro";
-        const errorData = err?.response?.data;
-        
-        if (errorData?.error) {
-          apiMsg = errorData.error;
-        } else if (errorData?.message) {
-          apiMsg = errorData.message;
-        } else if (err?.message) {
-          apiMsg = err.message;
-        }
-        
-        if (errorData?.details) {
-          apiMsg += ` - Detalles: ${JSON.stringify(errorData.details)}`;
-        }
-        
-        setError(apiMsg);
-      },
-    },
-  });
-
-  function onSubmit(e: React.FormEvent) {
+  async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setLoading(true);
     setError(null);
     setSuccess(null);
-    
-    // Validaciones frontend
-    if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres");
-      return;
-    }
-    
-    if (!/^[a-z0-9-]+$/.test(subdominio)) {
-      setError("El subdominio solo puede contener letras minúsculas, números y guiones");
-      return;
-    }
-    
-    console.log("=== REGISTRO DEBUG ===");
-    console.log("Payload a enviar:", JSON.stringify({
-      nombre_empresa,
-      subdominio,
-      email,
-      password,
-    }, null, 2));
-    
-    registerMutation.mutate({
-      data: {
+    try {
+      const res = await http.post<RegisterResponse>(endpoints.auth.register(), {
         nombre_empresa,
         subdominio,
         email,
         password,
-      },
-    });
+      });
+      const msg = res?.message || "Registro exitoso. Revisa tu consola para la activación manual";
+      setSuccess(msg);
+      console.log("Registro de tenant", res);
+    } catch (err: any) {
+      const apiMsg = err?.body?.message || err?.message || "Error en el registro";
+      setError(apiMsg);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -105,13 +69,10 @@ export default function RegisterPage() {
           <Input
             id="subdominio"
             value={subdominio}
-            onChange={(e) => setSubdominio(e.target.value.toLowerCase())}
+            onChange={(e) => setSubdominio(e.target.value)}
             placeholder="central"
             required
           />
-          <p className="text-xs text-muted-foreground">
-            Solo minúsculas, números y guiones. Ejemplo: ferreteria-central
-          </p>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="email">Email</Label>
@@ -133,9 +94,6 @@ export default function RegisterPage() {
             placeholder="••••••••"
             required
           />
-          <p className="text-xs text-muted-foreground">
-            Mínimo 8 caracteres
-          </p>
         </div>
         {error && (
           <div className="text-red-600 text-sm" aria-live="assertive">{error}</div>
@@ -143,8 +101,8 @@ export default function RegisterPage() {
         {success && (
           <div className="text-green-600 text-sm" aria-live="polite">{success}</div>
         )}
-        <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
-          {registerMutation.isPending ? "Registrando..." : "Registrar"}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? "Registrando..." : "Registrar"}
         </Button>
         <div className="text-center text-sm">
           ¿Ya tienes una cuenta?{" "}

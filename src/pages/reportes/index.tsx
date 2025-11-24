@@ -16,9 +16,11 @@ import {
 	TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { useGetApiReportesKardexProductoId } from "@/api/generated/reportes/reportes";
-
-type TipoMovimientoKardex = "venta" | "compra" | "ajuste_entrada" | "ajuste_salida";
+import {
+	getKardexCompleto,
+	type KardexCompleto,
+	type TipoMovimientoKardex,
+} from "@/services/reportes";
 
 const tipoLabels: Record<TipoMovimientoKardex, string> = {
 	venta: "Venta",
@@ -59,13 +61,8 @@ function formatDate(dateString: string) {
 
 const ReportesPage = () => {
 	const [productoId, setProductoId] = useState("");
-	const [searchId, setSearchId] = useState<number | null>(null);
-
-	// Fetch automático cuando se establece searchId
-	const { data: kardex, isLoading: loading, error } = useGetApiReportesKardexProductoId(
-		searchId ?? 0,
-		{ query: { enabled: searchId !== null && searchId > 0 } }
-	);
+	const [kardex, setKardex] = useState<KardexCompleto | null>(null);
+	const [loading, setLoading] = useState(false);
 
 	async function handleBuscar(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -75,13 +72,19 @@ const ReportesPage = () => {
 			return;
 		}
 
-		setSearchId(id);
-	}
-
-	// Mostrar error si existe
-	if (error && searchId !== null) {
-		const message = (error as any)?.response?.data?.message || (error as any)?.message || "No se pudo obtener el kardex";
-		toast.error(message);
+		setLoading(true);
+		try {
+			const data = await getKardexCompleto(id);
+			setKardex(data);
+			toast.success("Kardex generado correctamente");
+		} catch (err: any) {
+			const message =
+				err?.body?.message || err?.message || "No se pudo obtener el kardex";
+			toast.error(message);
+			setKardex(null);
+		} finally {
+			setLoading(false);
+		}
 	}
 
 	return (
@@ -139,16 +142,16 @@ const ReportesPage = () => {
 							<dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
 								<div>
 									<dt className="text-sm text-muted-foreground">ID</dt>
-									<dd className="text-lg font-medium">{kardex.producto?.id}</dd>
+									<dd className="text-lg font-medium">{kardex.producto.id}</dd>
 								</div>
 								<div>
 									<dt className="text-sm text-muted-foreground">Nombre</dt>
-									<dd className="text-lg font-medium">{kardex.producto?.nombre}</dd>
+									<dd className="text-lg font-medium">{kardex.producto.nombre}</dd>
 								</div>
 								<div>
 									<dt className="text-sm text-muted-foreground">SKU</dt>
 									<dd className="text-lg font-medium">
-										{kardex.producto?.sku || "—"}
+										{kardex.producto.sku || "—"}
 									</dd>
 								</div>
 								<div>
@@ -168,7 +171,7 @@ const ReportesPage = () => {
 							</CardTitle>
 						</CardHeader>
 						<CardContent>
-							{(kardex.movimientos?.length ?? 0) === 0 ? (
+							{kardex.movimientos.length === 0 ? (
 								<div className="text-sm text-muted-foreground">
 									No hay movimientos registrados para este producto.
 								</div>
@@ -176,51 +179,51 @@ const ReportesPage = () => {
 								<div className="overflow-x-auto">
 									<Table>
 										<TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-40 p-3">Fecha</TableHead>
-                                                <TableHead className="w-32 p-3">Tipo</TableHead>
-                                                <TableHead className="w-24 p-3 text-left">Cantidad</TableHead>
-                                                <TableHead className="p-3">Referencia</TableHead>
-                                                <TableHead className="w-28 p-3 text-left">Precio Unit.</TableHead>
-                                                <TableHead className="w-24 p-3 text-left">Saldo</TableHead>
-                                            </TableRow>
+											<TableRow>
+												<TableHead className="w-40">Fecha</TableHead>
+												<TableHead className="w-32">Tipo</TableHead>
+												<TableHead className="w-24 text-right">Cantidad</TableHead>
+												<TableHead>Referencia</TableHead>
+												<TableHead className="w-28 text-right">Precio Unit.</TableHead>
+												<TableHead className="w-24 text-right">Saldo</TableHead>
+											</TableRow>
 										</TableHeader>
 										<TableBody>
-											{kardex.movimientos?.map((mov: any, idx: number) => (
-                                                <TableRow key={idx}>
-                                                    <TableCell className="p-3 text-sm">
-                                                        {mov.fecha ? formatDate(mov.fecha) : "—"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Badge variant={mov.tipo ? tipoVariants[mov.tipo as TipoMovimientoKardex] : "outline"}>
-                                                            {mov.tipo ? tipoLabels[mov.tipo as TipoMovimientoKardex] : "—"}
-                                                        </Badge>
-                                                    </TableCell>
-                                                    <TableCell className="p-3 text-left font-mono">
-                                                        {mov.cantidad ?? "—"}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex flex-col gap-1">
-                                                            <span className="text-sm">{mov.referencia ?? "—"}</span>
-                                                            {mov.motivo && (
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    {mov.motivo}
-                                                                </span>
-                                                            )}
-                                                            {mov.responsable && (
-                                                                <span className="text-xs text-muted-foreground">
-                                                                    Por: {mov.responsable}
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell className="p-3 text-left font-mono text-sm">
-                                                        {formatCurrency(mov.precio_unitario)}
-                                                    </TableCell>
-                                                    <TableCell className="p-3 text-left font-mono font-medium">
-                                                        {mov.saldo ?? "—"}
-                                                    </TableCell>
-                                                </TableRow>
+											{kardex.movimientos.map((mov, idx) => (
+												<TableRow key={idx}>
+													<TableCell className="text-sm">
+														{formatDate(mov.fecha)}
+													</TableCell>
+													<TableCell>
+														<Badge variant={tipoVariants[mov.tipo]}>
+															{tipoLabels[mov.tipo]}
+														</Badge>
+													</TableCell>
+													<TableCell className="text-right font-mono">
+														{mov.cantidad}
+													</TableCell>
+													<TableCell>
+														<div className="flex flex-col gap-1">
+															<span className="text-sm">{mov.referencia}</span>
+															{mov.motivo && (
+																<span className="text-xs text-muted-foreground">
+																	{mov.motivo}
+																</span>
+															)}
+															{mov.responsable && (
+																<span className="text-xs text-muted-foreground">
+																	Por: {mov.responsable}
+																</span>
+															)}
+														</div>
+													</TableCell>
+													<TableCell className="text-right font-mono text-sm">
+														{formatCurrency(mov.precio_unitario)}
+													</TableCell>
+													<TableCell className="text-right font-mono font-medium">
+														{mov.saldo}
+													</TableCell>
+												</TableRow>
 											))}
 										</TableBody>
 									</Table>

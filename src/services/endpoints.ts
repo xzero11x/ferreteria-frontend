@@ -49,10 +49,13 @@ export const endpoints = {
     list: () => "/api/ventas",
     create: () => "/api/ventas",
   },
+<<<<<<< HEAD
   compras: {
     list: () => "/api/compras",
     create: () => "/api/compras",
   },
+=======
+>>>>>>> parent of bafa93d (Merge remote-tracking branch 'origin/up-upload' into dante)
   reportes: {
     kardex: (productoId: number | string) => `/api/reportes/kardex/${productoId}`,
   },

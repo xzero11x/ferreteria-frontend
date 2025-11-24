@@ -15,11 +15,8 @@ export function setToken(token: string): void {
   } catch {}
 }
 
-export function removeToken(): void {
+export function clearToken(): void {
   try {
     localStorage.removeItem(TOKEN_KEY);
   } catch {}
 }
-
-// Alias para compatibilidad
-export const clearToken = removeToken;

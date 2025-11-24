@@ -9,45 +9,27 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui_official/dialog";
-import { Button } from "@/components/ui_official/button";
-import { ScrollArea } from "@/components/ui_official/scroll-area";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import ProviderForm from "@/components/ProviderForm";
 import { toast } from "sonner";
-import { usePostApiProveedores } from "@/api/generated/proveedores/proveedores";
-import type { Proveedor, CreateProveedorTipoDocumento } from "@/api/generated/model";
-import { useQueryClient } from "@tanstack/react-query";
-
-type ProveedorCreateInput = {
-  nombre: string;
-  tipo_documento: CreateProveedorTipoDocumento;
-  ruc_identidad: string;
-  email?: string;
-  telefono?: string;
-  direccion?: string;
-};
+import { createProveedor, type Proveedor, type ProveedorCreateInput } from "@/services/proveedores";
 
 const createProviderSchema = z.object({
   nombre: z.string().min(1, "El nombre es obligatorio").max(200, "Máximo 200 caracteres"),
   ruc_identidad: z
     .string()
     .trim()
-    .min(1, "El documento es obligatorio")
-    .refine(
-      (val) => /^[0-9]{8}$|^[0-9]{11}$/.test(val),
-      "El documento debe ser DNI (8 dígitos) o RUC (11 dígitos)"
-    ),
+    .max(50, "Máximo 50 caracteres")
+    .optional()
+    .or(z.literal("")),
   email: z
     .string()
     .trim()
-    .refine(
-      (val) => !val || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
-      "Email inválido"
-    )
+    .email("Email inválido")
     .optional()
     .or(z.literal("")),
-
   telefono: z
     .string()
     .trim()
@@ -71,9 +53,6 @@ type CreateProviderDialogProps = {
 
 export default function CreateProviderDialog({ onCreated, children }: CreateProviderDialogProps) {
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const { mutateAsync: createProveedor } = usePostApiProveedores();
-
   const form = useForm<CreateProviderFormValues>({
     resolver: zodResolver(createProviderSchema),
     defaultValues: { nombre: "", ruc_identidad: "", email: "", telefono: "", direccion: "" },
@@ -88,35 +67,20 @@ export default function CreateProviderDialog({ onCreated, children }: CreateProv
 
   async function onSubmit(values: CreateProviderFormValues) {
     try {
-      // Detectar tipo_documento según longitud
-      const documento = values.ruc_identidad.trim();
-      let tipo_documento: CreateProveedorTipoDocumento;
-      
-      if (documento.length === 8) {
-        tipo_documento = 'DNI';
-      } else if (documento.length === 11) {
-        tipo_documento = 'RUC';
-      } else {
-        toast.error("Documento inválido");
-        return;
-      }
-
       const payload: ProveedorCreateInput = {
         nombre: values.nombre.trim(),
-        tipo_documento: tipo_documento,
-        ruc_identidad: documento,
+        ruc_identidad: values.ruc_identidad?.trim() ? values.ruc_identidad.trim() : undefined,
         email: values.email?.trim() ? values.email.trim() : undefined,
         telefono: values.telefono?.trim() ? values.telefono.trim() : undefined,
         direccion: values.direccion?.trim() ? values.direccion.trim() : undefined,
       };
 
-      const created = await createProveedor({ data: payload });
-      await queryClient.invalidateQueries({ queryKey: ['api', 'proveedores'] });
+      const created = await createProveedor(payload);
       toast.success("Proveedor creado correctamente");
       onCreated?.(created);
       setOpen(false);
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al crear el proveedor";
+      const message = err?.body?.message || err?.message || "Error al crear el proveedor";
       toast.error(message);
     }
   }
@@ -132,16 +96,12 @@ export default function CreateProviderDialog({ onCreated, children }: CreateProv
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6">
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
           <DialogTitle>Crear proveedor</DialogTitle>
-          <DialogDescription>Completa los datos para registrar un nuevo proveedor</DialogDescription>
+          <DialogDescription>Completa los datos para registrar un nuevo proveedor.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(90vh-8rem)] px-6 pb-6">
-          <div className="space-y-6 pb-6">
-            <ProviderForm form={form} onSubmit={onSubmit} submitLabel="Crear proveedor" />
-          </div>
-        </ScrollArea>
+        <ProviderForm form={form} onSubmit={onSubmit} submitLabel="Crear" />
       </DialogContent>
     </Dialog>
   );

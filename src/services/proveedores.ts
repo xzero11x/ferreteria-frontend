@@ -1,7 +1,10 @@
 // Servicio de API para gestión de proveedores
 import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";
+<<<<<<< HEAD
 import type { PaginationParams, PaginatedResponse } from "@/types/api";
+=======
+>>>>>>> parent of bafa93d (Merge remote-tracking branch 'origin/up-upload' into dante)
 
 export type Proveedor = {
   id: number;
@@ -26,6 +29,7 @@ export type ProveedorUpdateInput = Partial<ProveedorCreateInput> & {
   nombre?: string;
 };
 
+<<<<<<< HEAD
 export async function listProveedores(params: PaginationParams = {}): Promise<PaginatedResponse<Proveedor>> {
   const { page, limit, q } = params;
   const qs = new URLSearchParams();
@@ -45,6 +49,12 @@ export async function searchProveedores(term: string,params: Omit<PaginationPara
 }
 
 
+=======
+export async function listProveedores() {
+  return http.get<Proveedor[]>(endpoints.proveedores.list());
+}
+
+>>>>>>> parent of bafa93d (Merge remote-tracking branch 'origin/up-upload' into dante)
 export async function createProveedor(data: ProveedorCreateInput) {
   return http.post<Proveedor>(endpoints.proveedores.create(), data);
 }

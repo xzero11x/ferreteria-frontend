@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, Plus, Minus, Search, X, FileInput, Save } from "lucide-react";
@@ -528,3 +529,8 @@ export default function ComprasPage() {
     </div>
   );
 }
+=======
+// Página de gestión de compras (pendiente de implementar)
+const ComprasPage = () => <div>Página base de compras</div>;
+export default ComprasPage;
+>>>>>>> parent of bafa93d (Merge remote-tracking branch 'origin/up-upload' into dante)
