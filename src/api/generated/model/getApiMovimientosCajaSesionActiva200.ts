@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { MovimientoCaja } from './movimientoCaja';
+import type { MovimientoCaja } from "./movimientoCaja";
 
 export type GetApiMovimientosCajaSesionActiva200 = {
   data: MovimientoCaja[];

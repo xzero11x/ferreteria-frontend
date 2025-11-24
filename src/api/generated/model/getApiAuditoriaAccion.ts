@@ -17,16 +17,16 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 
-export type GetApiAuditoriaAccion = typeof GetApiAuditoriaAccion[keyof typeof GetApiAuditoriaAccion];
-
+export type GetApiAuditoriaAccion =
+  (typeof GetApiAuditoriaAccion)[keyof typeof GetApiAuditoriaAccion];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiAuditoriaAccion = {
-  CREAR: 'CREAR',
-  ACTUALIZAR: 'ACTUALIZAR',
-  ELIMINAR: 'ELIMINAR',
-  ANULAR: 'ANULAR',
-  AJUSTAR: 'AJUSTAR',
-  LOGIN: 'LOGIN',
-  LOGOUT: 'LOGOUT',
+  CREAR: "CREAR",
+  ACTUALIZAR: "ACTUALIZAR",
+  ELIMINAR: "ELIMINAR",
+  ANULAR: "ANULAR",
+  AJUSTAR: "AJUSTAR",
+  LOGIN: "LOGIN",
+  LOGOUT: "LOGOUT",
 } as const;

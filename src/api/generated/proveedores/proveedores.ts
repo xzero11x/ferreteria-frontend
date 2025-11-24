@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   CreateProveedor,
@@ -70,393 +67,750 @@ import type {
   PutApiProveedoresId409,
   PutApiProveedoresId500,
   SuccessResponse,
-  UpdateProveedor
-} from '.././model';
+  UpdateProveedor,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Lista todos los proveedores activos del tenant. Incluye información de contacto y estado.
  * @summary Listar proveedores
  */
 export const getApiProveedores = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<GetApiProveedores200>(
-      {url: `/api/proveedores`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
+  return customInstance<GetApiProveedores200>(
+    { url: `/api/proveedores`, method: "GET", signal },
+    options,
+  );
+};
 
 export const getGetApiProveedoresQueryKey = () => {
-    return [
-    `/api/proveedores`
-    ] as const;
-    }
+  return [`/api/proveedores`] as const;
+};
 
-    
-export const getGetApiProveedoresQueryOptions = <TData = Awaited<ReturnType<typeof getApiProveedores>>, TError = ErrorType<GetApiProveedores400 | GetApiProveedores401 | GetApiProveedores403 | GetApiProveedores404 | GetApiProveedores409 | GetApiProveedores500>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedores>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiProveedoresQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiProveedores>>,
+  TError = ErrorType<
+    | GetApiProveedores400
+    | GetApiProveedores401
+    | GetApiProveedores403
+    | GetApiProveedores404
+    | GetApiProveedores409
+    | GetApiProveedores500
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getApiProveedores>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiProveedoresQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiProveedoresQueryKey();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiProveedores>>
+  > = ({ signal }) => getApiProveedores(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiProveedores>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiProveedores>>> = ({ signal }) => getApiProveedores(requestOptions, signal);
+export type GetApiProveedoresQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiProveedores>>
+>;
+export type GetApiProveedoresQueryError = ErrorType<
+  | GetApiProveedores400
+  | GetApiProveedores401
+  | GetApiProveedores403
+  | GetApiProveedores404
+  | GetApiProveedores409
+  | GetApiProveedores500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiProveedores>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiProveedoresQueryResult = NonNullable<Awaited<ReturnType<typeof getApiProveedores>>>
-export type GetApiProveedoresQueryError = ErrorType<GetApiProveedores400 | GetApiProveedores401 | GetApiProveedores403 | GetApiProveedores404 | GetApiProveedores409 | GetApiProveedores500>
-
-
-export function useGetApiProveedores<TData = Awaited<ReturnType<typeof getApiProveedores>>, TError = ErrorType<GetApiProveedores400 | GetApiProveedores401 | GetApiProveedores403 | GetApiProveedores404 | GetApiProveedores409 | GetApiProveedores500>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedores>>, TError, TData>> & Pick<
+export function useGetApiProveedores<
+  TData = Awaited<ReturnType<typeof getApiProveedores>>,
+  TError = ErrorType<
+    | GetApiProveedores400
+    | GetApiProveedores401
+    | GetApiProveedores403
+    | GetApiProveedores404
+    | GetApiProveedores409
+    | GetApiProveedores500
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedores>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiProveedores>>,
           TError,
           Awaited<ReturnType<typeof getApiProveedores>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiProveedores<TData = Awaited<ReturnType<typeof getApiProveedores>>, TError = ErrorType<GetApiProveedores400 | GetApiProveedores401 | GetApiProveedores403 | GetApiProveedores404 | GetApiProveedores409 | GetApiProveedores500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedores>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiProveedores<
+  TData = Awaited<ReturnType<typeof getApiProveedores>>,
+  TError = ErrorType<
+    | GetApiProveedores400
+    | GetApiProveedores401
+    | GetApiProveedores403
+    | GetApiProveedores404
+    | GetApiProveedores409
+    | GetApiProveedores500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedores>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiProveedores>>,
           TError,
           Awaited<ReturnType<typeof getApiProveedores>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiProveedores<TData = Awaited<ReturnType<typeof getApiProveedores>>, TError = ErrorType<GetApiProveedores400 | GetApiProveedores401 | GetApiProveedores403 | GetApiProveedores404 | GetApiProveedores409 | GetApiProveedores500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedores>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiProveedores<
+  TData = Awaited<ReturnType<typeof getApiProveedores>>,
+  TError = ErrorType<
+    | GetApiProveedores400
+    | GetApiProveedores401
+    | GetApiProveedores403
+    | GetApiProveedores404
+    | GetApiProveedores409
+    | GetApiProveedores500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedores>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Listar proveedores
  */
 
-export function useGetApiProveedores<TData = Awaited<ReturnType<typeof getApiProveedores>>, TError = ErrorType<GetApiProveedores400 | GetApiProveedores401 | GetApiProveedores403 | GetApiProveedores404 | GetApiProveedores409 | GetApiProveedores500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedores>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiProveedores<
+  TData = Awaited<ReturnType<typeof getApiProveedores>>,
+  TError = ErrorType<
+    | GetApiProveedores400
+    | GetApiProveedores401
+    | GetApiProveedores403
+    | GetApiProveedores404
+    | GetApiProveedores409
+    | GetApiProveedores500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedores>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiProveedoresQueryOptions(options);
 
-  const queryOptions = getGetApiProveedoresQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Crea un nuevo proveedor con RUC/DNI único. Valida formato de documento de identidad (11 dígitos para RUC, 8 para DNI).
  * @summary Crear proveedor
  */
 export const postApiProveedores = (
-    createProveedor: CreateProveedor,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createProveedor: CreateProveedor,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Proveedor>(
-      {url: `/api/proveedores`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createProveedor, signal
+  return customInstance<Proveedor>(
+    {
+      url: `/api/proveedores`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createProveedor,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiProveedoresMutationOptions = <
+  TError = ErrorType<
+    | PostApiProveedores400
+    | PostApiProveedores401
+    | PostApiProveedores403
+    | PostApiProveedores404
+    | PostApiProveedores409
+    | PostApiProveedores500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiProveedores>>,
+    TError,
+    { data: CreateProveedor },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiProveedores>>,
+  TError,
+  { data: CreateProveedor },
+  TContext
+> => {
+  const mutationKey = ["postApiProveedores"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiProveedoresMutationOptions = <TError = ErrorType<PostApiProveedores400 | PostApiProveedores401 | PostApiProveedores403 | PostApiProveedores404 | PostApiProveedores409 | PostApiProveedores500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiProveedores>>, TError,{data: CreateProveedor}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiProveedores>>, TError,{data: CreateProveedor}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiProveedores>>,
+    { data: CreateProveedor }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiProveedores'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiProveedores(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiProveedoresMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiProveedores>>
+>;
+export type PostApiProveedoresMutationBody = CreateProveedor;
+export type PostApiProveedoresMutationError = ErrorType<
+  | PostApiProveedores400
+  | PostApiProveedores401
+  | PostApiProveedores403
+  | PostApiProveedores404
+  | PostApiProveedores409
+  | PostApiProveedores500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiProveedores>>, {data: CreateProveedor}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiProveedores(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiProveedoresMutationResult = NonNullable<Awaited<ReturnType<typeof postApiProveedores>>>
-    export type PostApiProveedoresMutationBody = CreateProveedor
-    export type PostApiProveedoresMutationError = ErrorType<PostApiProveedores400 | PostApiProveedores401 | PostApiProveedores403 | PostApiProveedores404 | PostApiProveedores409 | PostApiProveedores500>
-
-    /**
+/**
  * @summary Crear proveedor
  */
-export const usePostApiProveedores = <TError = ErrorType<PostApiProveedores400 | PostApiProveedores401 | PostApiProveedores403 | PostApiProveedores404 | PostApiProveedores409 | PostApiProveedores500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiProveedores>>, TError,{data: CreateProveedor}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiProveedores>>,
-        TError,
-        {data: CreateProveedor},
-        TContext
-      > => {
+export const usePostApiProveedores = <
+  TError = ErrorType<
+    | PostApiProveedores400
+    | PostApiProveedores401
+    | PostApiProveedores403
+    | PostApiProveedores404
+    | PostApiProveedores409
+    | PostApiProveedores500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiProveedores>>,
+      TError,
+      { data: CreateProveedor },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiProveedores>>,
+  TError,
+  { data: CreateProveedor },
+  TContext
+> => {
+  const mutationOptions = getPostApiProveedoresMutationOptions(options);
 
-      const mutationOptions = getPostApiProveedoresMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Retorna la información detallada de un proveedor específico del tenant.
  * @summary Obtener proveedor por ID
  */
 export const getApiProveedoresId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Proveedor>(
-      {url: `/api/proveedores/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<Proveedor>(
+    { url: `/api/proveedores/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiProveedoresIdQueryKey = (id?: number) => {
+  return [`/api/proveedores/${id}`] as const;
+};
 
-
-export const getGetApiProveedoresIdQueryKey = (id?: number,) => {
-    return [
-    `/api/proveedores/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiProveedoresIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiProveedoresId>>, TError = ErrorType<GetApiProveedoresId400 | GetApiProveedoresId401 | GetApiProveedoresId403 | GetApiProveedoresId404 | GetApiProveedoresId409 | GetApiProveedoresId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedoresId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiProveedoresIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiProveedoresId>>,
+  TError = ErrorType<
+    | GetApiProveedoresId400
+    | GetApiProveedoresId401
+    | GetApiProveedoresId403
+    | GetApiProveedoresId404
+    | GetApiProveedoresId409
+    | GetApiProveedoresId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedoresId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiProveedoresIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiProveedoresIdQueryKey(id);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiProveedoresId>>
+  > = ({ signal }) => getApiProveedoresId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiProveedoresId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiProveedoresId>>> = ({ signal }) => getApiProveedoresId(id, requestOptions, signal);
+export type GetApiProveedoresIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiProveedoresId>>
+>;
+export type GetApiProveedoresIdQueryError = ErrorType<
+  | GetApiProveedoresId400
+  | GetApiProveedoresId401
+  | GetApiProveedoresId403
+  | GetApiProveedoresId404
+  | GetApiProveedoresId409
+  | GetApiProveedoresId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiProveedoresId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiProveedoresIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiProveedoresId>>>
-export type GetApiProveedoresIdQueryError = ErrorType<GetApiProveedoresId400 | GetApiProveedoresId401 | GetApiProveedoresId403 | GetApiProveedoresId404 | GetApiProveedoresId409 | GetApiProveedoresId500>
-
-
-export function useGetApiProveedoresId<TData = Awaited<ReturnType<typeof getApiProveedoresId>>, TError = ErrorType<GetApiProveedoresId400 | GetApiProveedoresId401 | GetApiProveedoresId403 | GetApiProveedoresId404 | GetApiProveedoresId409 | GetApiProveedoresId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedoresId>>, TError, TData>> & Pick<
+export function useGetApiProveedoresId<
+  TData = Awaited<ReturnType<typeof getApiProveedoresId>>,
+  TError = ErrorType<
+    | GetApiProveedoresId400
+    | GetApiProveedoresId401
+    | GetApiProveedoresId403
+    | GetApiProveedoresId404
+    | GetApiProveedoresId409
+    | GetApiProveedoresId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedoresId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiProveedoresId>>,
           TError,
           Awaited<ReturnType<typeof getApiProveedoresId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiProveedoresId<TData = Awaited<ReturnType<typeof getApiProveedoresId>>, TError = ErrorType<GetApiProveedoresId400 | GetApiProveedoresId401 | GetApiProveedoresId403 | GetApiProveedoresId404 | GetApiProveedoresId409 | GetApiProveedoresId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedoresId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiProveedoresId<
+  TData = Awaited<ReturnType<typeof getApiProveedoresId>>,
+  TError = ErrorType<
+    | GetApiProveedoresId400
+    | GetApiProveedoresId401
+    | GetApiProveedoresId403
+    | GetApiProveedoresId404
+    | GetApiProveedoresId409
+    | GetApiProveedoresId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedoresId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiProveedoresId>>,
           TError,
           Awaited<ReturnType<typeof getApiProveedoresId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiProveedoresId<TData = Awaited<ReturnType<typeof getApiProveedoresId>>, TError = ErrorType<GetApiProveedoresId400 | GetApiProveedoresId401 | GetApiProveedoresId403 | GetApiProveedoresId404 | GetApiProveedoresId409 | GetApiProveedoresId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedoresId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiProveedoresId<
+  TData = Awaited<ReturnType<typeof getApiProveedoresId>>,
+  TError = ErrorType<
+    | GetApiProveedoresId400
+    | GetApiProveedoresId401
+    | GetApiProveedoresId403
+    | GetApiProveedoresId404
+    | GetApiProveedoresId409
+    | GetApiProveedoresId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedoresId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener proveedor por ID
  */
 
-export function useGetApiProveedoresId<TData = Awaited<ReturnType<typeof getApiProveedoresId>>, TError = ErrorType<GetApiProveedoresId400 | GetApiProveedoresId401 | GetApiProveedoresId403 | GetApiProveedoresId404 | GetApiProveedoresId409 | GetApiProveedoresId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiProveedoresId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiProveedoresId<
+  TData = Awaited<ReturnType<typeof getApiProveedoresId>>,
+  TError = ErrorType<
+    | GetApiProveedoresId400
+    | GetApiProveedoresId401
+    | GetApiProveedoresId403
+    | GetApiProveedoresId404
+    | GetApiProveedoresId409
+    | GetApiProveedoresId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiProveedoresId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiProveedoresIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiProveedoresIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Actualiza los datos de un proveedor existente. Valida unicidad de RUC/DNI si se modifica.
  * @summary Actualizar proveedor
  */
 export const putApiProveedoresId = (
-    id: number,
-    updateProveedor: UpdateProveedor,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<Proveedor>(
-      {url: `/api/proveedores/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateProveedor
+  id: number,
+  updateProveedor: UpdateProveedor,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<Proveedor>(
+    {
+      url: `/api/proveedores/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateProveedor,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPutApiProveedoresIdMutationOptions = <
+  TError = ErrorType<
+    | PutApiProveedoresId400
+    | PutApiProveedoresId401
+    | PutApiProveedoresId403
+    | PutApiProveedoresId404
+    | PutApiProveedoresId409
+    | PutApiProveedoresId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiProveedoresId>>,
+    TError,
+    { id: number; data: UpdateProveedor },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiProveedoresId>>,
+  TError,
+  { id: number; data: UpdateProveedor },
+  TContext
+> => {
+  const mutationKey = ["putApiProveedoresId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiProveedoresIdMutationOptions = <TError = ErrorType<PutApiProveedoresId400 | PutApiProveedoresId401 | PutApiProveedoresId403 | PutApiProveedoresId404 | PutApiProveedoresId409 | PutApiProveedoresId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiProveedoresId>>, TError,{id: number;data: UpdateProveedor}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiProveedoresId>>, TError,{id: number;data: UpdateProveedor}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiProveedoresId>>,
+    { id: number; data: UpdateProveedor }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-const mutationKey = ['putApiProveedoresId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return putApiProveedoresId(id, data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PutApiProveedoresIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiProveedoresId>>
+>;
+export type PutApiProveedoresIdMutationBody = UpdateProveedor;
+export type PutApiProveedoresIdMutationError = ErrorType<
+  | PutApiProveedoresId400
+  | PutApiProveedoresId401
+  | PutApiProveedoresId403
+  | PutApiProveedoresId404
+  | PutApiProveedoresId409
+  | PutApiProveedoresId500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiProveedoresId>>, {id: number;data: UpdateProveedor}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  putApiProveedoresId(id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiProveedoresIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiProveedoresId>>>
-    export type PutApiProveedoresIdMutationBody = UpdateProveedor
-    export type PutApiProveedoresIdMutationError = ErrorType<PutApiProveedoresId400 | PutApiProveedoresId401 | PutApiProveedoresId403 | PutApiProveedoresId404 | PutApiProveedoresId409 | PutApiProveedoresId500>
-
-    /**
+/**
  * @summary Actualizar proveedor
  */
-export const usePutApiProveedoresId = <TError = ErrorType<PutApiProveedoresId400 | PutApiProveedoresId401 | PutApiProveedoresId403 | PutApiProveedoresId404 | PutApiProveedoresId409 | PutApiProveedoresId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiProveedoresId>>, TError,{id: number;data: UpdateProveedor}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiProveedoresId>>,
-        TError,
-        {id: number;data: UpdateProveedor},
-        TContext
-      > => {
+export const usePutApiProveedoresId = <
+  TError = ErrorType<
+    | PutApiProveedoresId400
+    | PutApiProveedoresId401
+    | PutApiProveedoresId403
+    | PutApiProveedoresId404
+    | PutApiProveedoresId409
+    | PutApiProveedoresId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiProveedoresId>>,
+      TError,
+      { id: number; data: UpdateProveedor },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiProveedoresId>>,
+  TError,
+  { id: number; data: UpdateProveedor },
+  TContext
+> => {
+  const mutationOptions = getPutApiProveedoresIdMutationOptions(options);
 
-      const mutationOptions = getPutApiProveedoresIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Realiza soft-delete del proveedor, cambiando isActive a false. El proveedor no se elimina físicamente de la base de datos.
  * @summary Desactivar proveedor
  */
 export const patchApiProveedoresIdDesactivar = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/proveedores/${id}/desactivar`, method: 'PATCH'
-    },
-      options);
-    }
-  
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<SuccessResponse>(
+    { url: `/api/proveedores/${id}/desactivar`, method: "PATCH" },
+    options,
+  );
+};
 
+export const getPatchApiProveedoresIdDesactivarMutationOptions = <
+  TError = ErrorType<
+    | PatchApiProveedoresIdDesactivar400
+    | PatchApiProveedoresIdDesactivar401
+    | PatchApiProveedoresIdDesactivar403
+    | PatchApiProveedoresIdDesactivar404
+    | PatchApiProveedoresIdDesactivar409
+    | PatchApiProveedoresIdDesactivar500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["patchApiProveedoresIdDesactivar"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPatchApiProveedoresIdDesactivarMutationOptions = <TError = ErrorType<PatchApiProveedoresIdDesactivar400 | PatchApiProveedoresIdDesactivar401 | PatchApiProveedoresIdDesactivar403 | PatchApiProveedoresIdDesactivar404 | PatchApiProveedoresIdDesactivar409 | PatchApiProveedoresIdDesactivar500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>, TError,{id: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['patchApiProveedoresIdDesactivar'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return patchApiProveedoresIdDesactivar(id, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PatchApiProveedoresIdDesactivarMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+export type PatchApiProveedoresIdDesactivarMutationError = ErrorType<
+  | PatchApiProveedoresIdDesactivar400
+  | PatchApiProveedoresIdDesactivar401
+  | PatchApiProveedoresIdDesactivar403
+  | PatchApiProveedoresIdDesactivar404
+  | PatchApiProveedoresIdDesactivar409
+  | PatchApiProveedoresIdDesactivar500
+>;
 
-          return  patchApiProveedoresIdDesactivar(id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PatchApiProveedoresIdDesactivarMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>>
-    
-    export type PatchApiProveedoresIdDesactivarMutationError = ErrorType<PatchApiProveedoresIdDesactivar400 | PatchApiProveedoresIdDesactivar401 | PatchApiProveedoresIdDesactivar403 | PatchApiProveedoresIdDesactivar404 | PatchApiProveedoresIdDesactivar409 | PatchApiProveedoresIdDesactivar500>
-
-    /**
+/**
  * @summary Desactivar proveedor
  */
-export const usePatchApiProveedoresIdDesactivar = <TError = ErrorType<PatchApiProveedoresIdDesactivar400 | PatchApiProveedoresIdDesactivar401 | PatchApiProveedoresIdDesactivar403 | PatchApiProveedoresIdDesactivar404 | PatchApiProveedoresIdDesactivar409 | PatchApiProveedoresIdDesactivar500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const usePatchApiProveedoresIdDesactivar = <
+  TError = ErrorType<
+    | PatchApiProveedoresIdDesactivar400
+    | PatchApiProveedoresIdDesactivar401
+    | PatchApiProveedoresIdDesactivar403
+    | PatchApiProveedoresIdDesactivar404
+    | PatchApiProveedoresIdDesactivar409
+    | PatchApiProveedoresIdDesactivar500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof patchApiProveedoresIdDesactivar>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions =
+    getPatchApiProveedoresIdDesactivarMutationOptions(options);
 
-      const mutationOptions = getPatchApiProveedoresIdDesactivarMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

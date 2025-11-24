@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   CreateUsuario,
@@ -70,393 +67,730 @@ import type {
   PutApiUsuariosId500,
   SuccessResponse,
   UpdateUsuario,
-  Usuario
-} from '.././model';
+  Usuario,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Obtiene todos los usuarios activos e inactivos del tenant actual con paginación y filtros.
  * @summary Listar usuarios del tenant (Solo Admin)
  */
 export const getApiUsuarios = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<GetApiUsuarios200>(
-      {url: `/api/usuarios`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
+  return customInstance<GetApiUsuarios200>(
+    { url: `/api/usuarios`, method: "GET", signal },
+    options,
+  );
+};
 
 export const getGetApiUsuariosQueryKey = () => {
-    return [
-    `/api/usuarios`
-    ] as const;
-    }
+  return [`/api/usuarios`] as const;
+};
 
-    
-export const getGetApiUsuariosQueryOptions = <TData = Awaited<ReturnType<typeof getApiUsuarios>>, TError = ErrorType<GetApiUsuarios400 | GetApiUsuarios401 | GetApiUsuarios403 | GetApiUsuarios404 | GetApiUsuarios409 | GetApiUsuarios500>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiUsuariosQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiUsuarios>>,
+  TError = ErrorType<
+    | GetApiUsuarios400
+    | GetApiUsuarios401
+    | GetApiUsuarios403
+    | GetApiUsuarios404
+    | GetApiUsuarios409
+    | GetApiUsuarios500
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiUsuariosQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiUsuariosQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiUsuarios>>> = ({
+    signal,
+  }) => getApiUsuarios(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiUsuarios>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiUsuarios>>> = ({ signal }) => getApiUsuarios(requestOptions, signal);
+export type GetApiUsuariosQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiUsuarios>>
+>;
+export type GetApiUsuariosQueryError = ErrorType<
+  | GetApiUsuarios400
+  | GetApiUsuarios401
+  | GetApiUsuarios403
+  | GetApiUsuarios404
+  | GetApiUsuarios409
+  | GetApiUsuarios500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiUsuariosQueryResult = NonNullable<Awaited<ReturnType<typeof getApiUsuarios>>>
-export type GetApiUsuariosQueryError = ErrorType<GetApiUsuarios400 | GetApiUsuarios401 | GetApiUsuarios403 | GetApiUsuarios404 | GetApiUsuarios409 | GetApiUsuarios500>
-
-
-export function useGetApiUsuarios<TData = Awaited<ReturnType<typeof getApiUsuarios>>, TError = ErrorType<GetApiUsuarios400 | GetApiUsuarios401 | GetApiUsuarios403 | GetApiUsuarios404 | GetApiUsuarios409 | GetApiUsuarios500>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>> & Pick<
+export function useGetApiUsuarios<
+  TData = Awaited<ReturnType<typeof getApiUsuarios>>,
+  TError = ErrorType<
+    | GetApiUsuarios400
+    | GetApiUsuarios401
+    | GetApiUsuarios403
+    | GetApiUsuarios404
+    | GetApiUsuarios409
+    | GetApiUsuarios500
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiUsuarios>>,
           TError,
           Awaited<ReturnType<typeof getApiUsuarios>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiUsuarios<TData = Awaited<ReturnType<typeof getApiUsuarios>>, TError = ErrorType<GetApiUsuarios400 | GetApiUsuarios401 | GetApiUsuarios403 | GetApiUsuarios404 | GetApiUsuarios409 | GetApiUsuarios500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiUsuarios<
+  TData = Awaited<ReturnType<typeof getApiUsuarios>>,
+  TError = ErrorType<
+    | GetApiUsuarios400
+    | GetApiUsuarios401
+    | GetApiUsuarios403
+    | GetApiUsuarios404
+    | GetApiUsuarios409
+    | GetApiUsuarios500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiUsuarios>>,
           TError,
           Awaited<ReturnType<typeof getApiUsuarios>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiUsuarios<TData = Awaited<ReturnType<typeof getApiUsuarios>>, TError = ErrorType<GetApiUsuarios400 | GetApiUsuarios401 | GetApiUsuarios403 | GetApiUsuarios404 | GetApiUsuarios409 | GetApiUsuarios500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiUsuarios<
+  TData = Awaited<ReturnType<typeof getApiUsuarios>>,
+  TError = ErrorType<
+    | GetApiUsuarios400
+    | GetApiUsuarios401
+    | GetApiUsuarios403
+    | GetApiUsuarios404
+    | GetApiUsuarios409
+    | GetApiUsuarios500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Listar usuarios del tenant (Solo Admin)
  */
 
-export function useGetApiUsuarios<TData = Awaited<ReturnType<typeof getApiUsuarios>>, TError = ErrorType<GetApiUsuarios400 | GetApiUsuarios401 | GetApiUsuarios403 | GetApiUsuarios404 | GetApiUsuarios409 | GetApiUsuarios500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiUsuarios<
+  TData = Awaited<ReturnType<typeof getApiUsuarios>>,
+  TError = ErrorType<
+    | GetApiUsuarios400
+    | GetApiUsuarios401
+    | GetApiUsuarios403
+    | GetApiUsuarios404
+    | GetApiUsuarios409
+    | GetApiUsuarios500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiUsuarios>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiUsuariosQueryOptions(options);
 
-  const queryOptions = getGetApiUsuariosQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Crea un usuario empleado o admin para el tenant actual. La contraseña se hashea automáticamente con bcrypt.
  * @summary Crear nuevo usuario (Solo Admin)
  */
 export const postApiUsuarios = (
-    createUsuario: CreateUsuario,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createUsuario: CreateUsuario,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Usuario>(
-      {url: `/api/usuarios`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createUsuario, signal
+  return customInstance<Usuario>(
+    {
+      url: `/api/usuarios`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createUsuario,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiUsuariosMutationOptions = <
+  TError = ErrorType<
+    | PostApiUsuarios400
+    | PostApiUsuarios401
+    | PostApiUsuarios403
+    | PostApiUsuarios404
+    | PostApiUsuarios409
+    | PostApiUsuarios500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiUsuarios>>,
+    TError,
+    { data: CreateUsuario },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiUsuarios>>,
+  TError,
+  { data: CreateUsuario },
+  TContext
+> => {
+  const mutationKey = ["postApiUsuarios"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiUsuariosMutationOptions = <TError = ErrorType<PostApiUsuarios400 | PostApiUsuarios401 | PostApiUsuarios403 | PostApiUsuarios404 | PostApiUsuarios409 | PostApiUsuarios500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiUsuarios>>, TError,{data: CreateUsuario}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiUsuarios>>, TError,{data: CreateUsuario}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiUsuarios>>,
+    { data: CreateUsuario }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiUsuarios'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiUsuarios(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiUsuariosMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiUsuarios>>
+>;
+export type PostApiUsuariosMutationBody = CreateUsuario;
+export type PostApiUsuariosMutationError = ErrorType<
+  | PostApiUsuarios400
+  | PostApiUsuarios401
+  | PostApiUsuarios403
+  | PostApiUsuarios404
+  | PostApiUsuarios409
+  | PostApiUsuarios500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiUsuarios>>, {data: CreateUsuario}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiUsuarios(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiUsuariosMutationResult = NonNullable<Awaited<ReturnType<typeof postApiUsuarios>>>
-    export type PostApiUsuariosMutationBody = CreateUsuario
-    export type PostApiUsuariosMutationError = ErrorType<PostApiUsuarios400 | PostApiUsuarios401 | PostApiUsuarios403 | PostApiUsuarios404 | PostApiUsuarios409 | PostApiUsuarios500>
-
-    /**
+/**
  * @summary Crear nuevo usuario (Solo Admin)
  */
-export const usePostApiUsuarios = <TError = ErrorType<PostApiUsuarios400 | PostApiUsuarios401 | PostApiUsuarios403 | PostApiUsuarios404 | PostApiUsuarios409 | PostApiUsuarios500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiUsuarios>>, TError,{data: CreateUsuario}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiUsuarios>>,
-        TError,
-        {data: CreateUsuario},
-        TContext
-      > => {
+export const usePostApiUsuarios = <
+  TError = ErrorType<
+    | PostApiUsuarios400
+    | PostApiUsuarios401
+    | PostApiUsuarios403
+    | PostApiUsuarios404
+    | PostApiUsuarios409
+    | PostApiUsuarios500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiUsuarios>>,
+      TError,
+      { data: CreateUsuario },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiUsuarios>>,
+  TError,
+  { data: CreateUsuario },
+  TContext
+> => {
+  const mutationOptions = getPostApiUsuariosMutationOptions(options);
 
-      const mutationOptions = getPostApiUsuariosMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Obtiene los detalles de un usuario específico del tenant.
  * @summary Obtener usuario por ID (Solo Admin)
  */
 export const getApiUsuariosId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Usuario>(
-      {url: `/api/usuarios/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<Usuario>(
+    { url: `/api/usuarios/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiUsuariosIdQueryKey = (id?: number) => {
+  return [`/api/usuarios/${id}`] as const;
+};
 
-
-export const getGetApiUsuariosIdQueryKey = (id?: number,) => {
-    return [
-    `/api/usuarios/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiUsuariosIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiUsuariosId>>, TError = ErrorType<GetApiUsuariosId400 | GetApiUsuariosId401 | GetApiUsuariosId403 | GetApiUsuariosId404 | GetApiUsuariosId409 | GetApiUsuariosId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuariosId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiUsuariosIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiUsuariosId>>,
+  TError = ErrorType<
+    | GetApiUsuariosId400
+    | GetApiUsuariosId401
+    | GetApiUsuariosId403
+    | GetApiUsuariosId404
+    | GetApiUsuariosId409
+    | GetApiUsuariosId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiUsuariosId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiUsuariosIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiUsuariosIdQueryKey(id);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiUsuariosId>>
+  > = ({ signal }) => getApiUsuariosId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiUsuariosId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiUsuariosId>>> = ({ signal }) => getApiUsuariosId(id, requestOptions, signal);
+export type GetApiUsuariosIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiUsuariosId>>
+>;
+export type GetApiUsuariosIdQueryError = ErrorType<
+  | GetApiUsuariosId400
+  | GetApiUsuariosId401
+  | GetApiUsuariosId403
+  | GetApiUsuariosId404
+  | GetApiUsuariosId409
+  | GetApiUsuariosId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiUsuariosId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiUsuariosIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiUsuariosId>>>
-export type GetApiUsuariosIdQueryError = ErrorType<GetApiUsuariosId400 | GetApiUsuariosId401 | GetApiUsuariosId403 | GetApiUsuariosId404 | GetApiUsuariosId409 | GetApiUsuariosId500>
-
-
-export function useGetApiUsuariosId<TData = Awaited<ReturnType<typeof getApiUsuariosId>>, TError = ErrorType<GetApiUsuariosId400 | GetApiUsuariosId401 | GetApiUsuariosId403 | GetApiUsuariosId404 | GetApiUsuariosId409 | GetApiUsuariosId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuariosId>>, TError, TData>> & Pick<
+export function useGetApiUsuariosId<
+  TData = Awaited<ReturnType<typeof getApiUsuariosId>>,
+  TError = ErrorType<
+    | GetApiUsuariosId400
+    | GetApiUsuariosId401
+    | GetApiUsuariosId403
+    | GetApiUsuariosId404
+    | GetApiUsuariosId409
+    | GetApiUsuariosId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiUsuariosId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiUsuariosId>>,
           TError,
           Awaited<ReturnType<typeof getApiUsuariosId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiUsuariosId<TData = Awaited<ReturnType<typeof getApiUsuariosId>>, TError = ErrorType<GetApiUsuariosId400 | GetApiUsuariosId401 | GetApiUsuariosId403 | GetApiUsuariosId404 | GetApiUsuariosId409 | GetApiUsuariosId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuariosId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiUsuariosId<
+  TData = Awaited<ReturnType<typeof getApiUsuariosId>>,
+  TError = ErrorType<
+    | GetApiUsuariosId400
+    | GetApiUsuariosId401
+    | GetApiUsuariosId403
+    | GetApiUsuariosId404
+    | GetApiUsuariosId409
+    | GetApiUsuariosId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiUsuariosId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiUsuariosId>>,
           TError,
           Awaited<ReturnType<typeof getApiUsuariosId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiUsuariosId<TData = Awaited<ReturnType<typeof getApiUsuariosId>>, TError = ErrorType<GetApiUsuariosId400 | GetApiUsuariosId401 | GetApiUsuariosId403 | GetApiUsuariosId404 | GetApiUsuariosId409 | GetApiUsuariosId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuariosId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiUsuariosId<
+  TData = Awaited<ReturnType<typeof getApiUsuariosId>>,
+  TError = ErrorType<
+    | GetApiUsuariosId400
+    | GetApiUsuariosId401
+    | GetApiUsuariosId403
+    | GetApiUsuariosId404
+    | GetApiUsuariosId409
+    | GetApiUsuariosId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiUsuariosId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener usuario por ID (Solo Admin)
  */
 
-export function useGetApiUsuariosId<TData = Awaited<ReturnType<typeof getApiUsuariosId>>, TError = ErrorType<GetApiUsuariosId400 | GetApiUsuariosId401 | GetApiUsuariosId403 | GetApiUsuariosId404 | GetApiUsuariosId409 | GetApiUsuariosId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiUsuariosId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiUsuariosId<
+  TData = Awaited<ReturnType<typeof getApiUsuariosId>>,
+  TError = ErrorType<
+    | GetApiUsuariosId400
+    | GetApiUsuariosId401
+    | GetApiUsuariosId403
+    | GetApiUsuariosId404
+    | GetApiUsuariosId409
+    | GetApiUsuariosId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiUsuariosId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiUsuariosIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiUsuariosIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Actualiza email, nombre, rol o contraseña de un usuario. La contraseña es opcional y se hashea automáticamente.
  * @summary Actualizar usuario (Solo Admin)
  */
 export const putApiUsuariosId = (
-    id: number,
-    updateUsuario: UpdateUsuario,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<Usuario>(
-      {url: `/api/usuarios/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateUsuario
+  id: number,
+  updateUsuario: UpdateUsuario,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<Usuario>(
+    {
+      url: `/api/usuarios/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateUsuario,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPutApiUsuariosIdMutationOptions = <
+  TError = ErrorType<
+    | PutApiUsuariosId400
+    | PutApiUsuariosId401
+    | PutApiUsuariosId403
+    | PutApiUsuariosId404
+    | PutApiUsuariosId409
+    | PutApiUsuariosId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiUsuariosId>>,
+    TError,
+    { id: number; data: UpdateUsuario },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiUsuariosId>>,
+  TError,
+  { id: number; data: UpdateUsuario },
+  TContext
+> => {
+  const mutationKey = ["putApiUsuariosId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiUsuariosIdMutationOptions = <TError = ErrorType<PutApiUsuariosId400 | PutApiUsuariosId401 | PutApiUsuariosId403 | PutApiUsuariosId404 | PutApiUsuariosId409 | PutApiUsuariosId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiUsuariosId>>, TError,{id: number;data: UpdateUsuario}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiUsuariosId>>, TError,{id: number;data: UpdateUsuario}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiUsuariosId>>,
+    { id: number; data: UpdateUsuario }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-const mutationKey = ['putApiUsuariosId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return putApiUsuariosId(id, data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PutApiUsuariosIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiUsuariosId>>
+>;
+export type PutApiUsuariosIdMutationBody = UpdateUsuario;
+export type PutApiUsuariosIdMutationError = ErrorType<
+  | PutApiUsuariosId400
+  | PutApiUsuariosId401
+  | PutApiUsuariosId403
+  | PutApiUsuariosId404
+  | PutApiUsuariosId409
+  | PutApiUsuariosId500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiUsuariosId>>, {id: number;data: UpdateUsuario}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  putApiUsuariosId(id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiUsuariosIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiUsuariosId>>>
-    export type PutApiUsuariosIdMutationBody = UpdateUsuario
-    export type PutApiUsuariosIdMutationError = ErrorType<PutApiUsuariosId400 | PutApiUsuariosId401 | PutApiUsuariosId403 | PutApiUsuariosId404 | PutApiUsuariosId409 | PutApiUsuariosId500>
-
-    /**
+/**
  * @summary Actualizar usuario (Solo Admin)
  */
-export const usePutApiUsuariosId = <TError = ErrorType<PutApiUsuariosId400 | PutApiUsuariosId401 | PutApiUsuariosId403 | PutApiUsuariosId404 | PutApiUsuariosId409 | PutApiUsuariosId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiUsuariosId>>, TError,{id: number;data: UpdateUsuario}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiUsuariosId>>,
-        TError,
-        {id: number;data: UpdateUsuario},
-        TContext
-      > => {
+export const usePutApiUsuariosId = <
+  TError = ErrorType<
+    | PutApiUsuariosId400
+    | PutApiUsuariosId401
+    | PutApiUsuariosId403
+    | PutApiUsuariosId404
+    | PutApiUsuariosId409
+    | PutApiUsuariosId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiUsuariosId>>,
+      TError,
+      { id: number; data: UpdateUsuario },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiUsuariosId>>,
+  TError,
+  { id: number; data: UpdateUsuario },
+  TContext
+> => {
+  const mutationOptions = getPutApiUsuariosIdMutationOptions(options);
 
-      const mutationOptions = getPutApiUsuariosIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Marca el usuario como inactivo (soft delete). No permite login posterior. No permite que un usuario se desactive a sí mismo.
  * @summary Desactivar usuario (Solo Admin)
  */
 export const patchApiUsuariosIdDesactivar = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/usuarios/${id}/desactivar`, method: 'PATCH'
-    },
-      options);
-    }
-  
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<SuccessResponse>(
+    { url: `/api/usuarios/${id}/desactivar`, method: "PATCH" },
+    options,
+  );
+};
 
+export const getPatchApiUsuariosIdDesactivarMutationOptions = <
+  TError = ErrorType<
+    | PatchApiUsuariosIdDesactivar400
+    | PatchApiUsuariosIdDesactivar401
+    | PatchApiUsuariosIdDesactivar403
+    | PatchApiUsuariosIdDesactivar404
+    | PatchApiUsuariosIdDesactivar409
+    | PatchApiUsuariosIdDesactivar500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["patchApiUsuariosIdDesactivar"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPatchApiUsuariosIdDesactivarMutationOptions = <TError = ErrorType<PatchApiUsuariosIdDesactivar400 | PatchApiUsuariosIdDesactivar401 | PatchApiUsuariosIdDesactivar403 | PatchApiUsuariosIdDesactivar404 | PatchApiUsuariosIdDesactivar409 | PatchApiUsuariosIdDesactivar500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>, TError,{id: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['patchApiUsuariosIdDesactivar'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return patchApiUsuariosIdDesactivar(id, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PatchApiUsuariosIdDesactivarMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+export type PatchApiUsuariosIdDesactivarMutationError = ErrorType<
+  | PatchApiUsuariosIdDesactivar400
+  | PatchApiUsuariosIdDesactivar401
+  | PatchApiUsuariosIdDesactivar403
+  | PatchApiUsuariosIdDesactivar404
+  | PatchApiUsuariosIdDesactivar409
+  | PatchApiUsuariosIdDesactivar500
+>;
 
-          return  patchApiUsuariosIdDesactivar(id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PatchApiUsuariosIdDesactivarMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>>
-    
-    export type PatchApiUsuariosIdDesactivarMutationError = ErrorType<PatchApiUsuariosIdDesactivar400 | PatchApiUsuariosIdDesactivar401 | PatchApiUsuariosIdDesactivar403 | PatchApiUsuariosIdDesactivar404 | PatchApiUsuariosIdDesactivar409 | PatchApiUsuariosIdDesactivar500>
-
-    /**
+/**
  * @summary Desactivar usuario (Solo Admin)
  */
-export const usePatchApiUsuariosIdDesactivar = <TError = ErrorType<PatchApiUsuariosIdDesactivar400 | PatchApiUsuariosIdDesactivar401 | PatchApiUsuariosIdDesactivar403 | PatchApiUsuariosIdDesactivar404 | PatchApiUsuariosIdDesactivar409 | PatchApiUsuariosIdDesactivar500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const usePatchApiUsuariosIdDesactivar = <
+  TError = ErrorType<
+    | PatchApiUsuariosIdDesactivar400
+    | PatchApiUsuariosIdDesactivar401
+    | PatchApiUsuariosIdDesactivar403
+    | PatchApiUsuariosIdDesactivar404
+    | PatchApiUsuariosIdDesactivar409
+    | PatchApiUsuariosIdDesactivar500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof patchApiUsuariosIdDesactivar>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions =
+    getPatchApiUsuariosIdDesactivarMutationOptions(options);
 
-      const mutationOptions = getPatchApiUsuariosIdDesactivarMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

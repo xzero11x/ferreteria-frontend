@@ -20,12 +20,12 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de comprobante para esta serie
  */
-export type CreateSerieTipoComprobante = typeof CreateSerieTipoComprobante[keyof typeof CreateSerieTipoComprobante];
-
+export type CreateSerieTipoComprobante =
+  (typeof CreateSerieTipoComprobante)[keyof typeof CreateSerieTipoComprobante];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateSerieTipoComprobante = {
-  FACTURA: 'FACTURA',
-  BOLETA: 'BOLETA',
-  NOTA_VENTA: 'NOTA_VENTA',
+  FACTURA: "FACTURA",
+  BOLETA: "BOLETA",
+  NOTA_VENTA: "NOTA_VENTA",
 } as const;

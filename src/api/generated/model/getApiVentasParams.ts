@@ -18,30 +18,30 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  */
 
 export type GetApiVentasParams = {
-/**
- * Número de página
- */
-page?: number;
-/**
- * Cantidad de items por página (máx: 100, 0 = sin límite para datos maestros)
- * @minimum 0
- * @maximum 100
- */
-limit?: number | null;
-/**
- * Búsqueda por cliente o método de pago
- */
-q?: string;
-/**
- * Filtrar por ID de cliente
- */
-cliente_id?: number;
-/**
- * Fecha de inicio del rango (ISO 8601)
- */
-fecha_inicio?: string;
-/**
- * Fecha fin del rango (ISO 8601)
- */
-fecha_fin?: string;
+  /**
+   * Número de página
+   */
+  page?: number;
+  /**
+   * Cantidad de items por página (máx: 100, 0 = sin límite para datos maestros)
+   * @minimum 0
+   * @maximum 100
+   */
+  limit?: number | null;
+  /**
+   * Búsqueda por cliente o método de pago
+   */
+  q?: string;
+  /**
+   * Filtrar por ID de cliente
+   */
+  cliente_id?: number;
+  /**
+   * Fecha de inicio del rango (ISO 8601)
+   */
+  fecha_inicio?: string;
+  /**
+   * Fecha fin del rango (ISO 8601)
+   */
+  fecha_fin?: string;
 };

@@ -18,14 +18,14 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  */
 
 export type GetApiClientesParams = {
-/**
- * Número de página
- */
-page?: number;
-/**
- * Cantidad de items por página (máx: 100, 0 = sin límite para datos maestros)
- * @minimum 0
- * @maximum 100
- */
-limit?: number | null;
+  /**
+   * Número de página
+   */
+  page?: number;
+  /**
+   * Cantidad de items por página (máx: 100, 0 = sin límite para datos maestros)
+   * @minimum 0
+   * @maximum 100
+   */
+  limit?: number | null;
 };

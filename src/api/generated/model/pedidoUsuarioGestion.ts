@@ -16,6 +16,6 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { PedidoUsuarioGestionAnyOf } from './pedidoUsuarioGestionAnyOf';
+import type { PedidoUsuarioGestionAnyOf } from "./pedidoUsuarioGestionAnyOf";
 
 export type PedidoUsuarioGestion = PedidoUsuarioGestionAnyOf | null;

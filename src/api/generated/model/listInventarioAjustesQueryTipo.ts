@@ -20,11 +20,11 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Filtrar por tipo de ajuste
  */
-export type ListInventarioAjustesQueryTipo = typeof ListInventarioAjustesQueryTipo[keyof typeof ListInventarioAjustesQueryTipo];
-
+export type ListInventarioAjustesQueryTipo =
+  (typeof ListInventarioAjustesQueryTipo)[keyof typeof ListInventarioAjustesQueryTipo];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ListInventarioAjustesQueryTipo = {
-  entrada: 'entrada',
-  salida: 'salida',
+  entrada: "entrada",
+  salida: "salida",
 } as const;

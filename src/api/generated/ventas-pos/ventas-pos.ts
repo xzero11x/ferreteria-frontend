@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   CreateVenta,
@@ -71,110 +68,198 @@ import type {
   PutApiVentasId500,
   SuccessResponse,
   UpdateVenta,
-  Venta
-} from '.././model';
+  Venta,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Obtiene ventas del tenant con paginación, búsqueda y filtros por cliente y fecha.
  * @summary Listar ventas con filtros y paginación
  */
 export const getApiVentas = (
-    params?: GetApiVentasParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  params?: GetApiVentasParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<PaginatedVentaResponse>(
-      {url: `/api/ventas`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-  
+  return customInstance<PaginatedVentaResponse>(
+    { url: `/api/ventas`, method: "GET", params, signal },
+    options,
+  );
+};
 
+export const getGetApiVentasQueryKey = (params?: GetApiVentasParams) => {
+  return [`/api/ventas`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetApiVentasQueryKey = (params?: GetApiVentasParams,) => {
-    return [
-    `/api/ventas`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetApiVentasQueryOptions = <TData = Awaited<ReturnType<typeof getApiVentas>>, TError = ErrorType<GetApiVentas400 | GetApiVentas401 | GetApiVentas403 | GetApiVentas404 | GetApiVentas409 | GetApiVentas500>>(params?: GetApiVentasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiVentasQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiVentas>>,
+  TError = ErrorType<
+    | GetApiVentas400
+    | GetApiVentas401
+    | GetApiVentas403
+    | GetApiVentas404
+    | GetApiVentas409
+    | GetApiVentas500
+  >,
+>(
+  params?: GetApiVentasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiVentasQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiVentasQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiVentas>>> = ({
+    signal,
+  }) => getApiVentas(params, requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiVentas>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiVentas>>> = ({ signal }) => getApiVentas(params, requestOptions, signal);
+export type GetApiVentasQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiVentas>>
+>;
+export type GetApiVentasQueryError = ErrorType<
+  | GetApiVentas400
+  | GetApiVentas401
+  | GetApiVentas403
+  | GetApiVentas404
+  | GetApiVentas409
+  | GetApiVentas500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiVentasQueryResult = NonNullable<Awaited<ReturnType<typeof getApiVentas>>>
-export type GetApiVentasQueryError = ErrorType<GetApiVentas400 | GetApiVentas401 | GetApiVentas403 | GetApiVentas404 | GetApiVentas409 | GetApiVentas500>
-
-
-export function useGetApiVentas<TData = Awaited<ReturnType<typeof getApiVentas>>, TError = ErrorType<GetApiVentas400 | GetApiVentas401 | GetApiVentas403 | GetApiVentas404 | GetApiVentas409 | GetApiVentas500>>(
- params: undefined |  GetApiVentasParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>> & Pick<
+export function useGetApiVentas<
+  TData = Awaited<ReturnType<typeof getApiVentas>>,
+  TError = ErrorType<
+    | GetApiVentas400
+    | GetApiVentas401
+    | GetApiVentas403
+    | GetApiVentas404
+    | GetApiVentas409
+    | GetApiVentas500
+  >,
+>(
+  params: undefined | GetApiVentasParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiVentas>>,
           TError,
           Awaited<ReturnType<typeof getApiVentas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiVentas<TData = Awaited<ReturnType<typeof getApiVentas>>, TError = ErrorType<GetApiVentas400 | GetApiVentas401 | GetApiVentas403 | GetApiVentas404 | GetApiVentas409 | GetApiVentas500>>(
- params?: GetApiVentasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiVentas<
+  TData = Awaited<ReturnType<typeof getApiVentas>>,
+  TError = ErrorType<
+    | GetApiVentas400
+    | GetApiVentas401
+    | GetApiVentas403
+    | GetApiVentas404
+    | GetApiVentas409
+    | GetApiVentas500
+  >,
+>(
+  params?: GetApiVentasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiVentas>>,
           TError,
           Awaited<ReturnType<typeof getApiVentas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiVentas<TData = Awaited<ReturnType<typeof getApiVentas>>, TError = ErrorType<GetApiVentas400 | GetApiVentas401 | GetApiVentas403 | GetApiVentas404 | GetApiVentas409 | GetApiVentas500>>(
- params?: GetApiVentasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiVentas<
+  TData = Awaited<ReturnType<typeof getApiVentas>>,
+  TError = ErrorType<
+    | GetApiVentas400
+    | GetApiVentas401
+    | GetApiVentas403
+    | GetApiVentas404
+    | GetApiVentas409
+    | GetApiVentas500
+  >,
+>(
+  params?: GetApiVentasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Listar ventas con filtros y paginación
  */
 
-export function useGetApiVentas<TData = Awaited<ReturnType<typeof getApiVentas>>, TError = ErrorType<GetApiVentas400 | GetApiVentas401 | GetApiVentas403 | GetApiVentas404 | GetApiVentas409 | GetApiVentas500>>(
- params?: GetApiVentasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiVentas<
+  TData = Awaited<ReturnType<typeof getApiVentas>>,
+  TError = ErrorType<
+    | GetApiVentas400
+    | GetApiVentas401
+    | GetApiVentas403
+    | GetApiVentas404
+    | GetApiVentas409
+    | GetApiVentas500
+  >,
+>(
+  params?: GetApiVentasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiVentasQueryOptions(params, options);
 
-  const queryOptions = getGetApiVentasQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Crea una venta completa con validación de stock y descuento automático.
@@ -196,284 +281,519 @@ export function useGetApiVentas<TData = Awaited<ReturnType<typeof getApiVentas>>
  * @summary Registrar venta (Requiere sesión de caja activa)
  */
 export const postApiVentas = (
-    createVenta: CreateVenta,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createVenta: CreateVenta,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Venta>(
-      {url: `/api/ventas`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createVenta, signal
+  return customInstance<Venta>(
+    {
+      url: `/api/ventas`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createVenta,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiVentasMutationOptions = <
+  TError = ErrorType<
+    | PostApiVentas400
+    | PostApiVentas401
+    | PostApiVentas403
+    | PostApiVentas404
+    | PostApiVentas409
+    | PostApiVentas500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiVentas>>,
+    TError,
+    { data: CreateVenta },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiVentas>>,
+  TError,
+  { data: CreateVenta },
+  TContext
+> => {
+  const mutationKey = ["postApiVentas"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiVentasMutationOptions = <TError = ErrorType<PostApiVentas400 | PostApiVentas401 | PostApiVentas403 | PostApiVentas404 | PostApiVentas409 | PostApiVentas500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiVentas>>, TError,{data: CreateVenta}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiVentas>>, TError,{data: CreateVenta}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiVentas>>,
+    { data: CreateVenta }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiVentas'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiVentas(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiVentasMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiVentas>>
+>;
+export type PostApiVentasMutationBody = CreateVenta;
+export type PostApiVentasMutationError = ErrorType<
+  | PostApiVentas400
+  | PostApiVentas401
+  | PostApiVentas403
+  | PostApiVentas404
+  | PostApiVentas409
+  | PostApiVentas500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiVentas>>, {data: CreateVenta}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiVentas(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiVentasMutationResult = NonNullable<Awaited<ReturnType<typeof postApiVentas>>>
-    export type PostApiVentasMutationBody = CreateVenta
-    export type PostApiVentasMutationError = ErrorType<PostApiVentas400 | PostApiVentas401 | PostApiVentas403 | PostApiVentas404 | PostApiVentas409 | PostApiVentas500>
-
-    /**
+/**
  * @summary Registrar venta (Requiere sesión de caja activa)
  */
-export const usePostApiVentas = <TError = ErrorType<PostApiVentas400 | PostApiVentas401 | PostApiVentas403 | PostApiVentas404 | PostApiVentas409 | PostApiVentas500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiVentas>>, TError,{data: CreateVenta}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiVentas>>,
-        TError,
-        {data: CreateVenta},
-        TContext
-      > => {
+export const usePostApiVentas = <
+  TError = ErrorType<
+    | PostApiVentas400
+    | PostApiVentas401
+    | PostApiVentas403
+    | PostApiVentas404
+    | PostApiVentas409
+    | PostApiVentas500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiVentas>>,
+      TError,
+      { data: CreateVenta },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiVentas>>,
+  TError,
+  { data: CreateVenta },
+  TContext
+> => {
+  const mutationOptions = getPostApiVentasMutationOptions(options);
 
-      const mutationOptions = getPostApiVentasMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Retorna la venta con todos sus detalles, cliente y snapshot fiscal inmutable.
  * @summary Obtener detalle de venta
  */
 export const getApiVentasId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Venta>(
-      {url: `/api/ventas/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<Venta>(
+    { url: `/api/ventas/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiVentasIdQueryKey = (id?: number) => {
+  return [`/api/ventas/${id}`] as const;
+};
 
-
-export const getGetApiVentasIdQueryKey = (id?: number,) => {
-    return [
-    `/api/ventas/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiVentasIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiVentasId>>, TError = ErrorType<GetApiVentasId400 | GetApiVentasId401 | GetApiVentasId403 | GetApiVentasId404 | GetApiVentasId409 | GetApiVentasId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiVentasIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiVentasId>>,
+  TError = ErrorType<
+    | GetApiVentasId400
+    | GetApiVentasId401
+    | GetApiVentasId403
+    | GetApiVentasId404
+    | GetApiVentasId409
+    | GetApiVentasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiVentasIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiVentasIdQueryKey(id);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiVentasId>>> = ({
+    signal,
+  }) => getApiVentasId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiVentasId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiVentasId>>> = ({ signal }) => getApiVentasId(id, requestOptions, signal);
+export type GetApiVentasIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiVentasId>>
+>;
+export type GetApiVentasIdQueryError = ErrorType<
+  | GetApiVentasId400
+  | GetApiVentasId401
+  | GetApiVentasId403
+  | GetApiVentasId404
+  | GetApiVentasId409
+  | GetApiVentasId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiVentasIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiVentasId>>>
-export type GetApiVentasIdQueryError = ErrorType<GetApiVentasId400 | GetApiVentasId401 | GetApiVentasId403 | GetApiVentasId404 | GetApiVentasId409 | GetApiVentasId500>
-
-
-export function useGetApiVentasId<TData = Awaited<ReturnType<typeof getApiVentasId>>, TError = ErrorType<GetApiVentasId400 | GetApiVentasId401 | GetApiVentasId403 | GetApiVentasId404 | GetApiVentasId409 | GetApiVentasId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>> & Pick<
+export function useGetApiVentasId<
+  TData = Awaited<ReturnType<typeof getApiVentasId>>,
+  TError = ErrorType<
+    | GetApiVentasId400
+    | GetApiVentasId401
+    | GetApiVentasId403
+    | GetApiVentasId404
+    | GetApiVentasId409
+    | GetApiVentasId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiVentasId>>,
           TError,
           Awaited<ReturnType<typeof getApiVentasId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiVentasId<TData = Awaited<ReturnType<typeof getApiVentasId>>, TError = ErrorType<GetApiVentasId400 | GetApiVentasId401 | GetApiVentasId403 | GetApiVentasId404 | GetApiVentasId409 | GetApiVentasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiVentasId<
+  TData = Awaited<ReturnType<typeof getApiVentasId>>,
+  TError = ErrorType<
+    | GetApiVentasId400
+    | GetApiVentasId401
+    | GetApiVentasId403
+    | GetApiVentasId404
+    | GetApiVentasId409
+    | GetApiVentasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiVentasId>>,
           TError,
           Awaited<ReturnType<typeof getApiVentasId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiVentasId<TData = Awaited<ReturnType<typeof getApiVentasId>>, TError = ErrorType<GetApiVentasId400 | GetApiVentasId401 | GetApiVentasId403 | GetApiVentasId404 | GetApiVentasId409 | GetApiVentasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiVentasId<
+  TData = Awaited<ReturnType<typeof getApiVentasId>>,
+  TError = ErrorType<
+    | GetApiVentasId400
+    | GetApiVentasId401
+    | GetApiVentasId403
+    | GetApiVentasId404
+    | GetApiVentasId409
+    | GetApiVentasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener detalle de venta
  */
 
-export function useGetApiVentasId<TData = Awaited<ReturnType<typeof getApiVentasId>>, TError = ErrorType<GetApiVentasId400 | GetApiVentasId401 | GetApiVentasId403 | GetApiVentasId404 | GetApiVentasId409 | GetApiVentasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiVentasId<
+  TData = Awaited<ReturnType<typeof getApiVentasId>>,
+  TError = ErrorType<
+    | GetApiVentasId400
+    | GetApiVentasId401
+    | GetApiVentasId403
+    | GetApiVentasId404
+    | GetApiVentasId409
+    | GetApiVentasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiVentasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiVentasIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiVentasIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Permite actualizar metadatos de la venta. El snapshot fiscal NO puede modificarse.
  * @summary Actualizar venta (Solo Admin - Uso limitado)
  */
 export const putApiVentasId = (
-    id: number,
-    updateVenta: UpdateVenta,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<Venta>(
-      {url: `/api/ventas/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateVenta
+  id: number,
+  updateVenta: UpdateVenta,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<Venta>(
+    {
+      url: `/api/ventas/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateVenta,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPutApiVentasIdMutationOptions = <
+  TError = ErrorType<
+    | PutApiVentasId400
+    | PutApiVentasId401
+    | PutApiVentasId403
+    | PutApiVentasId404
+    | PutApiVentasId409
+    | PutApiVentasId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiVentasId>>,
+    TError,
+    { id: number; data: UpdateVenta },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiVentasId>>,
+  TError,
+  { id: number; data: UpdateVenta },
+  TContext
+> => {
+  const mutationKey = ["putApiVentasId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiVentasIdMutationOptions = <TError = ErrorType<PutApiVentasId400 | PutApiVentasId401 | PutApiVentasId403 | PutApiVentasId404 | PutApiVentasId409 | PutApiVentasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiVentasId>>, TError,{id: number;data: UpdateVenta}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiVentasId>>, TError,{id: number;data: UpdateVenta}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiVentasId>>,
+    { id: number; data: UpdateVenta }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-const mutationKey = ['putApiVentasId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return putApiVentasId(id, data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PutApiVentasIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiVentasId>>
+>;
+export type PutApiVentasIdMutationBody = UpdateVenta;
+export type PutApiVentasIdMutationError = ErrorType<
+  | PutApiVentasId400
+  | PutApiVentasId401
+  | PutApiVentasId403
+  | PutApiVentasId404
+  | PutApiVentasId409
+  | PutApiVentasId500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiVentasId>>, {id: number;data: UpdateVenta}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  putApiVentasId(id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiVentasIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiVentasId>>>
-    export type PutApiVentasIdMutationBody = UpdateVenta
-    export type PutApiVentasIdMutationError = ErrorType<PutApiVentasId400 | PutApiVentasId401 | PutApiVentasId403 | PutApiVentasId404 | PutApiVentasId409 | PutApiVentasId500>
-
-    /**
+/**
  * @summary Actualizar venta (Solo Admin - Uso limitado)
  */
-export const usePutApiVentasId = <TError = ErrorType<PutApiVentasId400 | PutApiVentasId401 | PutApiVentasId403 | PutApiVentasId404 | PutApiVentasId409 | PutApiVentasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiVentasId>>, TError,{id: number;data: UpdateVenta}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiVentasId>>,
-        TError,
-        {id: number;data: UpdateVenta},
-        TContext
-      > => {
+export const usePutApiVentasId = <
+  TError = ErrorType<
+    | PutApiVentasId400
+    | PutApiVentasId401
+    | PutApiVentasId403
+    | PutApiVentasId404
+    | PutApiVentasId409
+    | PutApiVentasId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiVentasId>>,
+      TError,
+      { id: number; data: UpdateVenta },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiVentasId>>,
+  TError,
+  { id: number; data: UpdateVenta },
+  TContext
+> => {
+  const mutationOptions = getPutApiVentasIdMutationOptions(options);
 
-      const mutationOptions = getPutApiVentasIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * ⚠️ ADVERTENCIA: Considerar implementar anulación en lugar de eliminación. En producción, las ventas no deben eliminarse por temas legales (SUNAT).
  * @summary Eliminar venta (Solo Admin - Uso muy limitado)
  */
 export const deleteApiVentasId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/ventas/${id}`, method: 'DELETE'
-    },
-      options);
-    }
-  
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<SuccessResponse>(
+    { url: `/api/ventas/${id}`, method: "DELETE" },
+    options,
+  );
+};
 
+export const getDeleteApiVentasIdMutationOptions = <
+  TError = ErrorType<
+    | DeleteApiVentasId400
+    | DeleteApiVentasId401
+    | DeleteApiVentasId403
+    | DeleteApiVentasId404
+    | DeleteApiVentasId409
+    | DeleteApiVentasId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteApiVentasId>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteApiVentasId>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteApiVentasId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getDeleteApiVentasIdMutationOptions = <TError = ErrorType<DeleteApiVentasId400 | DeleteApiVentasId401 | DeleteApiVentasId403 | DeleteApiVentasId404 | DeleteApiVentasId409 | DeleteApiVentasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiVentasId>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteApiVentasId>>, TError,{id: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteApiVentasId>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['deleteApiVentasId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return deleteApiVentasId(id, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type DeleteApiVentasIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteApiVentasId>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiVentasId>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+export type DeleteApiVentasIdMutationError = ErrorType<
+  | DeleteApiVentasId400
+  | DeleteApiVentasId401
+  | DeleteApiVentasId403
+  | DeleteApiVentasId404
+  | DeleteApiVentasId409
+  | DeleteApiVentasId500
+>;
 
-          return  deleteApiVentasId(id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteApiVentasIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiVentasId>>>
-    
-    export type DeleteApiVentasIdMutationError = ErrorType<DeleteApiVentasId400 | DeleteApiVentasId401 | DeleteApiVentasId403 | DeleteApiVentasId404 | DeleteApiVentasId409 | DeleteApiVentasId500>
-
-    /**
+/**
  * @summary Eliminar venta (Solo Admin - Uso muy limitado)
  */
-export const useDeleteApiVentasId = <TError = ErrorType<DeleteApiVentasId400 | DeleteApiVentasId401 | DeleteApiVentasId403 | DeleteApiVentasId404 | DeleteApiVentasId409 | DeleteApiVentasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiVentasId>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteApiVentasId>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const useDeleteApiVentasId = <
+  TError = ErrorType<
+    | DeleteApiVentasId400
+    | DeleteApiVentasId401
+    | DeleteApiVentasId403
+    | DeleteApiVentasId404
+    | DeleteApiVentasId409
+    | DeleteApiVentasId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteApiVentasId>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteApiVentasId>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions = getDeleteApiVentasIdMutationOptions(options);
 
-      const mutationOptions = getDeleteApiVentasIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

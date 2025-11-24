@@ -20,13 +20,13 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Filtrar por estado del pedido
  */
-export type ListPedidosQueryEstado = typeof ListPedidosQueryEstado[keyof typeof ListPedidosQueryEstado];
-
+export type ListPedidosQueryEstado =
+  (typeof ListPedidosQueryEstado)[keyof typeof ListPedidosQueryEstado];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ListPedidosQueryEstado = {
-  pendiente: 'pendiente',
-  confirmado: 'confirmado',
-  cancelado: 'cancelado',
-  entregado: 'entregado',
+  pendiente: "pendiente",
+  confirmado: "confirmado",
+  cancelado: "cancelado",
+  entregado: "entregado",
 } as const;

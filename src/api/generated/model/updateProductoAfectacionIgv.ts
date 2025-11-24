@@ -20,12 +20,12 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de afectación al IGV según SUNAT
  */
-export type UpdateProductoAfectacionIgv = typeof UpdateProductoAfectacionIgv[keyof typeof UpdateProductoAfectacionIgv];
-
+export type UpdateProductoAfectacionIgv =
+  (typeof UpdateProductoAfectacionIgv)[keyof typeof UpdateProductoAfectacionIgv];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UpdateProductoAfectacionIgv = {
-  GRAVADO: 'GRAVADO',
-  EXONERADO: 'EXONERADO',
-  INAFECTO: 'INAFECTO',
+  GRAVADO: "GRAVADO",
+  EXONERADO: "EXONERADO",
+  INAFECTO: "INAFECTO",
 } as const;

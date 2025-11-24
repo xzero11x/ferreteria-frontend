@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { ListSeriesQueryTipoComprobante } from './listSeriesQueryTipoComprobante';
+import type { ListSeriesQueryTipoComprobante } from "./listSeriesQueryTipoComprobante";
 
 export interface ListSeriesQuery {
   /** Filtrar por tipo de comprobante */

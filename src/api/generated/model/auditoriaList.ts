@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { AuditoriaLog } from './auditoriaLog';
+import type { AuditoriaLog } from "./auditoriaLog";
 
 export interface AuditoriaList {
   /** Cantidad total de logs */

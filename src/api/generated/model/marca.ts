@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { MarcaLogoUrl } from './marcaLogoUrl';
+import type { MarcaLogoUrl } from "./marcaLogoUrl";
 
 export interface Marca {
   /** ID único de la marca */

@@ -16,9 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useQuery
-} from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -28,8 +26,8 @@ import type {
   QueryKey,
   UndefinedInitialDataOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   AuditoriaList,
@@ -53,294 +51,623 @@ import type {
   GetApiAuditoriaId404,
   GetApiAuditoriaId409,
   GetApiAuditoriaId500,
-  GetApiAuditoriaParams
-} from '.././model';
+  GetApiAuditoriaParams,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Obtiene logs de auditoría con filtros opcionales por usuario, acción, tabla y rango de fechas. Solo accesible para administradores.
  * @summary Consultar logs de auditoría
  */
 export const getApiAuditoria = (
-    params?: GetApiAuditoriaParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  params?: GetApiAuditoriaParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<AuditoriaList>(
-      {url: `/api/auditoria`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-  
+  return customInstance<AuditoriaList>(
+    { url: `/api/auditoria`, method: "GET", params, signal },
+    options,
+  );
+};
 
+export const getGetApiAuditoriaQueryKey = (params?: GetApiAuditoriaParams) => {
+  return [`/api/auditoria`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetApiAuditoriaQueryKey = (params?: GetApiAuditoriaParams,) => {
-    return [
-    `/api/auditoria`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetApiAuditoriaQueryOptions = <TData = Awaited<ReturnType<typeof getApiAuditoria>>, TError = ErrorType<GetApiAuditoria400 | GetApiAuditoria401 | GetApiAuditoria403 | GetApiAuditoria404 | GetApiAuditoria409 | GetApiAuditoria500>>(params?: GetApiAuditoriaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoria>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiAuditoriaQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAuditoria>>,
+  TError = ErrorType<
+    | GetApiAuditoria400
+    | GetApiAuditoria401
+    | GetApiAuditoria403
+    | GetApiAuditoria404
+    | GetApiAuditoria409
+    | GetApiAuditoria500
+  >,
+>(
+  params?: GetApiAuditoriaParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoria>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiAuditoriaQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiAuditoriaQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAuditoria>>> = ({
+    signal,
+  }) => getApiAuditoria(params, requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAuditoria>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAuditoria>>> = ({ signal }) => getApiAuditoria(params, requestOptions, signal);
+export type GetApiAuditoriaQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiAuditoria>>
+>;
+export type GetApiAuditoriaQueryError = ErrorType<
+  | GetApiAuditoria400
+  | GetApiAuditoria401
+  | GetApiAuditoria403
+  | GetApiAuditoria404
+  | GetApiAuditoria409
+  | GetApiAuditoria500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoria>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiAuditoriaQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAuditoria>>>
-export type GetApiAuditoriaQueryError = ErrorType<GetApiAuditoria400 | GetApiAuditoria401 | GetApiAuditoria403 | GetApiAuditoria404 | GetApiAuditoria409 | GetApiAuditoria500>
-
-
-export function useGetApiAuditoria<TData = Awaited<ReturnType<typeof getApiAuditoria>>, TError = ErrorType<GetApiAuditoria400 | GetApiAuditoria401 | GetApiAuditoria403 | GetApiAuditoria404 | GetApiAuditoria409 | GetApiAuditoria500>>(
- params: undefined |  GetApiAuditoriaParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoria>>, TError, TData>> & Pick<
+export function useGetApiAuditoria<
+  TData = Awaited<ReturnType<typeof getApiAuditoria>>,
+  TError = ErrorType<
+    | GetApiAuditoria400
+    | GetApiAuditoria401
+    | GetApiAuditoria403
+    | GetApiAuditoria404
+    | GetApiAuditoria409
+    | GetApiAuditoria500
+  >,
+>(
+  params: undefined | GetApiAuditoriaParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoria>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiAuditoria>>,
           TError,
           Awaited<ReturnType<typeof getApiAuditoria>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiAuditoria<TData = Awaited<ReturnType<typeof getApiAuditoria>>, TError = ErrorType<GetApiAuditoria400 | GetApiAuditoria401 | GetApiAuditoria403 | GetApiAuditoria404 | GetApiAuditoria409 | GetApiAuditoria500>>(
- params?: GetApiAuditoriaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoria>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiAuditoria<
+  TData = Awaited<ReturnType<typeof getApiAuditoria>>,
+  TError = ErrorType<
+    | GetApiAuditoria400
+    | GetApiAuditoria401
+    | GetApiAuditoria403
+    | GetApiAuditoria404
+    | GetApiAuditoria409
+    | GetApiAuditoria500
+  >,
+>(
+  params?: GetApiAuditoriaParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoria>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiAuditoria>>,
           TError,
           Awaited<ReturnType<typeof getApiAuditoria>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiAuditoria<TData = Awaited<ReturnType<typeof getApiAuditoria>>, TError = ErrorType<GetApiAuditoria400 | GetApiAuditoria401 | GetApiAuditoria403 | GetApiAuditoria404 | GetApiAuditoria409 | GetApiAuditoria500>>(
- params?: GetApiAuditoriaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoria>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiAuditoria<
+  TData = Awaited<ReturnType<typeof getApiAuditoria>>,
+  TError = ErrorType<
+    | GetApiAuditoria400
+    | GetApiAuditoria401
+    | GetApiAuditoria403
+    | GetApiAuditoria404
+    | GetApiAuditoria409
+    | GetApiAuditoria500
+  >,
+>(
+  params?: GetApiAuditoriaParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoria>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Consultar logs de auditoría
  */
 
-export function useGetApiAuditoria<TData = Awaited<ReturnType<typeof getApiAuditoria>>, TError = ErrorType<GetApiAuditoria400 | GetApiAuditoria401 | GetApiAuditoria403 | GetApiAuditoria404 | GetApiAuditoria409 | GetApiAuditoria500>>(
- params?: GetApiAuditoriaParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoria>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiAuditoria<
+  TData = Awaited<ReturnType<typeof getApiAuditoria>>,
+  TError = ErrorType<
+    | GetApiAuditoria400
+    | GetApiAuditoria401
+    | GetApiAuditoria403
+    | GetApiAuditoria404
+    | GetApiAuditoria409
+    | GetApiAuditoria500
+  >,
+>(
+  params?: GetApiAuditoriaParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoria>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiAuditoriaQueryOptions(params, options);
 
-  const queryOptions = getGetApiAuditoriaQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Genera estadísticas de los últimos 7 días: eventos por acción, por tabla y usuarios más activos. Solo accesible para administradores.
  * @summary Obtener estadísticas de auditoría
  */
 export const getApiAuditoriaEstadisticas = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<EstadisticasAuditoria>(
-      {url: `/api/auditoria/estadisticas`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
+  return customInstance<EstadisticasAuditoria>(
+    { url: `/api/auditoria/estadisticas`, method: "GET", signal },
+    options,
+  );
+};
 
 export const getGetApiAuditoriaEstadisticasQueryKey = () => {
-    return [
-    `/api/auditoria/estadisticas`
-    ] as const;
-    }
+  return [`/api/auditoria/estadisticas`] as const;
+};
 
-    
-export const getGetApiAuditoriaEstadisticasQueryOptions = <TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError = ErrorType<GetApiAuditoriaEstadisticas400 | GetApiAuditoriaEstadisticas401 | GetApiAuditoriaEstadisticas403 | GetApiAuditoriaEstadisticas404 | GetApiAuditoriaEstadisticas409 | GetApiAuditoriaEstadisticas500>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiAuditoriaEstadisticasQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+  TError = ErrorType<
+    | GetApiAuditoriaEstadisticas400
+    | GetApiAuditoriaEstadisticas401
+    | GetApiAuditoriaEstadisticas403
+    | GetApiAuditoriaEstadisticas404
+    | GetApiAuditoriaEstadisticas409
+    | GetApiAuditoriaEstadisticas500
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetApiAuditoriaEstadisticasQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiAuditoriaEstadisticasQueryKey();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>
+  > = ({ signal }) => getApiAuditoriaEstadisticas(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>> = ({ signal }) => getApiAuditoriaEstadisticas(requestOptions, signal);
+export type GetApiAuditoriaEstadisticasQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>
+>;
+export type GetApiAuditoriaEstadisticasQueryError = ErrorType<
+  | GetApiAuditoriaEstadisticas400
+  | GetApiAuditoriaEstadisticas401
+  | GetApiAuditoriaEstadisticas403
+  | GetApiAuditoriaEstadisticas404
+  | GetApiAuditoriaEstadisticas409
+  | GetApiAuditoriaEstadisticas500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiAuditoriaEstadisticasQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>>
-export type GetApiAuditoriaEstadisticasQueryError = ErrorType<GetApiAuditoriaEstadisticas400 | GetApiAuditoriaEstadisticas401 | GetApiAuditoriaEstadisticas403 | GetApiAuditoriaEstadisticas404 | GetApiAuditoriaEstadisticas409 | GetApiAuditoriaEstadisticas500>
-
-
-export function useGetApiAuditoriaEstadisticas<TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError = ErrorType<GetApiAuditoriaEstadisticas400 | GetApiAuditoriaEstadisticas401 | GetApiAuditoriaEstadisticas403 | GetApiAuditoriaEstadisticas404 | GetApiAuditoriaEstadisticas409 | GetApiAuditoriaEstadisticas500>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError, TData>> & Pick<
+export function useGetApiAuditoriaEstadisticas<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+  TError = ErrorType<
+    | GetApiAuditoriaEstadisticas400
+    | GetApiAuditoriaEstadisticas401
+    | GetApiAuditoriaEstadisticas403
+    | GetApiAuditoriaEstadisticas404
+    | GetApiAuditoriaEstadisticas409
+    | GetApiAuditoriaEstadisticas500
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
           TError,
           Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiAuditoriaEstadisticas<TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError = ErrorType<GetApiAuditoriaEstadisticas400 | GetApiAuditoriaEstadisticas401 | GetApiAuditoriaEstadisticas403 | GetApiAuditoriaEstadisticas404 | GetApiAuditoriaEstadisticas409 | GetApiAuditoriaEstadisticas500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiAuditoriaEstadisticas<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+  TError = ErrorType<
+    | GetApiAuditoriaEstadisticas400
+    | GetApiAuditoriaEstadisticas401
+    | GetApiAuditoriaEstadisticas403
+    | GetApiAuditoriaEstadisticas404
+    | GetApiAuditoriaEstadisticas409
+    | GetApiAuditoriaEstadisticas500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
           TError,
           Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiAuditoriaEstadisticas<TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError = ErrorType<GetApiAuditoriaEstadisticas400 | GetApiAuditoriaEstadisticas401 | GetApiAuditoriaEstadisticas403 | GetApiAuditoriaEstadisticas404 | GetApiAuditoriaEstadisticas409 | GetApiAuditoriaEstadisticas500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiAuditoriaEstadisticas<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+  TError = ErrorType<
+    | GetApiAuditoriaEstadisticas400
+    | GetApiAuditoriaEstadisticas401
+    | GetApiAuditoriaEstadisticas403
+    | GetApiAuditoriaEstadisticas404
+    | GetApiAuditoriaEstadisticas409
+    | GetApiAuditoriaEstadisticas500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener estadísticas de auditoría
  */
 
-export function useGetApiAuditoriaEstadisticas<TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError = ErrorType<GetApiAuditoriaEstadisticas400 | GetApiAuditoriaEstadisticas401 | GetApiAuditoriaEstadisticas403 | GetApiAuditoriaEstadisticas404 | GetApiAuditoriaEstadisticas409 | GetApiAuditoriaEstadisticas500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiAuditoriaEstadisticas<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+  TError = ErrorType<
+    | GetApiAuditoriaEstadisticas400
+    | GetApiAuditoriaEstadisticas401
+    | GetApiAuditoriaEstadisticas403
+    | GetApiAuditoriaEstadisticas404
+    | GetApiAuditoriaEstadisticas409
+    | GetApiAuditoriaEstadisticas500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaEstadisticas>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiAuditoriaEstadisticasQueryOptions(options);
 
-  const queryOptions = getGetApiAuditoriaEstadisticasQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Consulta los detalles completos de un log de auditoría específico. Solo accesible para administradores.
  * @summary Obtener detalle de log específico
  */
 export const getApiAuditoriaId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<AuditoriaLog>(
-      {url: `/api/auditoria/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<AuditoriaLog>(
+    { url: `/api/auditoria/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiAuditoriaIdQueryKey = (id?: number) => {
+  return [`/api/auditoria/${id}`] as const;
+};
 
-
-export const getGetApiAuditoriaIdQueryKey = (id?: number,) => {
-    return [
-    `/api/auditoria/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiAuditoriaIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiAuditoriaId>>, TError = ErrorType<GetApiAuditoriaId400 | GetApiAuditoriaId401 | GetApiAuditoriaId403 | GetApiAuditoriaId404 | GetApiAuditoriaId409 | GetApiAuditoriaId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiAuditoriaIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiAuditoriaId>>,
+  TError = ErrorType<
+    | GetApiAuditoriaId400
+    | GetApiAuditoriaId401
+    | GetApiAuditoriaId403
+    | GetApiAuditoriaId404
+    | GetApiAuditoriaId409
+    | GetApiAuditoriaId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiAuditoriaIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiAuditoriaIdQueryKey(id);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiAuditoriaId>>
+  > = ({ signal }) => getApiAuditoriaId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiAuditoriaId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiAuditoriaId>>> = ({ signal }) => getApiAuditoriaId(id, requestOptions, signal);
+export type GetApiAuditoriaIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiAuditoriaId>>
+>;
+export type GetApiAuditoriaIdQueryError = ErrorType<
+  | GetApiAuditoriaId400
+  | GetApiAuditoriaId401
+  | GetApiAuditoriaId403
+  | GetApiAuditoriaId404
+  | GetApiAuditoriaId409
+  | GetApiAuditoriaId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiAuditoriaIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiAuditoriaId>>>
-export type GetApiAuditoriaIdQueryError = ErrorType<GetApiAuditoriaId400 | GetApiAuditoriaId401 | GetApiAuditoriaId403 | GetApiAuditoriaId404 | GetApiAuditoriaId409 | GetApiAuditoriaId500>
-
-
-export function useGetApiAuditoriaId<TData = Awaited<ReturnType<typeof getApiAuditoriaId>>, TError = ErrorType<GetApiAuditoriaId400 | GetApiAuditoriaId401 | GetApiAuditoriaId403 | GetApiAuditoriaId404 | GetApiAuditoriaId409 | GetApiAuditoriaId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaId>>, TError, TData>> & Pick<
+export function useGetApiAuditoriaId<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaId>>,
+  TError = ErrorType<
+    | GetApiAuditoriaId400
+    | GetApiAuditoriaId401
+    | GetApiAuditoriaId403
+    | GetApiAuditoriaId404
+    | GetApiAuditoriaId409
+    | GetApiAuditoriaId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiAuditoriaId>>,
           TError,
           Awaited<ReturnType<typeof getApiAuditoriaId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiAuditoriaId<TData = Awaited<ReturnType<typeof getApiAuditoriaId>>, TError = ErrorType<GetApiAuditoriaId400 | GetApiAuditoriaId401 | GetApiAuditoriaId403 | GetApiAuditoriaId404 | GetApiAuditoriaId409 | GetApiAuditoriaId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiAuditoriaId<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaId>>,
+  TError = ErrorType<
+    | GetApiAuditoriaId400
+    | GetApiAuditoriaId401
+    | GetApiAuditoriaId403
+    | GetApiAuditoriaId404
+    | GetApiAuditoriaId409
+    | GetApiAuditoriaId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiAuditoriaId>>,
           TError,
           Awaited<ReturnType<typeof getApiAuditoriaId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiAuditoriaId<TData = Awaited<ReturnType<typeof getApiAuditoriaId>>, TError = ErrorType<GetApiAuditoriaId400 | GetApiAuditoriaId401 | GetApiAuditoriaId403 | GetApiAuditoriaId404 | GetApiAuditoriaId409 | GetApiAuditoriaId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiAuditoriaId<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaId>>,
+  TError = ErrorType<
+    | GetApiAuditoriaId400
+    | GetApiAuditoriaId401
+    | GetApiAuditoriaId403
+    | GetApiAuditoriaId404
+    | GetApiAuditoriaId409
+    | GetApiAuditoriaId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener detalle de log específico
  */
 
-export function useGetApiAuditoriaId<TData = Awaited<ReturnType<typeof getApiAuditoriaId>>, TError = ErrorType<GetApiAuditoriaId400 | GetApiAuditoriaId401 | GetApiAuditoriaId403 | GetApiAuditoriaId404 | GetApiAuditoriaId409 | GetApiAuditoriaId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiAuditoriaId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiAuditoriaId<
+  TData = Awaited<ReturnType<typeof getApiAuditoriaId>>,
+  TError = ErrorType<
+    | GetApiAuditoriaId400
+    | GetApiAuditoriaId401
+    | GetApiAuditoriaId403
+    | GetApiAuditoriaId404
+    | GetApiAuditoriaId409
+    | GetApiAuditoriaId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiAuditoriaId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiAuditoriaIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiAuditoriaIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
-

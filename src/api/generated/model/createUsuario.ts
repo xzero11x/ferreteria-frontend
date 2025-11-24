@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { CreateUsuarioRol } from './createUsuarioRol';
+import type { CreateUsuarioRol } from "./createUsuarioRol";
 
 export interface CreateUsuario {
   /** Email del usuario */

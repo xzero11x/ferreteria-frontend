@@ -20,4 +20,4 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Cantidad de eventos agrupados por tipo de acción
  */
-export type EstadisticasAuditoriaPorAccion = {[key: string]: number};
+export type EstadisticasAuditoriaPorAccion = { [key: string]: number };

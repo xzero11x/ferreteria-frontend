@@ -20,12 +20,12 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de documento de identidad del proveedor
  */
-export type CreateProveedorTipoDocumento = typeof CreateProveedorTipoDocumento[keyof typeof CreateProveedorTipoDocumento];
-
+export type CreateProveedorTipoDocumento =
+  (typeof CreateProveedorTipoDocumento)[keyof typeof CreateProveedorTipoDocumento];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateProveedorTipoDocumento = {
-  RUC: 'RUC',
-  DNI: 'DNI',
-  CE: 'CE',
+  RUC: "RUC",
+  DNI: "DNI",
+  CE: "CE",
 } as const;

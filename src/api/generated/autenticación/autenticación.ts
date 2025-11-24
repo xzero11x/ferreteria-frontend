@@ -16,15 +16,13 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation
-} from '@tanstack/react-query';
+import { useMutation } from "@tanstack/react-query";
 import type {
   MutationFunction,
   QueryClient,
   UseMutationOptions,
-  UseMutationResult
-} from '@tanstack/react-query';
+  UseMutationResult,
+} from "@tanstack/react-query";
 
 import type {
   Login,
@@ -50,210 +48,350 @@ import type {
   RegisterResponse,
   RegisterTenant,
   SuccessResponse,
-  VerifyTenant
-} from '.././model';
+  VerifyTenant,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Crea un nuevo tenant (empresa) con usuario administrador. Genera automáticamente 12 unidades de medida SUNAT. El tenant queda en estado isActive: false hasta su verificación.
  * @summary Registrar nuevo tenant
  */
 export const postApiAuthRegister = (
-    registerTenant: RegisterTenant,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  registerTenant: RegisterTenant,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<RegisterResponse>(
-      {url: `/api/auth/register`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: registerTenant, signal
+  return customInstance<RegisterResponse>(
+    {
+      url: `/api/auth/register`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: registerTenant,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiAuthRegisterMutationOptions = <
+  TError = ErrorType<
+    | PostApiAuthRegister400
+    | PostApiAuthRegister401
+    | PostApiAuthRegister403
+    | PostApiAuthRegister404
+    | PostApiAuthRegister409
+    | PostApiAuthRegister500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAuthRegister>>,
+    TError,
+    { data: RegisterTenant },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAuthRegister>>,
+  TError,
+  { data: RegisterTenant },
+  TContext
+> => {
+  const mutationKey = ["postApiAuthRegister"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiAuthRegisterMutationOptions = <TError = ErrorType<PostApiAuthRegister400 | PostApiAuthRegister401 | PostApiAuthRegister403 | PostApiAuthRegister404 | PostApiAuthRegister409 | PostApiAuthRegister500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,{data: RegisterTenant}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,{data: RegisterTenant}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAuthRegister>>,
+    { data: RegisterTenant }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiAuthRegister'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiAuthRegister(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiAuthRegisterMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAuthRegister>>
+>;
+export type PostApiAuthRegisterMutationBody = RegisterTenant;
+export type PostApiAuthRegisterMutationError = ErrorType<
+  | PostApiAuthRegister400
+  | PostApiAuthRegister401
+  | PostApiAuthRegister403
+  | PostApiAuthRegister404
+  | PostApiAuthRegister409
+  | PostApiAuthRegister500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiAuthRegister>>, {data: RegisterTenant}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiAuthRegister(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiAuthRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiAuthRegister>>>
-    export type PostApiAuthRegisterMutationBody = RegisterTenant
-    export type PostApiAuthRegisterMutationError = ErrorType<PostApiAuthRegister400 | PostApiAuthRegister401 | PostApiAuthRegister403 | PostApiAuthRegister404 | PostApiAuthRegister409 | PostApiAuthRegister500>
-
-    /**
+/**
  * @summary Registrar nuevo tenant
  */
-export const usePostApiAuthRegister = <TError = ErrorType<PostApiAuthRegister400 | PostApiAuthRegister401 | PostApiAuthRegister403 | PostApiAuthRegister404 | PostApiAuthRegister409 | PostApiAuthRegister500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthRegister>>, TError,{data: RegisterTenant}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiAuthRegister>>,
-        TError,
-        {data: RegisterTenant},
-        TContext
-      > => {
+export const usePostApiAuthRegister = <
+  TError = ErrorType<
+    | PostApiAuthRegister400
+    | PostApiAuthRegister401
+    | PostApiAuthRegister403
+    | PostApiAuthRegister404
+    | PostApiAuthRegister409
+    | PostApiAuthRegister500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAuthRegister>>,
+      TError,
+      { data: RegisterTenant },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiAuthRegister>>,
+  TError,
+  { data: RegisterTenant },
+  TContext
+> => {
+  const mutationOptions = getPostApiAuthRegisterMutationOptions(options);
 
-      const mutationOptions = getPostApiAuthRegisterMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * En modo desarrollo (TENANT_ACTIVATION_MODE=manual), activa un tenant manualmente. En producción, la activación es automática vía email.
  * @summary Verificar y activar tenant (Desarrollo)
  */
 export const postApiAuthVerify = (
-    verifyTenant: VerifyTenant,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  verifyTenant: VerifyTenant,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/auth/verify`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: verifyTenant, signal
+  return customInstance<SuccessResponse>(
+    {
+      url: `/api/auth/verify`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: verifyTenant,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiAuthVerifyMutationOptions = <
+  TError = ErrorType<
+    | PostApiAuthVerify400
+    | PostApiAuthVerify401
+    | PostApiAuthVerify403
+    | PostApiAuthVerify404
+    | PostApiAuthVerify409
+    | PostApiAuthVerify500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAuthVerify>>,
+    TError,
+    { data: VerifyTenant },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAuthVerify>>,
+  TError,
+  { data: VerifyTenant },
+  TContext
+> => {
+  const mutationKey = ["postApiAuthVerify"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiAuthVerifyMutationOptions = <TError = ErrorType<PostApiAuthVerify400 | PostApiAuthVerify401 | PostApiAuthVerify403 | PostApiAuthVerify404 | PostApiAuthVerify409 | PostApiAuthVerify500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthVerify>>, TError,{data: VerifyTenant}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiAuthVerify>>, TError,{data: VerifyTenant}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAuthVerify>>,
+    { data: VerifyTenant }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiAuthVerify'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiAuthVerify(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiAuthVerifyMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAuthVerify>>
+>;
+export type PostApiAuthVerifyMutationBody = VerifyTenant;
+export type PostApiAuthVerifyMutationError = ErrorType<
+  | PostApiAuthVerify400
+  | PostApiAuthVerify401
+  | PostApiAuthVerify403
+  | PostApiAuthVerify404
+  | PostApiAuthVerify409
+  | PostApiAuthVerify500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiAuthVerify>>, {data: VerifyTenant}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiAuthVerify(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiAuthVerifyMutationResult = NonNullable<Awaited<ReturnType<typeof postApiAuthVerify>>>
-    export type PostApiAuthVerifyMutationBody = VerifyTenant
-    export type PostApiAuthVerifyMutationError = ErrorType<PostApiAuthVerify400 | PostApiAuthVerify401 | PostApiAuthVerify403 | PostApiAuthVerify404 | PostApiAuthVerify409 | PostApiAuthVerify500>
-
-    /**
+/**
  * @summary Verificar y activar tenant (Desarrollo)
  */
-export const usePostApiAuthVerify = <TError = ErrorType<PostApiAuthVerify400 | PostApiAuthVerify401 | PostApiAuthVerify403 | PostApiAuthVerify404 | PostApiAuthVerify409 | PostApiAuthVerify500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthVerify>>, TError,{data: VerifyTenant}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiAuthVerify>>,
-        TError,
-        {data: VerifyTenant},
-        TContext
-      > => {
+export const usePostApiAuthVerify = <
+  TError = ErrorType<
+    | PostApiAuthVerify400
+    | PostApiAuthVerify401
+    | PostApiAuthVerify403
+    | PostApiAuthVerify404
+    | PostApiAuthVerify409
+    | PostApiAuthVerify500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAuthVerify>>,
+      TError,
+      { data: VerifyTenant },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiAuthVerify>>,
+  TError,
+  { data: VerifyTenant },
+  TContext
+> => {
+  const mutationOptions = getPostApiAuthVerifyMutationOptions(options);
 
-      const mutationOptions = getPostApiAuthVerifyMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Autentica un usuario y retorna un token JWT. Requiere que el request incluya el subdominio del tenant en el hostname. El token incluye: usuario_id, tenant_id, y rol.
  * @summary Iniciar sesión
  */
 export const postApiAuthLogin = (
-    login: Login,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  login: Login,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<LoginResponse>(
-      {url: `/api/auth/login`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: login, signal
+  return customInstance<LoginResponse>(
+    {
+      url: `/api/auth/login`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: login,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiAuthLoginMutationOptions = <
+  TError = ErrorType<
+    | PostApiAuthLogin400
+    | PostApiAuthLogin401
+    | PostApiAuthLogin403
+    | PostApiAuthLogin404
+    | PostApiAuthLogin409
+    | PostApiAuthLogin500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiAuthLogin>>,
+    TError,
+    { data: Login },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiAuthLogin>>,
+  TError,
+  { data: Login },
+  TContext
+> => {
+  const mutationKey = ["postApiAuthLogin"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiAuthLoginMutationOptions = <TError = ErrorType<PostApiAuthLogin400 | PostApiAuthLogin401 | PostApiAuthLogin403 | PostApiAuthLogin404 | PostApiAuthLogin409 | PostApiAuthLogin500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,{data: Login}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,{data: Login}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiAuthLogin>>,
+    { data: Login }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiAuthLogin'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiAuthLogin(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiAuthLoginMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiAuthLogin>>
+>;
+export type PostApiAuthLoginMutationBody = Login;
+export type PostApiAuthLoginMutationError = ErrorType<
+  | PostApiAuthLogin400
+  | PostApiAuthLogin401
+  | PostApiAuthLogin403
+  | PostApiAuthLogin404
+  | PostApiAuthLogin409
+  | PostApiAuthLogin500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiAuthLogin>>, {data: Login}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiAuthLogin(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiAuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof postApiAuthLogin>>>
-    export type PostApiAuthLoginMutationBody = Login
-    export type PostApiAuthLoginMutationError = ErrorType<PostApiAuthLogin400 | PostApiAuthLogin401 | PostApiAuthLogin403 | PostApiAuthLogin404 | PostApiAuthLogin409 | PostApiAuthLogin500>
-
-    /**
+/**
  * @summary Iniciar sesión
  */
-export const usePostApiAuthLogin = <TError = ErrorType<PostApiAuthLogin400 | PostApiAuthLogin401 | PostApiAuthLogin403 | PostApiAuthLogin404 | PostApiAuthLogin409 | PostApiAuthLogin500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiAuthLogin>>, TError,{data: Login}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiAuthLogin>>,
-        TError,
-        {data: Login},
-        TContext
-      > => {
+export const usePostApiAuthLogin = <
+  TError = ErrorType<
+    | PostApiAuthLogin400
+    | PostApiAuthLogin401
+    | PostApiAuthLogin403
+    | PostApiAuthLogin404
+    | PostApiAuthLogin409
+    | PostApiAuthLogin500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiAuthLogin>>,
+      TError,
+      { data: Login },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiAuthLogin>>,
+  TError,
+  { data: Login },
+  TContext
+> => {
+  const mutationOptions = getPostApiAuthLoginMutationOptions(options);
 
-      const mutationOptions = getPostApiAuthLoginMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

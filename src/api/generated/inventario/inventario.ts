@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   CreateInventarioAjuste,
@@ -64,329 +61,650 @@ import type {
   PostApiInventarioAjustes404,
   PostApiInventarioAjustes409,
   PostApiInventarioAjustes500,
-  SuccessResponse
-} from '.././model';
+  SuccessResponse,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Obtiene el historial de ajustes manuales de inventario con filtros opcionales por producto, tipo y rango de fechas.
  * @summary Listar ajustes de inventario
  */
 export const getApiInventarioAjustes = (
-    params?: GetApiInventarioAjustesParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  params?: GetApiInventarioAjustesParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<GetApiInventarioAjustes200>(
-      {url: `/api/inventario/ajustes`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-  
+  return customInstance<GetApiInventarioAjustes200>(
+    { url: `/api/inventario/ajustes`, method: "GET", params, signal },
+    options,
+  );
+};
 
-
-
-export const getGetApiInventarioAjustesQueryKey = (params?: GetApiInventarioAjustesParams,) => {
-    return [
-    `/api/inventario/ajustes`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetApiInventarioAjustesQueryOptions = <TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError = ErrorType<GetApiInventarioAjustes400 | GetApiInventarioAjustes401 | GetApiInventarioAjustes403 | GetApiInventarioAjustes404 | GetApiInventarioAjustes409 | GetApiInventarioAjustes500>>(params?: GetApiInventarioAjustesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiInventarioAjustesQueryKey = (
+  params?: GetApiInventarioAjustesParams,
 ) => {
+  return [`/api/inventario/ajustes`, ...(params ? [params] : [])] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getGetApiInventarioAjustesQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustes400
+    | GetApiInventarioAjustes401
+    | GetApiInventarioAjustes403
+    | GetApiInventarioAjustes404
+    | GetApiInventarioAjustes409
+    | GetApiInventarioAjustes500
+  >,
+>(
+  params?: GetApiInventarioAjustesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiInventarioAjustesQueryKey(params);
+  const queryKey =
+    queryOptions?.queryKey ?? getGetApiInventarioAjustesQueryKey(params);
 
-  
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiInventarioAjustes>>
+  > = ({ signal }) => getApiInventarioAjustes(params, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiInventarioAjustes>>> = ({ signal }) => getApiInventarioAjustes(params, requestOptions, signal);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetApiInventarioAjustesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiInventarioAjustes>>
+>;
+export type GetApiInventarioAjustesQueryError = ErrorType<
+  | GetApiInventarioAjustes400
+  | GetApiInventarioAjustes401
+  | GetApiInventarioAjustes403
+  | GetApiInventarioAjustes404
+  | GetApiInventarioAjustes409
+  | GetApiInventarioAjustes500
+>;
 
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiInventarioAjustesQueryResult = NonNullable<Awaited<ReturnType<typeof getApiInventarioAjustes>>>
-export type GetApiInventarioAjustesQueryError = ErrorType<GetApiInventarioAjustes400 | GetApiInventarioAjustes401 | GetApiInventarioAjustes403 | GetApiInventarioAjustes404 | GetApiInventarioAjustes409 | GetApiInventarioAjustes500>
-
-
-export function useGetApiInventarioAjustes<TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError = ErrorType<GetApiInventarioAjustes400 | GetApiInventarioAjustes401 | GetApiInventarioAjustes403 | GetApiInventarioAjustes404 | GetApiInventarioAjustes409 | GetApiInventarioAjustes500>>(
- params: undefined |  GetApiInventarioAjustesParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError, TData>> & Pick<
+export function useGetApiInventarioAjustes<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustes400
+    | GetApiInventarioAjustes401
+    | GetApiInventarioAjustes403
+    | GetApiInventarioAjustes404
+    | GetApiInventarioAjustes409
+    | GetApiInventarioAjustes500
+  >,
+>(
+  params: undefined | GetApiInventarioAjustesParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiInventarioAjustes>>,
           TError,
           Awaited<ReturnType<typeof getApiInventarioAjustes>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiInventarioAjustes<TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError = ErrorType<GetApiInventarioAjustes400 | GetApiInventarioAjustes401 | GetApiInventarioAjustes403 | GetApiInventarioAjustes404 | GetApiInventarioAjustes409 | GetApiInventarioAjustes500>>(
- params?: GetApiInventarioAjustesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiInventarioAjustes<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustes400
+    | GetApiInventarioAjustes401
+    | GetApiInventarioAjustes403
+    | GetApiInventarioAjustes404
+    | GetApiInventarioAjustes409
+    | GetApiInventarioAjustes500
+  >,
+>(
+  params?: GetApiInventarioAjustesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiInventarioAjustes>>,
           TError,
           Awaited<ReturnType<typeof getApiInventarioAjustes>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiInventarioAjustes<TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError = ErrorType<GetApiInventarioAjustes400 | GetApiInventarioAjustes401 | GetApiInventarioAjustes403 | GetApiInventarioAjustes404 | GetApiInventarioAjustes409 | GetApiInventarioAjustes500>>(
- params?: GetApiInventarioAjustesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiInventarioAjustes<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustes400
+    | GetApiInventarioAjustes401
+    | GetApiInventarioAjustes403
+    | GetApiInventarioAjustes404
+    | GetApiInventarioAjustes409
+    | GetApiInventarioAjustes500
+  >,
+>(
+  params?: GetApiInventarioAjustesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Listar ajustes de inventario
  */
 
-export function useGetApiInventarioAjustes<TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError = ErrorType<GetApiInventarioAjustes400 | GetApiInventarioAjustes401 | GetApiInventarioAjustes403 | GetApiInventarioAjustes404 | GetApiInventarioAjustes409 | GetApiInventarioAjustes500>>(
- params?: GetApiInventarioAjustesParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustes>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiInventarioAjustes<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustes400
+    | GetApiInventarioAjustes401
+    | GetApiInventarioAjustes403
+    | GetApiInventarioAjustes404
+    | GetApiInventarioAjustes409
+    | GetApiInventarioAjustes500
+  >,
+>(
+  params?: GetApiInventarioAjustesParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustes>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiInventarioAjustesQueryOptions(params, options);
 
-  const queryOptions = getGetApiInventarioAjustesQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Registra un ajuste manual de inventario (entrada o salida) y actualiza automáticamente el stock del producto.
  * @summary Crear ajuste de inventario
  */
 export const postApiInventarioAjustes = (
-    createInventarioAjuste: CreateInventarioAjuste,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createInventarioAjuste: CreateInventarioAjuste,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<InventarioAjuste>(
-      {url: `/api/inventario/ajustes`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createInventarioAjuste, signal
+  return customInstance<InventarioAjuste>(
+    {
+      url: `/api/inventario/ajustes`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createInventarioAjuste,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiInventarioAjustesMutationOptions = <
+  TError = ErrorType<
+    | PostApiInventarioAjustes400
+    | PostApiInventarioAjustes401
+    | PostApiInventarioAjustes403
+    | PostApiInventarioAjustes404
+    | PostApiInventarioAjustes409
+    | PostApiInventarioAjustes500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiInventarioAjustes>>,
+    TError,
+    { data: CreateInventarioAjuste },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiInventarioAjustes>>,
+  TError,
+  { data: CreateInventarioAjuste },
+  TContext
+> => {
+  const mutationKey = ["postApiInventarioAjustes"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiInventarioAjustesMutationOptions = <TError = ErrorType<PostApiInventarioAjustes400 | PostApiInventarioAjustes401 | PostApiInventarioAjustes403 | PostApiInventarioAjustes404 | PostApiInventarioAjustes409 | PostApiInventarioAjustes500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiInventarioAjustes>>, TError,{data: CreateInventarioAjuste}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiInventarioAjustes>>, TError,{data: CreateInventarioAjuste}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiInventarioAjustes>>,
+    { data: CreateInventarioAjuste }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiInventarioAjustes'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiInventarioAjustes(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiInventarioAjustesMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiInventarioAjustes>>
+>;
+export type PostApiInventarioAjustesMutationBody = CreateInventarioAjuste;
+export type PostApiInventarioAjustesMutationError = ErrorType<
+  | PostApiInventarioAjustes400
+  | PostApiInventarioAjustes401
+  | PostApiInventarioAjustes403
+  | PostApiInventarioAjustes404
+  | PostApiInventarioAjustes409
+  | PostApiInventarioAjustes500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiInventarioAjustes>>, {data: CreateInventarioAjuste}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiInventarioAjustes(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiInventarioAjustesMutationResult = NonNullable<Awaited<ReturnType<typeof postApiInventarioAjustes>>>
-    export type PostApiInventarioAjustesMutationBody = CreateInventarioAjuste
-    export type PostApiInventarioAjustesMutationError = ErrorType<PostApiInventarioAjustes400 | PostApiInventarioAjustes401 | PostApiInventarioAjustes403 | PostApiInventarioAjustes404 | PostApiInventarioAjustes409 | PostApiInventarioAjustes500>
-
-    /**
+/**
  * @summary Crear ajuste de inventario
  */
-export const usePostApiInventarioAjustes = <TError = ErrorType<PostApiInventarioAjustes400 | PostApiInventarioAjustes401 | PostApiInventarioAjustes403 | PostApiInventarioAjustes404 | PostApiInventarioAjustes409 | PostApiInventarioAjustes500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiInventarioAjustes>>, TError,{data: CreateInventarioAjuste}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiInventarioAjustes>>,
-        TError,
-        {data: CreateInventarioAjuste},
-        TContext
-      > => {
+export const usePostApiInventarioAjustes = <
+  TError = ErrorType<
+    | PostApiInventarioAjustes400
+    | PostApiInventarioAjustes401
+    | PostApiInventarioAjustes403
+    | PostApiInventarioAjustes404
+    | PostApiInventarioAjustes409
+    | PostApiInventarioAjustes500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiInventarioAjustes>>,
+      TError,
+      { data: CreateInventarioAjuste },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiInventarioAjustes>>,
+  TError,
+  { data: CreateInventarioAjuste },
+  TContext
+> => {
+  const mutationOptions = getPostApiInventarioAjustesMutationOptions(options);
 
-      const mutationOptions = getPostApiInventarioAjustesMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Consulta los detalles completos de un ajuste de inventario específico incluyendo información del producto y usuario.
  * @summary Obtener detalle de ajuste
  */
 export const getApiInventarioAjustesId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<InventarioAjuste>(
-      {url: `/api/inventario/ajustes/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<InventarioAjuste>(
+    { url: `/api/inventario/ajustes/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiInventarioAjustesIdQueryKey = (id?: number) => {
+  return [`/api/inventario/ajustes/${id}`] as const;
+};
 
-
-export const getGetApiInventarioAjustesIdQueryKey = (id?: number,) => {
-    return [
-    `/api/inventario/ajustes/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiInventarioAjustesIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError = ErrorType<GetApiInventarioAjustesId400 | GetApiInventarioAjustesId401 | GetApiInventarioAjustesId403 | GetApiInventarioAjustesId404 | GetApiInventarioAjustesId409 | GetApiInventarioAjustesId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiInventarioAjustesIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustesId400
+    | GetApiInventarioAjustesId401
+    | GetApiInventarioAjustesId403
+    | GetApiInventarioAjustesId404
+    | GetApiInventarioAjustesId409
+    | GetApiInventarioAjustesId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetApiInventarioAjustesIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiInventarioAjustesIdQueryKey(id);
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiInventarioAjustesId>>
+  > = ({ signal }) => getApiInventarioAjustesId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiInventarioAjustesId>>> = ({ signal }) => getApiInventarioAjustesId(id, requestOptions, signal);
+export type GetApiInventarioAjustesIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiInventarioAjustesId>>
+>;
+export type GetApiInventarioAjustesIdQueryError = ErrorType<
+  | GetApiInventarioAjustesId400
+  | GetApiInventarioAjustesId401
+  | GetApiInventarioAjustesId403
+  | GetApiInventarioAjustesId404
+  | GetApiInventarioAjustesId409
+  | GetApiInventarioAjustesId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiInventarioAjustesIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiInventarioAjustesId>>>
-export type GetApiInventarioAjustesIdQueryError = ErrorType<GetApiInventarioAjustesId400 | GetApiInventarioAjustesId401 | GetApiInventarioAjustesId403 | GetApiInventarioAjustesId404 | GetApiInventarioAjustesId409 | GetApiInventarioAjustesId500>
-
-
-export function useGetApiInventarioAjustesId<TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError = ErrorType<GetApiInventarioAjustesId400 | GetApiInventarioAjustesId401 | GetApiInventarioAjustesId403 | GetApiInventarioAjustesId404 | GetApiInventarioAjustesId409 | GetApiInventarioAjustesId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError, TData>> & Pick<
+export function useGetApiInventarioAjustesId<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustesId400
+    | GetApiInventarioAjustesId401
+    | GetApiInventarioAjustesId403
+    | GetApiInventarioAjustesId404
+    | GetApiInventarioAjustesId409
+    | GetApiInventarioAjustesId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
           TError,
           Awaited<ReturnType<typeof getApiInventarioAjustesId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiInventarioAjustesId<TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError = ErrorType<GetApiInventarioAjustesId400 | GetApiInventarioAjustesId401 | GetApiInventarioAjustesId403 | GetApiInventarioAjustesId404 | GetApiInventarioAjustesId409 | GetApiInventarioAjustesId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiInventarioAjustesId<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustesId400
+    | GetApiInventarioAjustesId401
+    | GetApiInventarioAjustesId403
+    | GetApiInventarioAjustesId404
+    | GetApiInventarioAjustesId409
+    | GetApiInventarioAjustesId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
           TError,
           Awaited<ReturnType<typeof getApiInventarioAjustesId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiInventarioAjustesId<TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError = ErrorType<GetApiInventarioAjustesId400 | GetApiInventarioAjustesId401 | GetApiInventarioAjustesId403 | GetApiInventarioAjustesId404 | GetApiInventarioAjustesId409 | GetApiInventarioAjustesId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiInventarioAjustesId<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustesId400
+    | GetApiInventarioAjustesId401
+    | GetApiInventarioAjustesId403
+    | GetApiInventarioAjustesId404
+    | GetApiInventarioAjustesId409
+    | GetApiInventarioAjustesId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener detalle de ajuste
  */
 
-export function useGetApiInventarioAjustesId<TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError = ErrorType<GetApiInventarioAjustesId400 | GetApiInventarioAjustesId401 | GetApiInventarioAjustesId403 | GetApiInventarioAjustesId404 | GetApiInventarioAjustesId409 | GetApiInventarioAjustesId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiInventarioAjustesId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiInventarioAjustesId<
+  TData = Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+  TError = ErrorType<
+    | GetApiInventarioAjustesId400
+    | GetApiInventarioAjustesId401
+    | GetApiInventarioAjustesId403
+    | GetApiInventarioAjustesId404
+    | GetApiInventarioAjustesId409
+    | GetApiInventarioAjustesId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiInventarioAjustesId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiInventarioAjustesIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiInventarioAjustesIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Elimina un ajuste de inventario. ADVERTENCIA: No reversa automáticamente el stock afectado. Usar con precaución.
  * @summary Eliminar ajuste de inventario
  */
 export const deleteApiInventarioAjustesId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/inventario/ajustes/${id}`, method: 'DELETE'
-    },
-      options);
-    }
-  
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<SuccessResponse>(
+    { url: `/api/inventario/ajustes/${id}`, method: "DELETE" },
+    options,
+  );
+};
 
+export const getDeleteApiInventarioAjustesIdMutationOptions = <
+  TError = ErrorType<
+    | DeleteApiInventarioAjustesId400
+    | DeleteApiInventarioAjustesId401
+    | DeleteApiInventarioAjustesId403
+    | DeleteApiInventarioAjustesId404
+    | DeleteApiInventarioAjustesId409
+    | DeleteApiInventarioAjustesId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteApiInventarioAjustesId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getDeleteApiInventarioAjustesIdMutationOptions = <TError = ErrorType<DeleteApiInventarioAjustesId400 | DeleteApiInventarioAjustesId401 | DeleteApiInventarioAjustesId403 | DeleteApiInventarioAjustesId404 | DeleteApiInventarioAjustesId409 | DeleteApiInventarioAjustesId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>, TError,{id: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['deleteApiInventarioAjustesId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return deleteApiInventarioAjustesId(id, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type DeleteApiInventarioAjustesIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+export type DeleteApiInventarioAjustesIdMutationError = ErrorType<
+  | DeleteApiInventarioAjustesId400
+  | DeleteApiInventarioAjustesId401
+  | DeleteApiInventarioAjustesId403
+  | DeleteApiInventarioAjustesId404
+  | DeleteApiInventarioAjustesId409
+  | DeleteApiInventarioAjustesId500
+>;
 
-          return  deleteApiInventarioAjustesId(id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteApiInventarioAjustesIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>>
-    
-    export type DeleteApiInventarioAjustesIdMutationError = ErrorType<DeleteApiInventarioAjustesId400 | DeleteApiInventarioAjustesId401 | DeleteApiInventarioAjustesId403 | DeleteApiInventarioAjustesId404 | DeleteApiInventarioAjustesId409 | DeleteApiInventarioAjustesId500>
-
-    /**
+/**
  * @summary Eliminar ajuste de inventario
  */
-export const useDeleteApiInventarioAjustesId = <TError = ErrorType<DeleteApiInventarioAjustesId400 | DeleteApiInventarioAjustesId401 | DeleteApiInventarioAjustesId403 | DeleteApiInventarioAjustesId404 | DeleteApiInventarioAjustesId409 | DeleteApiInventarioAjustesId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const useDeleteApiInventarioAjustesId = <
+  TError = ErrorType<
+    | DeleteApiInventarioAjustesId400
+    | DeleteApiInventarioAjustesId401
+    | DeleteApiInventarioAjustesId403
+    | DeleteApiInventarioAjustesId404
+    | DeleteApiInventarioAjustesId409
+    | DeleteApiInventarioAjustesId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteApiInventarioAjustesId>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions =
+    getDeleteApiInventarioAjustesIdMutationOptions(options);
 
-      const mutationOptions = getDeleteApiInventarioAjustesIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

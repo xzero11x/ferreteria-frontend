@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   GetApiTenantConfiguracion400,
@@ -63,329 +60,631 @@ import type {
   TenantConfigFiscal,
   TenantConfiguracion,
   UpdateTenantConfigFiscal,
-  UpdateTenantConfiguracion
-} from '.././model';
+  UpdateTenantConfiguracion,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Retorna el objeto JSON de configuración del tenant actual. Incluye configuración fiscal (IGV), preferencias de negocio, etc.
  * @summary Obtener configuración completa del tenant
  */
 export const getApiTenantConfiguracion = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<TenantConfiguracion>(
-      {url: `/api/tenant/configuracion`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
+  return customInstance<TenantConfiguracion>(
+    { url: `/api/tenant/configuracion`, method: "GET", signal },
+    options,
+  );
+};
 
 export const getGetApiTenantConfiguracionQueryKey = () => {
-    return [
-    `/api/tenant/configuracion`
-    ] as const;
-    }
+  return [`/api/tenant/configuracion`] as const;
+};
 
-    
-export const getGetApiTenantConfiguracionQueryOptions = <TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError = ErrorType<GetApiTenantConfiguracion400 | GetApiTenantConfiguracion401 | GetApiTenantConfiguracion403 | GetApiTenantConfiguracion404 | GetApiTenantConfiguracion409 | GetApiTenantConfiguracion500>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiTenantConfiguracionQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracion400
+    | GetApiTenantConfiguracion401
+    | GetApiTenantConfiguracion403
+    | GetApiTenantConfiguracion404
+    | GetApiTenantConfiguracion409
+    | GetApiTenantConfiguracion500
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetApiTenantConfiguracionQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiTenantConfiguracionQueryKey();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiTenantConfiguracion>>
+  > = ({ signal }) => getApiTenantConfiguracion(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiTenantConfiguracion>>> = ({ signal }) => getApiTenantConfiguracion(requestOptions, signal);
+export type GetApiTenantConfiguracionQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiTenantConfiguracion>>
+>;
+export type GetApiTenantConfiguracionQueryError = ErrorType<
+  | GetApiTenantConfiguracion400
+  | GetApiTenantConfiguracion401
+  | GetApiTenantConfiguracion403
+  | GetApiTenantConfiguracion404
+  | GetApiTenantConfiguracion409
+  | GetApiTenantConfiguracion500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiTenantConfiguracionQueryResult = NonNullable<Awaited<ReturnType<typeof getApiTenantConfiguracion>>>
-export type GetApiTenantConfiguracionQueryError = ErrorType<GetApiTenantConfiguracion400 | GetApiTenantConfiguracion401 | GetApiTenantConfiguracion403 | GetApiTenantConfiguracion404 | GetApiTenantConfiguracion409 | GetApiTenantConfiguracion500>
-
-
-export function useGetApiTenantConfiguracion<TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError = ErrorType<GetApiTenantConfiguracion400 | GetApiTenantConfiguracion401 | GetApiTenantConfiguracion403 | GetApiTenantConfiguracion404 | GetApiTenantConfiguracion409 | GetApiTenantConfiguracion500>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError, TData>> & Pick<
+export function useGetApiTenantConfiguracion<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracion400
+    | GetApiTenantConfiguracion401
+    | GetApiTenantConfiguracion403
+    | GetApiTenantConfiguracion404
+    | GetApiTenantConfiguracion409
+    | GetApiTenantConfiguracion500
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
           TError,
           Awaited<ReturnType<typeof getApiTenantConfiguracion>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiTenantConfiguracion<TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError = ErrorType<GetApiTenantConfiguracion400 | GetApiTenantConfiguracion401 | GetApiTenantConfiguracion403 | GetApiTenantConfiguracion404 | GetApiTenantConfiguracion409 | GetApiTenantConfiguracion500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiTenantConfiguracion<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracion400
+    | GetApiTenantConfiguracion401
+    | GetApiTenantConfiguracion403
+    | GetApiTenantConfiguracion404
+    | GetApiTenantConfiguracion409
+    | GetApiTenantConfiguracion500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
           TError,
           Awaited<ReturnType<typeof getApiTenantConfiguracion>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiTenantConfiguracion<TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError = ErrorType<GetApiTenantConfiguracion400 | GetApiTenantConfiguracion401 | GetApiTenantConfiguracion403 | GetApiTenantConfiguracion404 | GetApiTenantConfiguracion409 | GetApiTenantConfiguracion500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiTenantConfiguracion<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracion400
+    | GetApiTenantConfiguracion401
+    | GetApiTenantConfiguracion403
+    | GetApiTenantConfiguracion404
+    | GetApiTenantConfiguracion409
+    | GetApiTenantConfiguracion500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener configuración completa del tenant
  */
 
-export function useGetApiTenantConfiguracion<TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError = ErrorType<GetApiTenantConfiguracion400 | GetApiTenantConfiguracion401 | GetApiTenantConfiguracion403 | GetApiTenantConfiguracion404 | GetApiTenantConfiguracion409 | GetApiTenantConfiguracion500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracion>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiTenantConfiguracion<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracion400
+    | GetApiTenantConfiguracion401
+    | GetApiTenantConfiguracion403
+    | GetApiTenantConfiguracion404
+    | GetApiTenantConfiguracion409
+    | GetApiTenantConfiguracion500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracion>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiTenantConfiguracionQueryOptions(options);
 
-  const queryOptions = getGetApiTenantConfiguracionQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Actualiza el objeto JSON de configuración del tenant mediante merge profundo. Los campos no proporcionados se mantienen.
  * @summary Actualizar configuración completa del tenant (Solo Admin)
  */
 export const putApiTenantConfiguracion = (
-    updateTenantConfiguracion: UpdateTenantConfiguracion,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<TenantConfiguracion>(
-      {url: `/api/tenant/configuracion`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateTenantConfiguracion
+  updateTenantConfiguracion: UpdateTenantConfiguracion,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<TenantConfiguracion>(
+    {
+      url: `/api/tenant/configuracion`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateTenantConfiguracion,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPutApiTenantConfiguracionMutationOptions = <
+  TError = ErrorType<
+    | PutApiTenantConfiguracion400
+    | PutApiTenantConfiguracion401
+    | PutApiTenantConfiguracion403
+    | PutApiTenantConfiguracion404
+    | PutApiTenantConfiguracion409
+    | PutApiTenantConfiguracion500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiTenantConfiguracion>>,
+    TError,
+    { data: UpdateTenantConfiguracion },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiTenantConfiguracion>>,
+  TError,
+  { data: UpdateTenantConfiguracion },
+  TContext
+> => {
+  const mutationKey = ["putApiTenantConfiguracion"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiTenantConfiguracionMutationOptions = <TError = ErrorType<PutApiTenantConfiguracion400 | PutApiTenantConfiguracion401 | PutApiTenantConfiguracion403 | PutApiTenantConfiguracion404 | PutApiTenantConfiguracion409 | PutApiTenantConfiguracion500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiTenantConfiguracion>>, TError,{data: UpdateTenantConfiguracion}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiTenantConfiguracion>>, TError,{data: UpdateTenantConfiguracion}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiTenantConfiguracion>>,
+    { data: UpdateTenantConfiguracion }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['putApiTenantConfiguracion'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return putApiTenantConfiguracion(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PutApiTenantConfiguracionMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiTenantConfiguracion>>
+>;
+export type PutApiTenantConfiguracionMutationBody = UpdateTenantConfiguracion;
+export type PutApiTenantConfiguracionMutationError = ErrorType<
+  | PutApiTenantConfiguracion400
+  | PutApiTenantConfiguracion401
+  | PutApiTenantConfiguracion403
+  | PutApiTenantConfiguracion404
+  | PutApiTenantConfiguracion409
+  | PutApiTenantConfiguracion500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiTenantConfiguracion>>, {data: UpdateTenantConfiguracion}> = (props) => {
-          const {data} = props ?? {};
-
-          return  putApiTenantConfiguracion(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiTenantConfiguracionMutationResult = NonNullable<Awaited<ReturnType<typeof putApiTenantConfiguracion>>>
-    export type PutApiTenantConfiguracionMutationBody = UpdateTenantConfiguracion
-    export type PutApiTenantConfiguracionMutationError = ErrorType<PutApiTenantConfiguracion400 | PutApiTenantConfiguracion401 | PutApiTenantConfiguracion403 | PutApiTenantConfiguracion404 | PutApiTenantConfiguracion409 | PutApiTenantConfiguracion500>
-
-    /**
+/**
  * @summary Actualizar configuración completa del tenant (Solo Admin)
  */
-export const usePutApiTenantConfiguracion = <TError = ErrorType<PutApiTenantConfiguracion400 | PutApiTenantConfiguracion401 | PutApiTenantConfiguracion403 | PutApiTenantConfiguracion404 | PutApiTenantConfiguracion409 | PutApiTenantConfiguracion500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiTenantConfiguracion>>, TError,{data: UpdateTenantConfiguracion}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiTenantConfiguracion>>,
-        TError,
-        {data: UpdateTenantConfiguracion},
-        TContext
-      > => {
+export const usePutApiTenantConfiguracion = <
+  TError = ErrorType<
+    | PutApiTenantConfiguracion400
+    | PutApiTenantConfiguracion401
+    | PutApiTenantConfiguracion403
+    | PutApiTenantConfiguracion404
+    | PutApiTenantConfiguracion409
+    | PutApiTenantConfiguracion500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiTenantConfiguracion>>,
+      TError,
+      { data: UpdateTenantConfiguracion },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiTenantConfiguracion>>,
+  TError,
+  { data: UpdateTenantConfiguracion },
+  TContext
+> => {
+  const mutationOptions = getPutApiTenantConfiguracionMutationOptions(options);
 
-      const mutationOptions = getPutApiTenantConfiguracionMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Retorna solo la configuración tributaria (IGV/IVA) del tenant. Endpoint especializado para la sección de facturación.
  * @summary Obtener configuración fiscal del tenant
  */
 export const getApiTenantConfiguracionFiscal = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<TenantConfigFiscal>(
-      {url: `/api/tenant/configuracion/fiscal`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
+  return customInstance<TenantConfigFiscal>(
+    { url: `/api/tenant/configuracion/fiscal`, method: "GET", signal },
+    options,
+  );
+};
 
 export const getGetApiTenantConfiguracionFiscalQueryKey = () => {
-    return [
-    `/api/tenant/configuracion/fiscal`
-    ] as const;
-    }
+  return [`/api/tenant/configuracion/fiscal`] as const;
+};
 
-    
-export const getGetApiTenantConfiguracionFiscalQueryOptions = <TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError = ErrorType<GetApiTenantConfiguracionFiscal400 | GetApiTenantConfiguracionFiscal401 | GetApiTenantConfiguracionFiscal403 | GetApiTenantConfiguracionFiscal404 | GetApiTenantConfiguracionFiscal409 | GetApiTenantConfiguracionFiscal500>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiTenantConfiguracionFiscalQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracionFiscal400
+    | GetApiTenantConfiguracionFiscal401
+    | GetApiTenantConfiguracionFiscal403
+    | GetApiTenantConfiguracionFiscal404
+    | GetApiTenantConfiguracionFiscal409
+    | GetApiTenantConfiguracionFiscal500
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetApiTenantConfiguracionFiscalQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiTenantConfiguracionFiscalQueryKey();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>
+  > = ({ signal }) => getApiTenantConfiguracionFiscal(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>> = ({ signal }) => getApiTenantConfiguracionFiscal(requestOptions, signal);
+export type GetApiTenantConfiguracionFiscalQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>
+>;
+export type GetApiTenantConfiguracionFiscalQueryError = ErrorType<
+  | GetApiTenantConfiguracionFiscal400
+  | GetApiTenantConfiguracionFiscal401
+  | GetApiTenantConfiguracionFiscal403
+  | GetApiTenantConfiguracionFiscal404
+  | GetApiTenantConfiguracionFiscal409
+  | GetApiTenantConfiguracionFiscal500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiTenantConfiguracionFiscalQueryResult = NonNullable<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>>
-export type GetApiTenantConfiguracionFiscalQueryError = ErrorType<GetApiTenantConfiguracionFiscal400 | GetApiTenantConfiguracionFiscal401 | GetApiTenantConfiguracionFiscal403 | GetApiTenantConfiguracionFiscal404 | GetApiTenantConfiguracionFiscal409 | GetApiTenantConfiguracionFiscal500>
-
-
-export function useGetApiTenantConfiguracionFiscal<TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError = ErrorType<GetApiTenantConfiguracionFiscal400 | GetApiTenantConfiguracionFiscal401 | GetApiTenantConfiguracionFiscal403 | GetApiTenantConfiguracionFiscal404 | GetApiTenantConfiguracionFiscal409 | GetApiTenantConfiguracionFiscal500>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError, TData>> & Pick<
+export function useGetApiTenantConfiguracionFiscal<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracionFiscal400
+    | GetApiTenantConfiguracionFiscal401
+    | GetApiTenantConfiguracionFiscal403
+    | GetApiTenantConfiguracionFiscal404
+    | GetApiTenantConfiguracionFiscal409
+    | GetApiTenantConfiguracionFiscal500
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
           TError,
           Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiTenantConfiguracionFiscal<TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError = ErrorType<GetApiTenantConfiguracionFiscal400 | GetApiTenantConfiguracionFiscal401 | GetApiTenantConfiguracionFiscal403 | GetApiTenantConfiguracionFiscal404 | GetApiTenantConfiguracionFiscal409 | GetApiTenantConfiguracionFiscal500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiTenantConfiguracionFiscal<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracionFiscal400
+    | GetApiTenantConfiguracionFiscal401
+    | GetApiTenantConfiguracionFiscal403
+    | GetApiTenantConfiguracionFiscal404
+    | GetApiTenantConfiguracionFiscal409
+    | GetApiTenantConfiguracionFiscal500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
           TError,
           Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiTenantConfiguracionFiscal<TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError = ErrorType<GetApiTenantConfiguracionFiscal400 | GetApiTenantConfiguracionFiscal401 | GetApiTenantConfiguracionFiscal403 | GetApiTenantConfiguracionFiscal404 | GetApiTenantConfiguracionFiscal409 | GetApiTenantConfiguracionFiscal500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiTenantConfiguracionFiscal<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracionFiscal400
+    | GetApiTenantConfiguracionFiscal401
+    | GetApiTenantConfiguracionFiscal403
+    | GetApiTenantConfiguracionFiscal404
+    | GetApiTenantConfiguracionFiscal409
+    | GetApiTenantConfiguracionFiscal500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener configuración fiscal del tenant
  */
 
-export function useGetApiTenantConfiguracionFiscal<TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError = ErrorType<GetApiTenantConfiguracionFiscal400 | GetApiTenantConfiguracionFiscal401 | GetApiTenantConfiguracionFiscal403 | GetApiTenantConfiguracionFiscal404 | GetApiTenantConfiguracionFiscal409 | GetApiTenantConfiguracionFiscal500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiTenantConfiguracionFiscal<
+  TData = Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+  TError = ErrorType<
+    | GetApiTenantConfiguracionFiscal400
+    | GetApiTenantConfiguracionFiscal401
+    | GetApiTenantConfiguracionFiscal403
+    | GetApiTenantConfiguracionFiscal404
+    | GetApiTenantConfiguracionFiscal409
+    | GetApiTenantConfiguracionFiscal500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiTenantConfiguracionFiscal>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiTenantConfiguracionFiscalQueryOptions(options);
 
-  const queryOptions = getGetApiTenantConfiguracionFiscalQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Actualiza solo la configuración tributaria del tenant. Útil para cambios de tasa de IGV o migración a zona exonerada. IMPORTANTE: Este cambio NO afecta ventas históricas (usan snapshot).
  * @summary Actualizar configuración fiscal (Solo Admin)
  */
 export const patchApiTenantConfiguracionFiscal = (
-    updateTenantConfigFiscal: UpdateTenantConfigFiscal,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<TenantConfigFiscal>(
-      {url: `/api/tenant/configuracion/fiscal`, method: 'PATCH',
-      headers: {'Content-Type': 'application/json', },
-      data: updateTenantConfigFiscal
+  updateTenantConfigFiscal: UpdateTenantConfigFiscal,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<TenantConfigFiscal>(
+    {
+      url: `/api/tenant/configuracion/fiscal`,
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      data: updateTenantConfigFiscal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPatchApiTenantConfiguracionFiscalMutationOptions = <
+  TError = ErrorType<
+    | PatchApiTenantConfiguracionFiscal400
+    | PatchApiTenantConfiguracionFiscal401
+    | PatchApiTenantConfiguracionFiscal403
+    | PatchApiTenantConfiguracionFiscal404
+    | PatchApiTenantConfiguracionFiscal409
+    | PatchApiTenantConfiguracionFiscal500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>,
+    TError,
+    { data: UpdateTenantConfigFiscal },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>,
+  TError,
+  { data: UpdateTenantConfigFiscal },
+  TContext
+> => {
+  const mutationKey = ["patchApiTenantConfiguracionFiscal"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPatchApiTenantConfiguracionFiscalMutationOptions = <TError = ErrorType<PatchApiTenantConfiguracionFiscal400 | PatchApiTenantConfiguracionFiscal401 | PatchApiTenantConfiguracionFiscal403 | PatchApiTenantConfiguracionFiscal404 | PatchApiTenantConfiguracionFiscal409 | PatchApiTenantConfiguracionFiscal500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>, TError,{data: UpdateTenantConfigFiscal}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>, TError,{data: UpdateTenantConfigFiscal}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>,
+    { data: UpdateTenantConfigFiscal }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['patchApiTenantConfiguracionFiscal'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return patchApiTenantConfiguracionFiscal(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PatchApiTenantConfiguracionFiscalMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>
+>;
+export type PatchApiTenantConfiguracionFiscalMutationBody =
+  UpdateTenantConfigFiscal;
+export type PatchApiTenantConfiguracionFiscalMutationError = ErrorType<
+  | PatchApiTenantConfiguracionFiscal400
+  | PatchApiTenantConfiguracionFiscal401
+  | PatchApiTenantConfiguracionFiscal403
+  | PatchApiTenantConfiguracionFiscal404
+  | PatchApiTenantConfiguracionFiscal409
+  | PatchApiTenantConfiguracionFiscal500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>, {data: UpdateTenantConfigFiscal}> = (props) => {
-          const {data} = props ?? {};
-
-          return  patchApiTenantConfiguracionFiscal(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PatchApiTenantConfiguracionFiscalMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>>
-    export type PatchApiTenantConfiguracionFiscalMutationBody = UpdateTenantConfigFiscal
-    export type PatchApiTenantConfiguracionFiscalMutationError = ErrorType<PatchApiTenantConfiguracionFiscal400 | PatchApiTenantConfiguracionFiscal401 | PatchApiTenantConfiguracionFiscal403 | PatchApiTenantConfiguracionFiscal404 | PatchApiTenantConfiguracionFiscal409 | PatchApiTenantConfiguracionFiscal500>
-
-    /**
+/**
  * @summary Actualizar configuración fiscal (Solo Admin)
  */
-export const usePatchApiTenantConfiguracionFiscal = <TError = ErrorType<PatchApiTenantConfiguracionFiscal400 | PatchApiTenantConfiguracionFiscal401 | PatchApiTenantConfiguracionFiscal403 | PatchApiTenantConfiguracionFiscal404 | PatchApiTenantConfiguracionFiscal409 | PatchApiTenantConfiguracionFiscal500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>, TError,{data: UpdateTenantConfigFiscal}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>,
-        TError,
-        {data: UpdateTenantConfigFiscal},
-        TContext
-      > => {
+export const usePatchApiTenantConfiguracionFiscal = <
+  TError = ErrorType<
+    | PatchApiTenantConfiguracionFiscal400
+    | PatchApiTenantConfiguracionFiscal401
+    | PatchApiTenantConfiguracionFiscal403
+    | PatchApiTenantConfiguracionFiscal404
+    | PatchApiTenantConfiguracionFiscal409
+    | PatchApiTenantConfiguracionFiscal500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>,
+      TError,
+      { data: UpdateTenantConfigFiscal },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof patchApiTenantConfiguracionFiscal>>,
+  TError,
+  { data: UpdateTenantConfigFiscal },
+  TContext
+> => {
+  const mutationOptions =
+    getPatchApiTenantConfiguracionFiscalMutationOptions(options);
 
-      const mutationOptions = getPatchApiTenantConfiguracionFiscalMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

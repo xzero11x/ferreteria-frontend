@@ -16,8 +16,8 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { CreateSerieTipoComprobante } from './createSerieTipoComprobante';
-import type { CreateSerieCajaId } from './createSerieCajaId';
+import type { CreateSerieTipoComprobante } from "./createSerieTipoComprobante";
+import type { CreateSerieCajaId } from "./createSerieCajaId";
 
 export interface CreateSerie {
   /**

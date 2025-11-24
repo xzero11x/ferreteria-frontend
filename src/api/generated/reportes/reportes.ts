@@ -16,9 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useQuery
-} from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -28,8 +26,8 @@ import type {
   QueryKey,
   UndefinedInitialDataOptions,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   GetApiReportesKardexProductoId400,
@@ -38,107 +36,228 @@ import type {
   GetApiReportesKardexProductoId404,
   GetApiReportesKardexProductoId409,
   GetApiReportesKardexProductoId500,
-  KardexCompleto
-} from '.././model';
+  KardexCompleto,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Genera el reporte Kardex completo de un producto, incluyendo todos los movimientos históricos de ventas, compras y ajustes de inventario ordenados cronológicamente.
  * @summary Obtener Kardex completo de un producto
  */
 export const getApiReportesKardexProductoId = (
-    productoId: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  productoId: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<KardexCompleto>(
-      {url: `/api/reportes/kardex/${productoId}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<KardexCompleto>(
+    { url: `/api/reportes/kardex/${productoId}`, method: "GET", signal },
+    options,
+  );
+};
 
-
-
-export const getGetApiReportesKardexProductoIdQueryKey = (productoId?: number,) => {
-    return [
-    `/api/reportes/kardex/${productoId}`
-    ] as const;
-    }
-
-    
-export const getGetApiReportesKardexProductoIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError = ErrorType<GetApiReportesKardexProductoId400 | GetApiReportesKardexProductoId401 | GetApiReportesKardexProductoId403 | GetApiReportesKardexProductoId404 | GetApiReportesKardexProductoId409 | GetApiReportesKardexProductoId500>>(productoId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiReportesKardexProductoIdQueryKey = (
+  productoId?: number,
 ) => {
+  return [`/api/reportes/kardex/${productoId}`] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getGetApiReportesKardexProductoIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+  TError = ErrorType<
+    | GetApiReportesKardexProductoId400
+    | GetApiReportesKardexProductoId401
+    | GetApiReportesKardexProductoId403
+    | GetApiReportesKardexProductoId404
+    | GetApiReportesKardexProductoId409
+    | GetApiReportesKardexProductoId500
+  >,
+>(
+  productoId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiReportesKardexProductoIdQueryKey(productoId);
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetApiReportesKardexProductoIdQueryKey(productoId);
 
-  
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiReportesKardexProductoId>>
+  > = ({ signal }) =>
+    getApiReportesKardexProductoId(productoId, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>> = ({ signal }) => getApiReportesKardexProductoId(productoId, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!productoId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetApiReportesKardexProductoIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiReportesKardexProductoId>>
+>;
+export type GetApiReportesKardexProductoIdQueryError = ErrorType<
+  | GetApiReportesKardexProductoId400
+  | GetApiReportesKardexProductoId401
+  | GetApiReportesKardexProductoId403
+  | GetApiReportesKardexProductoId404
+  | GetApiReportesKardexProductoId409
+  | GetApiReportesKardexProductoId500
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(productoId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiReportesKardexProductoIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>>
-export type GetApiReportesKardexProductoIdQueryError = ErrorType<GetApiReportesKardexProductoId400 | GetApiReportesKardexProductoId401 | GetApiReportesKardexProductoId403 | GetApiReportesKardexProductoId404 | GetApiReportesKardexProductoId409 | GetApiReportesKardexProductoId500>
-
-
-export function useGetApiReportesKardexProductoId<TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError = ErrorType<GetApiReportesKardexProductoId400 | GetApiReportesKardexProductoId401 | GetApiReportesKardexProductoId403 | GetApiReportesKardexProductoId404 | GetApiReportesKardexProductoId409 | GetApiReportesKardexProductoId500>>(
- productoId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError, TData>> & Pick<
+export function useGetApiReportesKardexProductoId<
+  TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+  TError = ErrorType<
+    | GetApiReportesKardexProductoId400
+    | GetApiReportesKardexProductoId401
+    | GetApiReportesKardexProductoId403
+    | GetApiReportesKardexProductoId404
+    | GetApiReportesKardexProductoId409
+    | GetApiReportesKardexProductoId500
+  >,
+>(
+  productoId: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
           TError,
           Awaited<ReturnType<typeof getApiReportesKardexProductoId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiReportesKardexProductoId<TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError = ErrorType<GetApiReportesKardexProductoId400 | GetApiReportesKardexProductoId401 | GetApiReportesKardexProductoId403 | GetApiReportesKardexProductoId404 | GetApiReportesKardexProductoId409 | GetApiReportesKardexProductoId500>>(
- productoId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiReportesKardexProductoId<
+  TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+  TError = ErrorType<
+    | GetApiReportesKardexProductoId400
+    | GetApiReportesKardexProductoId401
+    | GetApiReportesKardexProductoId403
+    | GetApiReportesKardexProductoId404
+    | GetApiReportesKardexProductoId409
+    | GetApiReportesKardexProductoId500
+  >,
+>(
+  productoId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
           TError,
           Awaited<ReturnType<typeof getApiReportesKardexProductoId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiReportesKardexProductoId<TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError = ErrorType<GetApiReportesKardexProductoId400 | GetApiReportesKardexProductoId401 | GetApiReportesKardexProductoId403 | GetApiReportesKardexProductoId404 | GetApiReportesKardexProductoId409 | GetApiReportesKardexProductoId500>>(
- productoId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiReportesKardexProductoId<
+  TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+  TError = ErrorType<
+    | GetApiReportesKardexProductoId400
+    | GetApiReportesKardexProductoId401
+    | GetApiReportesKardexProductoId403
+    | GetApiReportesKardexProductoId404
+    | GetApiReportesKardexProductoId409
+    | GetApiReportesKardexProductoId500
+  >,
+>(
+  productoId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener Kardex completo de un producto
  */
 
-export function useGetApiReportesKardexProductoId<TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError = ErrorType<GetApiReportesKardexProductoId400 | GetApiReportesKardexProductoId401 | GetApiReportesKardexProductoId403 | GetApiReportesKardexProductoId404 | GetApiReportesKardexProductoId409 | GetApiReportesKardexProductoId500>>(
- productoId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiReportesKardexProductoId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiReportesKardexProductoId<
+  TData = Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+  TError = ErrorType<
+    | GetApiReportesKardexProductoId400
+    | GetApiReportesKardexProductoId401
+    | GetApiReportesKardexProductoId403
+    | GetApiReportesKardexProductoId404
+    | GetApiReportesKardexProductoId409
+    | GetApiReportesKardexProductoId500
+  >,
+>(
+  productoId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiReportesKardexProductoId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiReportesKardexProductoIdQueryOptions(
+    productoId,
+    options,
+  );
 
-  const queryOptions = getGetApiReportesKardexProductoIdQueryOptions(productoId,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
-

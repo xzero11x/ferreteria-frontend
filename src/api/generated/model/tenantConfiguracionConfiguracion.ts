@@ -16,9 +16,10 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { TenantConfiguracionConfiguracionAnyOf } from './tenantConfiguracionConfiguracionAnyOf';
+import type { TenantConfiguracionConfiguracionAnyOf } from "./tenantConfiguracionConfiguracionAnyOf";
 
 /**
  * Configuración general del tenant (pedidos, emails, facturación)
  */
-export type TenantConfiguracionConfiguracion = TenantConfiguracionConfiguracionAnyOf | null;
+export type TenantConfiguracionConfiguracion =
+  TenantConfiguracionConfiguracionAnyOf | null;

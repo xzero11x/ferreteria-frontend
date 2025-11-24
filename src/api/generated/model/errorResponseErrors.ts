@@ -20,4 +20,4 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Detalles de validación (si aplica)
  */
-export type ErrorResponseErrors = {[key: string]: unknown};
+export type ErrorResponseErrors = { [key: string]: unknown };

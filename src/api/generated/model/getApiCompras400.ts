@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { GetApiCompras400ErrorsItem } from './getApiCompras400ErrorsItem';
+import type { GetApiCompras400ErrorsItem } from "./getApiCompras400ErrorsItem";
 
 export type GetApiCompras400 = {
   message: string;

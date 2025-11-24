@@ -16,12 +16,12 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { CreateVentaClienteId } from './createVentaClienteId';
-import type { CreateVentaTipoComprobante } from './createVentaTipoComprobante';
-import type { CreateVentaSesionCajaId } from './createVentaSesionCajaId';
-import type { CreateVentaSerieId } from './createVentaSerieId';
-import type { CreateVentaPedidoOrigenId } from './createVentaPedidoOrigenId';
-import type { CreateVentaDetallesItem } from './createVentaDetallesItem';
+import type { CreateVentaClienteId } from "./createVentaClienteId";
+import type { CreateVentaTipoComprobante } from "./createVentaTipoComprobante";
+import type { CreateVentaSesionCajaId } from "./createVentaSesionCajaId";
+import type { CreateVentaSerieId } from "./createVentaSerieId";
+import type { CreateVentaPedidoOrigenId } from "./createVentaPedidoOrigenId";
+import type { CreateVentaDetallesItem } from "./createVentaDetallesItem";
 
 export interface CreateVenta {
   /**

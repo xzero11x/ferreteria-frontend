@@ -16,14 +16,14 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { SesionCajaFechaCierre } from './sesionCajaFechaCierre';
-import type { SesionCajaMontoFinal } from './sesionCajaMontoFinal';
-import type { SesionCajaTotalVentas } from './sesionCajaTotalVentas';
-import type { SesionCajaTotalEgresos } from './sesionCajaTotalEgresos';
-import type { SesionCajaDiferencia } from './sesionCajaDiferencia';
-import type { SesionCajaEstado } from './sesionCajaEstado';
-import type { SesionCajaCaja } from './sesionCajaCaja';
-import type { SesionCajaUsuario } from './sesionCajaUsuario';
+import type { SesionCajaFechaCierre } from "./sesionCajaFechaCierre";
+import type { SesionCajaMontoFinal } from "./sesionCajaMontoFinal";
+import type { SesionCajaTotalVentas } from "./sesionCajaTotalVentas";
+import type { SesionCajaTotalEgresos } from "./sesionCajaTotalEgresos";
+import type { SesionCajaDiferencia } from "./sesionCajaDiferencia";
+import type { SesionCajaEstado } from "./sesionCajaEstado";
+import type { SesionCajaCaja } from "./sesionCajaCaja";
+import type { SesionCajaUsuario } from "./sesionCajaUsuario";
 
 export interface SesionCaja {
   /** ID único de la sesión */

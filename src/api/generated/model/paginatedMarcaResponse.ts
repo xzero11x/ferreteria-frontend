@@ -16,8 +16,8 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { Marca } from './marca';
-import type { PaginatedMarcaResponseMeta } from './paginatedMarcaResponseMeta';
+import type { Marca } from "./marca";
+import type { PaginatedMarcaResponseMeta } from "./paginatedMarcaResponseMeta";
 
 export interface PaginatedMarcaResponse {
   data: Marca[];

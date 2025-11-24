@@ -17,12 +17,12 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 
-export type GetApiComprasEstado = typeof GetApiComprasEstado[keyof typeof GetApiComprasEstado];
-
+export type GetApiComprasEstado =
+  (typeof GetApiComprasEstado)[keyof typeof GetApiComprasEstado];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiComprasEstado = {
-  pendiente: 'pendiente',
-  recibida: 'recibida',
-  cancelada: 'cancelada',
+  pendiente: "pendiente",
+  recibida: "recibida",
+  cancelada: "cancelada",
 } as const;

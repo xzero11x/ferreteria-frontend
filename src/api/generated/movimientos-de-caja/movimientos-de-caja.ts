@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   CreateMovimientoCaja,
@@ -57,265 +54,540 @@ import type {
   PostApiMovimientosCaja403,
   PostApiMovimientosCaja404,
   PostApiMovimientosCaja409,
-  PostApiMovimientosCaja500
-} from '.././model';
+  PostApiMovimientosCaja500,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Registra un ingreso o egreso manual en la sesión activa del usuario.
  * @summary Crear un movimiento de caja (INGRESO/EGRESO)
  */
 export const postApiMovimientosCaja = (
-    createMovimientoCaja: CreateMovimientoCaja,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createMovimientoCaja: CreateMovimientoCaja,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<MovimientoCaja>(
-      {url: `/api/movimientos-caja`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createMovimientoCaja, signal
+  return customInstance<MovimientoCaja>(
+    {
+      url: `/api/movimientos-caja`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createMovimientoCaja,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiMovimientosCajaMutationOptions = <
+  TError = ErrorType<
+    | PostApiMovimientosCaja400
+    | PostApiMovimientosCaja401
+    | PostApiMovimientosCaja403
+    | PostApiMovimientosCaja404
+    | PostApiMovimientosCaja409
+    | PostApiMovimientosCaja500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiMovimientosCaja>>,
+    TError,
+    { data: CreateMovimientoCaja },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiMovimientosCaja>>,
+  TError,
+  { data: CreateMovimientoCaja },
+  TContext
+> => {
+  const mutationKey = ["postApiMovimientosCaja"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiMovimientosCajaMutationOptions = <TError = ErrorType<PostApiMovimientosCaja400 | PostApiMovimientosCaja401 | PostApiMovimientosCaja403 | PostApiMovimientosCaja404 | PostApiMovimientosCaja409 | PostApiMovimientosCaja500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMovimientosCaja>>, TError,{data: CreateMovimientoCaja}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiMovimientosCaja>>, TError,{data: CreateMovimientoCaja}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiMovimientosCaja>>,
+    { data: CreateMovimientoCaja }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiMovimientosCaja'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiMovimientosCaja(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiMovimientosCajaMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiMovimientosCaja>>
+>;
+export type PostApiMovimientosCajaMutationBody = CreateMovimientoCaja;
+export type PostApiMovimientosCajaMutationError = ErrorType<
+  | PostApiMovimientosCaja400
+  | PostApiMovimientosCaja401
+  | PostApiMovimientosCaja403
+  | PostApiMovimientosCaja404
+  | PostApiMovimientosCaja409
+  | PostApiMovimientosCaja500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiMovimientosCaja>>, {data: CreateMovimientoCaja}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiMovimientosCaja(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiMovimientosCajaMutationResult = NonNullable<Awaited<ReturnType<typeof postApiMovimientosCaja>>>
-    export type PostApiMovimientosCajaMutationBody = CreateMovimientoCaja
-    export type PostApiMovimientosCajaMutationError = ErrorType<PostApiMovimientosCaja400 | PostApiMovimientosCaja401 | PostApiMovimientosCaja403 | PostApiMovimientosCaja404 | PostApiMovimientosCaja409 | PostApiMovimientosCaja500>
-
-    /**
+/**
  * @summary Crear un movimiento de caja (INGRESO/EGRESO)
  */
-export const usePostApiMovimientosCaja = <TError = ErrorType<PostApiMovimientosCaja400 | PostApiMovimientosCaja401 | PostApiMovimientosCaja403 | PostApiMovimientosCaja404 | PostApiMovimientosCaja409 | PostApiMovimientosCaja500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMovimientosCaja>>, TError,{data: CreateMovimientoCaja}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiMovimientosCaja>>,
-        TError,
-        {data: CreateMovimientoCaja},
-        TContext
-      > => {
+export const usePostApiMovimientosCaja = <
+  TError = ErrorType<
+    | PostApiMovimientosCaja400
+    | PostApiMovimientosCaja401
+    | PostApiMovimientosCaja403
+    | PostApiMovimientosCaja404
+    | PostApiMovimientosCaja409
+    | PostApiMovimientosCaja500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiMovimientosCaja>>,
+      TError,
+      { data: CreateMovimientoCaja },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiMovimientosCaja>>,
+  TError,
+  { data: CreateMovimientoCaja },
+  TContext
+> => {
+  const mutationOptions = getPostApiMovimientosCajaMutationOptions(options);
 
-      const mutationOptions = getPostApiMovimientosCajaMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * Lista todos los movimientos de caja de la sesión activa del usuario.
  * @summary Obtener movimientos de la sesión activa
  */
 export const getApiMovimientosCajaSesionActiva = (
-    
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<GetApiMovimientosCajaSesionActiva200>(
-      {url: `/api/movimientos-caja/sesion-activa`, method: 'GET', signal
-    },
-      options);
-    }
-  
-
-
+  return customInstance<GetApiMovimientosCajaSesionActiva200>(
+    { url: `/api/movimientos-caja/sesion-activa`, method: "GET", signal },
+    options,
+  );
+};
 
 export const getGetApiMovimientosCajaSesionActivaQueryKey = () => {
-    return [
-    `/api/movimientos-caja/sesion-activa`
-    ] as const;
-    }
+  return [`/api/movimientos-caja/sesion-activa`] as const;
+};
 
-    
-export const getGetApiMovimientosCajaSesionActivaQueryOptions = <TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError = ErrorType<GetApiMovimientosCajaSesionActiva400 | GetApiMovimientosCajaSesionActiva401 | GetApiMovimientosCajaSesionActiva403 | GetApiMovimientosCajaSesionActiva404 | GetApiMovimientosCajaSesionActiva409 | GetApiMovimientosCajaSesionActiva500>>( options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
-) => {
+export const getGetApiMovimientosCajaSesionActivaQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionActiva400
+    | GetApiMovimientosCajaSesionActiva401
+    | GetApiMovimientosCajaSesionActiva403
+    | GetApiMovimientosCajaSesionActiva404
+    | GetApiMovimientosCajaSesionActiva409
+    | GetApiMovimientosCajaSesionActiva500
+  >,
+>(options?: {
+  query?: Partial<
+    UseQueryOptions<
+      Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+      TError,
+      TData
+    >
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey =
+    queryOptions?.queryKey ?? getGetApiMovimientosCajaSesionActivaQueryKey();
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiMovimientosCajaSesionActivaQueryKey();
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>
+  > = ({ signal }) => getApiMovimientosCajaSesionActiva(requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>> = ({ signal }) => getApiMovimientosCajaSesionActiva(requestOptions, signal);
+export type GetApiMovimientosCajaSesionActivaQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>
+>;
+export type GetApiMovimientosCajaSesionActivaQueryError = ErrorType<
+  | GetApiMovimientosCajaSesionActiva400
+  | GetApiMovimientosCajaSesionActiva401
+  | GetApiMovimientosCajaSesionActiva403
+  | GetApiMovimientosCajaSesionActiva404
+  | GetApiMovimientosCajaSesionActiva409
+  | GetApiMovimientosCajaSesionActiva500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiMovimientosCajaSesionActivaQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>>
-export type GetApiMovimientosCajaSesionActivaQueryError = ErrorType<GetApiMovimientosCajaSesionActiva400 | GetApiMovimientosCajaSesionActiva401 | GetApiMovimientosCajaSesionActiva403 | GetApiMovimientosCajaSesionActiva404 | GetApiMovimientosCajaSesionActiva409 | GetApiMovimientosCajaSesionActiva500>
-
-
-export function useGetApiMovimientosCajaSesionActiva<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError = ErrorType<GetApiMovimientosCajaSesionActiva400 | GetApiMovimientosCajaSesionActiva401 | GetApiMovimientosCajaSesionActiva403 | GetApiMovimientosCajaSesionActiva404 | GetApiMovimientosCajaSesionActiva409 | GetApiMovimientosCajaSesionActiva500>>(
-  options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError, TData>> & Pick<
+export function useGetApiMovimientosCajaSesionActiva<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionActiva400
+    | GetApiMovimientosCajaSesionActiva401
+    | GetApiMovimientosCajaSesionActiva403
+    | GetApiMovimientosCajaSesionActiva404
+    | GetApiMovimientosCajaSesionActiva409
+    | GetApiMovimientosCajaSesionActiva500
+  >,
+>(
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
           TError,
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMovimientosCajaSesionActiva<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError = ErrorType<GetApiMovimientosCajaSesionActiva400 | GetApiMovimientosCajaSesionActiva401 | GetApiMovimientosCajaSesionActiva403 | GetApiMovimientosCajaSesionActiva404 | GetApiMovimientosCajaSesionActiva409 | GetApiMovimientosCajaSesionActiva500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMovimientosCajaSesionActiva<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionActiva400
+    | GetApiMovimientosCajaSesionActiva401
+    | GetApiMovimientosCajaSesionActiva403
+    | GetApiMovimientosCajaSesionActiva404
+    | GetApiMovimientosCajaSesionActiva409
+    | GetApiMovimientosCajaSesionActiva500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
           TError,
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMovimientosCajaSesionActiva<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError = ErrorType<GetApiMovimientosCajaSesionActiva400 | GetApiMovimientosCajaSesionActiva401 | GetApiMovimientosCajaSesionActiva403 | GetApiMovimientosCajaSesionActiva404 | GetApiMovimientosCajaSesionActiva409 | GetApiMovimientosCajaSesionActiva500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMovimientosCajaSesionActiva<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionActiva400
+    | GetApiMovimientosCajaSesionActiva401
+    | GetApiMovimientosCajaSesionActiva403
+    | GetApiMovimientosCajaSesionActiva404
+    | GetApiMovimientosCajaSesionActiva409
+    | GetApiMovimientosCajaSesionActiva500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener movimientos de la sesión activa
  */
 
-export function useGetApiMovimientosCajaSesionActiva<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError = ErrorType<GetApiMovimientosCajaSesionActiva400 | GetApiMovimientosCajaSesionActiva401 | GetApiMovimientosCajaSesionActiva403 | GetApiMovimientosCajaSesionActiva404 | GetApiMovimientosCajaSesionActiva409 | GetApiMovimientosCajaSesionActiva500>>(
-  options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiMovimientosCajaSesionActiva<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionActiva400
+    | GetApiMovimientosCajaSesionActiva401
+    | GetApiMovimientosCajaSesionActiva403
+    | GetApiMovimientosCajaSesionActiva404
+    | GetApiMovimientosCajaSesionActiva409
+    | GetApiMovimientosCajaSesionActiva500
+  >,
+>(
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionActiva>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions =
+    getGetApiMovimientosCajaSesionActivaQueryOptions(options);
 
-  const queryOptions = getGetApiMovimientosCajaSesionActivaQueryOptions(options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * Lista todos los movimientos de caja de una sesión determinada.
  * @summary Obtener movimientos de una sesión específica
  */
 export const getApiMovimientosCajaSesionSesionId = (
-    sesionId: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  sesionId: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<GetApiMovimientosCajaSesionSesionId200>(
-      {url: `/api/movimientos-caja/sesion/${sesionId}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<GetApiMovimientosCajaSesionSesionId200>(
+    { url: `/api/movimientos-caja/sesion/${sesionId}`, method: "GET", signal },
+    options,
+  );
+};
 
-
-
-export const getGetApiMovimientosCajaSesionSesionIdQueryKey = (sesionId?: number,) => {
-    return [
-    `/api/movimientos-caja/sesion/${sesionId}`
-    ] as const;
-    }
-
-    
-export const getGetApiMovimientosCajaSesionSesionIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError = ErrorType<GetApiMovimientosCajaSesionSesionId400 | GetApiMovimientosCajaSesionSesionId401 | GetApiMovimientosCajaSesionSesionId403 | GetApiMovimientosCajaSesionSesionId404 | GetApiMovimientosCajaSesionSesionId409 | GetApiMovimientosCajaSesionSesionId500>>(sesionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiMovimientosCajaSesionSesionIdQueryKey = (
+  sesionId?: number,
 ) => {
+  return [`/api/movimientos-caja/sesion/${sesionId}`] as const;
+};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+export const getGetApiMovimientosCajaSesionSesionIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionSesionId400
+    | GetApiMovimientosCajaSesionSesionId401
+    | GetApiMovimientosCajaSesionSesionId403
+    | GetApiMovimientosCajaSesionSesionId404
+    | GetApiMovimientosCajaSesionSesionId409
+    | GetApiMovimientosCajaSesionSesionId500
+  >,
+>(
+  sesionId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiMovimientosCajaSesionSesionIdQueryKey(sesionId);
+  const queryKey =
+    queryOptions?.queryKey ??
+    getGetApiMovimientosCajaSesionSesionIdQueryKey(sesionId);
 
-  
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>
+  > = ({ signal }) =>
+    getApiMovimientosCajaSesionSesionId(sesionId, requestOptions, signal);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>> = ({ signal }) => getApiMovimientosCajaSesionSesionId(sesionId, requestOptions, signal);
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!sesionId,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-      
+export type GetApiMovimientosCajaSesionSesionIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>
+>;
+export type GetApiMovimientosCajaSesionSesionIdQueryError = ErrorType<
+  | GetApiMovimientosCajaSesionSesionId400
+  | GetApiMovimientosCajaSesionSesionId401
+  | GetApiMovimientosCajaSesionSesionId403
+  | GetApiMovimientosCajaSesionSesionId404
+  | GetApiMovimientosCajaSesionSesionId409
+  | GetApiMovimientosCajaSesionSesionId500
+>;
 
-      
-
-   return  { queryKey, queryFn, enabled: !!(sesionId), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiMovimientosCajaSesionSesionIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>>
-export type GetApiMovimientosCajaSesionSesionIdQueryError = ErrorType<GetApiMovimientosCajaSesionSesionId400 | GetApiMovimientosCajaSesionSesionId401 | GetApiMovimientosCajaSesionSesionId403 | GetApiMovimientosCajaSesionSesionId404 | GetApiMovimientosCajaSesionSesionId409 | GetApiMovimientosCajaSesionSesionId500>
-
-
-export function useGetApiMovimientosCajaSesionSesionId<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError = ErrorType<GetApiMovimientosCajaSesionSesionId400 | GetApiMovimientosCajaSesionSesionId401 | GetApiMovimientosCajaSesionSesionId403 | GetApiMovimientosCajaSesionSesionId404 | GetApiMovimientosCajaSesionSesionId409 | GetApiMovimientosCajaSesionSesionId500>>(
- sesionId: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError, TData>> & Pick<
+export function useGetApiMovimientosCajaSesionSesionId<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionSesionId400
+    | GetApiMovimientosCajaSesionSesionId401
+    | GetApiMovimientosCajaSesionSesionId403
+    | GetApiMovimientosCajaSesionSesionId404
+    | GetApiMovimientosCajaSesionSesionId409
+    | GetApiMovimientosCajaSesionSesionId500
+  >,
+>(
+  sesionId: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
           TError,
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMovimientosCajaSesionSesionId<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError = ErrorType<GetApiMovimientosCajaSesionSesionId400 | GetApiMovimientosCajaSesionSesionId401 | GetApiMovimientosCajaSesionSesionId403 | GetApiMovimientosCajaSesionSesionId404 | GetApiMovimientosCajaSesionSesionId409 | GetApiMovimientosCajaSesionSesionId500>>(
- sesionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMovimientosCajaSesionSesionId<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionSesionId400
+    | GetApiMovimientosCajaSesionSesionId401
+    | GetApiMovimientosCajaSesionSesionId403
+    | GetApiMovimientosCajaSesionSesionId404
+    | GetApiMovimientosCajaSesionSesionId409
+    | GetApiMovimientosCajaSesionSesionId500
+  >,
+>(
+  sesionId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+        TError,
+        TData
+      >
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
           TError,
           Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMovimientosCajaSesionSesionId<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError = ErrorType<GetApiMovimientosCajaSesionSesionId400 | GetApiMovimientosCajaSesionSesionId401 | GetApiMovimientosCajaSesionSesionId403 | GetApiMovimientosCajaSesionSesionId404 | GetApiMovimientosCajaSesionSesionId409 | GetApiMovimientosCajaSesionSesionId500>>(
- sesionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMovimientosCajaSesionSesionId<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionSesionId400
+    | GetApiMovimientosCajaSesionSesionId401
+    | GetApiMovimientosCajaSesionSesionId403
+    | GetApiMovimientosCajaSesionSesionId404
+    | GetApiMovimientosCajaSesionSesionId409
+    | GetApiMovimientosCajaSesionSesionId500
+  >,
+>(
+  sesionId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener movimientos de una sesión específica
  */
 
-export function useGetApiMovimientosCajaSesionSesionId<TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError = ErrorType<GetApiMovimientosCajaSesionSesionId400 | GetApiMovimientosCajaSesionSesionId401 | GetApiMovimientosCajaSesionSesionId403 | GetApiMovimientosCajaSesionSesionId404 | GetApiMovimientosCajaSesionSesionId409 | GetApiMovimientosCajaSesionSesionId500>>(
- sesionId: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiMovimientosCajaSesionSesionId<
+  TData = Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+  TError = ErrorType<
+    | GetApiMovimientosCajaSesionSesionId400
+    | GetApiMovimientosCajaSesionSesionId401
+    | GetApiMovimientosCajaSesionSesionId403
+    | GetApiMovimientosCajaSesionSesionId404
+    | GetApiMovimientosCajaSesionSesionId409
+    | GetApiMovimientosCajaSesionSesionId500
+  >,
+>(
+  sesionId: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<
+        Awaited<ReturnType<typeof getApiMovimientosCajaSesionSesionId>>,
+        TError,
+        TData
+      >
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiMovimientosCajaSesionSesionIdQueryOptions(
+    sesionId,
+    options,
+  );
 
-  const queryOptions = getGetApiMovimientosCajaSesionSesionIdQueryOptions(sesionId,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
-

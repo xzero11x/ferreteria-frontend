@@ -16,17 +16,17 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { VentaMetodoPago } from './ventaMetodoPago';
-import type { VentaClienteId } from './ventaClienteId';
-import type { VentaCliente } from './ventaCliente';
-import type { VentaUsuarioId } from './ventaUsuarioId';
-import type { VentaUsuario } from './ventaUsuario';
-import type { VentaPedidoOrigenId } from './ventaPedidoOrigenId';
-import type { VentaSesionCajaId } from './ventaSesionCajaId';
-import type { VentaSerieId } from './ventaSerieId';
-import type { VentaSerie } from './ventaSerie';
-import type { VentaNumeroComprobante } from './ventaNumeroComprobante';
-import type { VentaDetallesItem } from './ventaDetallesItem';
+import type { VentaMetodoPago } from "./ventaMetodoPago";
+import type { VentaClienteId } from "./ventaClienteId";
+import type { VentaCliente } from "./ventaCliente";
+import type { VentaUsuarioId } from "./ventaUsuarioId";
+import type { VentaUsuario } from "./ventaUsuario";
+import type { VentaPedidoOrigenId } from "./ventaPedidoOrigenId";
+import type { VentaSesionCajaId } from "./ventaSesionCajaId";
+import type { VentaSerieId } from "./ventaSerieId";
+import type { VentaSerie } from "./ventaSerie";
+import type { VentaNumeroComprobante } from "./ventaNumeroComprobante";
+import type { VentaDetallesItem } from "./ventaDetallesItem";
 
 export interface Venta {
   /** ID único de la venta */
