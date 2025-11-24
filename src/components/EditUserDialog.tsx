@@ -9,12 +9,21 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui_official/dialog";
+import { Button } from "@/components/ui_official/button";
+import { ScrollArea } from "@/components/ui_official/scroll-area";
 import UserForm from "@/components/UserForm";
 import { toast } from "sonner";
-import { updateUsuario, type Usuario, type UsuarioUpdateInput, type RolUsuario } from "@/services/usuarios";
-import { Pencil } from "lucide-react";
+import { usePutApiUsuariosId } from "@/api/generated/usuarios/usuarios";
+import type { Usuario, RolUsuario } from "@/api/generated/model";
+import { useQueryClient } from "@tanstack/react-query";
+
+type UsuarioUpdateInput = {
+  email?: string;
+  password?: string;
+  nombre?: string;
+  rol?: RolUsuario;
+};
 
 const editUserSchema = z.object({
   email: z.string().min(1, "El email es obligatorio").email("Email inválido"),
@@ -49,6 +58,8 @@ export default function EditUserDialog({ usuario, onUpdated, children, open: con
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
+  const queryClient = useQueryClient();
+  const { mutateAsync: updateUsuario } = usePutApiUsuariosId();
 
   const form = useForm<EditUserFormValues>({
     resolver: zodResolver(editUserSchema),
@@ -94,12 +105,13 @@ export default function EditUserDialog({ usuario, onUpdated, children, open: con
         payload.password = passwordTrim;
       }
 
-      const updated = await updateUsuario(usuario.id, payload);
+      const updated = await updateUsuario({ id: usuario.id!, data: payload });
+      await queryClient.invalidateQueries({ queryKey: ['api', 'usuarios'] });
       toast.success("Usuario actualizado correctamente");
       onUpdated?.(updated);
       setOpen(false);
     } catch (err: any) {
-      const message = err?.body?.message || err?.message || "Error al actualizar el usuario";
+      const message = err?.response?.data?.message || err?.message || "Error al actualizar el usuario";
       toast.error(message);
     }
   }
@@ -109,12 +121,16 @@ export default function EditUserDialog({ usuario, onUpdated, children, open: con
       {children ? (
         <DialogTrigger asChild>{children}</DialogTrigger>
       ) : null}
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Editar usuario</DialogTitle>
-          <DialogDescription>Actualiza los datos del usuario seleccionado.</DialogDescription>
-        </DialogHeader>
-        <UserForm form={form} onSubmit={onSubmit} submitLabel="Actualizar" />
+      <DialogContent className="sm:max-w-lg max-h-[90vh] p-0">
+        <div className="p-6 pb-4">
+          <DialogHeader>
+            <DialogTitle>Editar usuario</DialogTitle>
+            <DialogDescription>Actualiza los datos del usuario seleccionado.</DialogDescription>
+          </DialogHeader>
+        </div>
+        <ScrollArea className="max-h-[calc(90vh-8rem)] px-6 pb-6">
+          <UserForm form={form} onSubmit={onSubmit} submitLabel="Actualizar usuario" />
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );

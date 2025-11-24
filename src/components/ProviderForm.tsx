@@ -1,6 +1,7 @@
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui_official/form";
+import { Input } from "@/components/ui_official/input";
+import { Button } from "@/components/ui_official/button";
+import { Textarea } from "@/components/ui_official/textarea";
 import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
 
 type ProviderFormProps<TValues extends FieldValues = FieldValues> = {
@@ -17,7 +18,7 @@ export default function ProviderForm<TValues extends FieldValues>({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-4">
+        <div className="grid gap-4 md:grid-cols-2">
           {/* Nombre (requerido) */}
           <FormField
             control={form.control}
@@ -83,18 +84,18 @@ export default function ProviderForm<TValues extends FieldValues>({
             control={form.control}
             name={"direccion" as FieldPath<TValues>}
             render={({ field }) => (
-              <FormItem>
+              <FormItem className="md:col-span-2">
                 <FormLabel>Dirección</FormLabel>
                 <FormControl>
-                  <textarea
-                    placeholder="Opcional"
+                  <Textarea
+                    placeholder="Dirección completa del proveedor..."
                     rows={3}
                     value={(field.value as any) ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
                     ref={field.ref as any}
-                    className="min-h-[96px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="resize-none"
                   />
                 </FormControl>
                 <FormMessage />

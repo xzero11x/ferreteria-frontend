@@ -1,4 +1,5 @@
-// Servicio de API para gestión de Órden
+// Servicio de API para gestión de Órdenes de Compra
+import { http } from "@/services/http";
 import { endpoints } from "@/services/endpoints";
 import type { PaginatedResponse, PaginationParams } from "@/types/api";
 
