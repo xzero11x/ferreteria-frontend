@@ -151,14 +151,7 @@ export default function ProductosPageV2() {
         enableSorting: false,
         enableHiding: false,
       },
-      {
-        accessorKey: "imagen_url",
-        header: "Imagen",
-        cell: ({ row }) => {
-          const url = row.original.imagen_url || "/assets/imgProductos/image.png";
-          return url ? (<img src={url} alt={row.original.nombre} className="h-20 w-20 rounded-md object-cover" />) : ( <div className="h-8 w-8 rounded-md bg-muted" /> );
-        }
-      },
+     
       {
         accessorKey: "nombre",
         header: ({ column }) => {

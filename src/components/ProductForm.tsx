@@ -51,51 +51,7 @@ export default function ProductForm<TValues extends FieldValues>({
             )}
           />
 
-       <FormField
-  control={form.control}
-  name={"imagen" as FieldPath<TValues>}
-  render={({ field }) => (
-    <FormItem className="lg:row-span-2">
-      <FormLabel>Imagen</FormLabel>
-
-      <FormControl>
-        <div className="flex flex-col items-center gap-2">
-          {/* INPUT REAL OCULTO */}
-          <input
-            id="imagen-input"
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => field.onChange(e.target.files?.[0])}
-          />
-
-          {/* BOTÓN PERSONALIZADO */}
-          <button
-            type="button"
-            onClick={() => document.getElementById("imagen-input")?.click()}
-            className="px-4 py-2 w-full rounded-md bg-primary text-primary-foreground hover:bg-primary/90"
-          >
-            Seleccionar imagen
-          </button>
-
-          {/* PREVIEW */}
-          {field.value ? (
-            <img
-              src={URL.createObjectURL(field.value)}
-              className="h-24 w-24 rounded-md object-cover  border"
-            />
-          ) : (
-            <div className="h-24 w-24 rounded-md bg-muted flex items-center justify-center text-xs text-muted-foreground">
-              Sin imagen
-            </div>
-          )}
-        </div>
-      </FormControl>
-
-      <FormMessage />
-    </FormItem>
-  )}
-/>
+       
 
 
 
