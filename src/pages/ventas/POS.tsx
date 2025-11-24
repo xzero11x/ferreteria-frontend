@@ -276,7 +276,6 @@ export default function POSPageV2() {
             {/* Título */}
             <h1 className="text-2xl font-semibold flex-shrink-0">Punto de Venta</h1>
 
-<<<<<<< Updated upstream
             {/* Barra de Búsqueda y Filtros */}
             <div className="space-y-4 flex-shrink-0">
               <div className="flex items-center gap-3">
@@ -288,55 +287,6 @@ export default function POSPageV2() {
                     placeholder="Buscar por nombre o SKU"
                     className="pl-9"
                   />
-=======
-          {/* Productos ocupan el espacio restante y scrollean dentro */}
-          <ScrollArea className="flex-1">
-            <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-3">
-              {filteredProductos.map((p) => (
-                <Card key={p.id} className="overflow-hidden  hover:shadow-md gap-2 transition-shadow">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base leading-tight line-clamp-2 min-w-0 break-words">
-                      {p.nombre}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="grid grid-cols-[1fr_auto] items-start gap-3">
-                       <div>
-                        <img src="/assets/imgProductos/image.png"  className="h-20 w-20 rounded-md object-cover" />
-                      </div>
-                      <div className="space-y-1 text-sm text-muted-foreground min-w-0">
-                        <div>{p.sku ? `SKU: ${p.sku}` : "Sin SKU"}</div>
-                        <div>Stock: <span className="tabular-nums">{p.stock}</span></div>
-                        {p.categoria?.nombre && (
-                          <Badge variant="secondary" className="mt-1">{p.categoria?.nombre}</Badge>
-                        )}
-                      </div>
-                     
-                     
-                    </div>
-                    <div className="mt-5 flex justify-between items-center ">
-                       <div className="text-right">
-                        <div className="text-xs text-muted-foreground">Precio</div>
-                        <div className="text-lg font-semibold tabular-nums">{formatCurrency(p.precio_venta)}</div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        className="h-8"
-                        onClick={() => handleAddToCart(p)}
-                        disabled={p.stock <= 0}
-                      >
-                        <Plus className="mr-2 size-4" /> Agregar
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-              {filteredProductos.length === 0 && (
-                <div className="col-span-full text-center py-12 text-muted-foreground">
-                  <Search className="size-10 mx-auto mb-2 opacity-50" />
-                  <p>No hay productos que coincidan</p>
->>>>>>> Stashed changes
                 </div>
                 <CreateProductDialog onCreated={() => void refetchProductos()}>
                   <Button>
