@@ -18,6 +18,7 @@ import CategoriasPage from "@/pages/categorias/index";
 import MarcasPage from "@/pages/marcas/index";
 import UnidadesMedidaPage from "@/pages/unidades-medida/index";
 import InventarioPage from "@/pages/inventario/index";
+import InventarioPageV2 from "@/pages/inventario/v2";
 import ComprasPage from "@/pages/compras/index";
 import NuevaOrdenCompraFiscalPage from "@/pages/compras/nueva-fiscal";
 import KardexPage from "@/pages/kardex/index";
@@ -59,6 +60,7 @@ const AppRouter: React.FC = () => {
                         <Route path="unidades-medida" element={<UnidadesMedidaPage />} />
 
                         <Route path="inventario" element={<InventarioPage />} />
+                        <Route path="inventario/v2" element={<InventarioPageV2 />} />
 
                         <Route path="usuarios" element={<UsuariosPage />} />
 

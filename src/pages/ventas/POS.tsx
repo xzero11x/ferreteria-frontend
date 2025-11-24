@@ -4,21 +4,17 @@ import { Loader2, ShoppingCart, DollarSign, Plus, Minus, Search, X, Package } fr
 
 import { Card, CardContent } from "@/components/ui_official/card";
 import { Button } from "@/components/ui_official/button";
-import {
-  AlertDialog,
-  AlertDialogTrigger,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-  AlertDialogAction,
-} from "@/components/ui_official/alert-dialog";
 import { Input } from "@/components/ui_official/input";
 import { Badge } from "@/components/ui_official/badge";
 import { ScrollArea } from "@/components/ui_official/scroll-area";
 import { Separator } from "@/components/ui_official/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui_official/select";
 
 import { useGetApiProductos } from "@/api/generated/productos/productos";
 import { useGetApiCategorias } from "@/api/generated/categorías/categorías";
@@ -200,12 +196,6 @@ export default function POSPageV2() {
     );
   }
 
-  function handleClearCarrito() {
-    if (carrito.length === 0) return;
-    setCarrito([]);
-    setMontoRecibido("");
-  }
-
   const total = carrito.reduce((sum, i) => sum + i.cantidad * i.precioVenta, 0);
   const recibido = parseFloat(montoRecibido.replace(",", ".")) || 0;
   const vuelto = recibido - total;
@@ -268,17 +258,17 @@ export default function POSPageV2() {
         </>
       )}
     
-      <div className="h-[calc(100vh-var(--header-height)-3rem)] px-4 lg:px-6 py-4">
+      <div className="h-[calc(100vh-var(--header-height)-3rem)] px-3 md:px-4 lg:px-6 py-3 md:py-4">
         {/* Layout principal con 2 columnas */}
-        <div className="flex gap-6 h-full">
+        <div className="flex gap-3 md:gap-4 lg:gap-6 h-full">
           {/* Columna Izquierda: Título + Búsqueda + Productos */}
-          <div className="flex-1 flex flex-col gap-4 min-h-0">
+          <div className="flex-1 flex flex-col gap-3 md:gap-4 min-h-0">
             {/* Título */}
-            <h1 className="text-2xl font-semibold flex-shrink-0">Punto de Venta</h1>
+            <h1 className="text-xl md:text-2xl font-semibold flex-shrink-0">Punto de Venta</h1>
 
             {/* Barra de Búsqueda y Filtros */}
-            <div className="space-y-4 flex-shrink-0">
-              <div className="flex items-center gap-3">
+            <div className="flex-shrink-0">
+              <div className="flex items-center gap-2 md:gap-3">
                 <div className="relative flex-1">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
                   <Input
@@ -288,32 +278,27 @@ export default function POSPageV2() {
                     className="pl-9"
                   />
                 </div>
+                
+                {/* Categorías como Select */}
+                <Select value={selectedCategoriaId} onValueChange={setSelectedCategoriaId}>
+                  <SelectTrigger className="w-[140px] md:w-[160px]">
+                    <SelectValue placeholder="Categoría" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas</SelectItem>
+                    {categorias.map((cat) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
                 <CreateProductDialog onCreated={() => void refetchProductos()}>
                   <Button>
                     <Plus className="mr-2 size-4" /> Nuevo
                   </Button>
                 </CreateProductDialog>
-              </div>
-
-              {/* Categorías como Badges */}
-              <div className="flex flex-wrap gap-2">
-                <Badge
-                  variant={selectedCategoriaId === "all" ? "default" : "outline"}
-                  className="cursor-pointer px-4 py-2"
-                  onClick={() => setSelectedCategoriaId("all")}
-                >
-                  Todas
-                </Badge>
-                {categorias.map((cat) => (
-                  <Badge
-                    key={cat.id}
-                    variant={selectedCategoriaId === String(cat.id) ? "default" : "outline"}
-                    className="cursor-pointer px-4 py-2"
-                    onClick={() => setSelectedCategoriaId(String(cat.id))}
-                  >
-                    {cat.nombre}
-                  </Badge>
-                ))}
               </div>
             </div>
 
@@ -380,12 +365,12 @@ export default function POSPageV2() {
         </div>
 
         {/* Columna Derecha: Carrito - ocupa toda la altura */}
-        <div className="w-[420px] flex-shrink-0">
+        <div className="w-[320px] md:w-[380px] lg:w-[420px] flex-shrink-0">
           {/* PANEL DERECHO: Carrito y Pago */}
           <Card className="h-full flex flex-col border-border/40 rounded-lg">
             <CardContent className="flex-1 flex flex-col p-0 min-h-0">
               {/* Header inline */}
-              <div className="p-4 border-b bg-muted/30 flex items-center justify-between flex-shrink-0">
+              <div className="p-3 md:p-4 border-b bg-muted/30 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <ShoppingCart className="size-5" />
                   <span className="font-semibold">Carrito</span>
@@ -416,22 +401,19 @@ export default function POSPageV2() {
                 )}
               </div>
               {/* Cliente Selector */}
-              <div className="p-4 space-y-3 border-b">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Cliente</label>
-                  <ClientSelector
-                    value={selectedClienteId}
-                    onChange={(clienteId) => {
-                      setSelectedClienteId(clienteId);
-                      setTipoComprobante('BOLETA');
-                    }}
-                    disabled={saving}
-                  />
-                </div>
+              <div className="p-3 md:p-4 border-b">
+                <ClientSelector
+                  value={selectedClienteId}
+                  onChange={(clienteId) => {
+                    setSelectedClienteId(clienteId);
+                    setTipoComprobante('BOLETA');
+                  }}
+                  disabled={saving}
+                />
                 
                 {/* Tipo de Comprobante */}
                 {(clienteData?.ruc || clienteData?.documento_identidad?.match(/^[0-9]{11}$/)) && (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 mt-2">
                     <Badge variant={tipoComprobante === 'BOLETA' ? 'default' : 'outline'}>
                       BOLETA
                     </Badge>
@@ -450,46 +432,47 @@ export default function POSPageV2() {
               {/* Lista del Carrito */}
               <ScrollArea className="flex-1 min-h-0">
                 {carrito.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground px-4">
-                    <ShoppingCart className="size-16 mx-auto mb-3 opacity-20" />
-                    <p className="font-medium">Carrito vacío</p>
-                    <p className="text-sm">Añade productos para comenzar</p>
+                  <div className="text-center py-8 md:py-12 text-muted-foreground px-4">
+                    <ShoppingCart className="size-12 md:size-16 mx-auto mb-3 opacity-20" />
+                    <p className="font-medium text-sm md:text-base">Carrito vacío</p>
+                    <p className="text-xs md:text-sm">Añade productos para comenzar</p>
                   </div>
                 ) : (
-                  <div className="p-4 space-y-3">
-                    {carrito.map((item) => (
-                      <Card key={item.productoId} className="relative border-border/40 rounded-md">
-                        <CardContent className="p-3">
+                  <div className="px-3 md:px-4 py-2">
+                    {carrito.map((item, index) => (
+                      <div key={item.productoId}>
+                        {index > 0 && <Separator className="my-1.5" />}
+                        <div className="relative py-1.5">
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="absolute right-2 top-2 size-6 p-0"
+                            className="absolute right-0 top-1.5 size-5 p-0 hover:bg-destructive/10"
                             onClick={() => handleRemoveItem(item.productoId)}
                           >
-                            <X className="size-4 text-destructive" />
+                            <X className="size-3 text-destructive" />
                           </Button>
 
-                          <div className="pr-8 space-y-2">
-                            {/* Nombre */}
-                            <h4 className="font-semibold text-sm leading-tight line-clamp-2">
-                              {item.nombre}
-                            </h4>
-
-                            {/* Precio Unitario */}
-                            <div className="text-xs text-muted-foreground">
-                              {formatCurrency(item.precioVenta)} / {item.unidadMedida || 'und'}
+                          <div className="pr-7 space-y-1">
+                            {/* Nombre y Precio en la misma línea */}
+                            <div className="flex items-baseline justify-between gap-2">
+                              <h4 className="font-semibold text-sm leading-tight line-clamp-1 flex-1">
+                                {item.nombre}
+                              </h4>
+                              <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                {formatCurrency(item.precioVenta)}
+                              </span>
                             </div>
 
-                            {/* Controles de Cantidad */}
-                            <div className="flex items-center justify-between">
+                            {/* Controles en una sola fila */}
+                            <div className="flex items-center justify-between gap-2">
                               <div className="flex items-center gap-1">
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="size-7 p-0"
+                                  className="size-6 p-0"
                                   onClick={() => handleDecrementCantidad(item.productoId)}
                                 >
-                                  <Minus className="size-3" />
+                                  <Minus className="size-2.5" />
                                 </Button>
                                 <Input
                                   type="number"
@@ -498,26 +481,29 @@ export default function POSPageV2() {
                                   step={item.permiteDecimales ? 0.001 : 1}
                                   value={item.cantidad}
                                   onChange={(e) => handleChangeCantidad(item.productoId, Number(e.target.value))}
-                                  className="w-16 h-7 text-center text-xs p-1"
+                                  className="w-12 h-6 text-center text-xs p-0.5"
                                 />
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="size-7 p-0"
+                                  className="size-6 p-0"
                                   onClick={() => handleIncrementCantidad(item.productoId)}
                                 >
-                                  <Plus className="size-3" />
+                                  <Plus className="size-2.5" />
                                 </Button>
+                                <span className="text-xs text-muted-foreground ml-0.5">
+                                  {item.unidadMedida || 'und'}
+                                </span>
                               </div>
 
                               {/* Subtotal */}
-                              <div className="text-base font-bold tabular-nums">
+                              <div className="text-sm font-bold tabular-nums">
                                 {formatCurrency(item.cantidad * item.precioVenta)}
                               </div>
                             </div>
                           </div>
-                        </CardContent>
-                      </Card>
+                        </div>
+                      </div>
                     ))}
                   </div>
                 )}
@@ -525,126 +511,111 @@ export default function POSPageV2() {
 
               <Separator />
 
-              {/* Footer: Total y Pago */}
-              <div className="p-4 space-y-4 bg-muted/30">
-                {/* Total */}
-                <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold">Total</span>
-                  <span className="text-3xl font-bold text-primary tabular-nums">
+              {/* Footer: Total y Pago Optimizado */}
+              <div className="p-3 md:p-4 space-y-2.5 bg-muted/30">
+                {/* Total Grande */}
+                <div className="text-center py-2">
+                  <div className="text-xs text-muted-foreground mb-0.5">Total a pagar</div>
+                  <div className="text-3xl md:text-4xl font-bold text-primary tabular-nums">
                     {formatCurrency(total)}
-                  </span>
-                </div>
-
-                {/* Método de Pago */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Método de Pago</label>
-                  <div className="flex gap-2">
-                    <Badge
-                      variant={paymentMethod === "efectivo" ? "default" : "outline"}
-                      className="cursor-pointer flex-1 justify-center py-2"
-                      onClick={() => setPaymentMethod("efectivo")}
-                    >
-                      Efectivo
-                    </Badge>
-                    <Badge
-                      variant={paymentMethod === "tarjeta" ? "default" : "outline"}
-                      className="cursor-pointer flex-1 justify-center py-2"
-                      onClick={() => setPaymentMethod("tarjeta")}
-                    >
-                      Tarjeta
-                    </Badge>
-                    <Badge
-                      variant={paymentMethod === "yape" ? "default" : "outline"}
-                      className="cursor-pointer flex-1 justify-center py-2"
-                      onClick={() => setPaymentMethod("yape")}
-                    >
-                      Yape
-                    </Badge>
                   </div>
                 </div>
 
-                {/* Paga con / Vuelto (solo efectivo) */}
+                {/* Método de Pago - Tabs Style */}
+                <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-lg">
+                  <button
+                    type="button"
+                    className={`py-2 px-3 text-xs font-medium rounded-md transition-colors ${
+                      paymentMethod === "efectivo"
+                        ? "bg-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    onClick={() => setPaymentMethod("efectivo")}
+                  >
+                    Efectivo
+                  </button>
+                  <button
+                    type="button"
+                    className={`py-2 px-3 text-xs font-medium rounded-md transition-colors ${
+                      paymentMethod === "tarjeta"
+                        ? "bg-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    onClick={() => setPaymentMethod("tarjeta")}
+                  >
+                    Tarjeta
+                  </button>
+                  <button
+                    type="button"
+                    className={`py-2 px-3 text-xs font-medium rounded-md transition-colors ${
+                      paymentMethod === "yape"
+                        ? "bg-background shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                    onClick={() => setPaymentMethod("yape")}
+                  >
+                    Yape
+                  </button>
+                </div>
+
+                {/* Paga con / Vuelto (solo efectivo) - Inline */}
                 {paymentMethod === "efectivo" && (
-                  <div className="space-y-2">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="text-xs text-muted-foreground">Paga con</label>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          step="0.01"
-                          min="0"
-                          placeholder="0.00"
-                          value={montoRecibido}
-                          onChange={(e) => setMontoRecibido(e.target.value)}
-                          className="h-9"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs text-muted-foreground">
-                          {faltaDinero ? "Falta" : "Vuelto"}
-                        </label>
-                        <div className={`text-lg font-bold tabular-nums ${faltaDinero ? 'text-destructive' : 'text-emerald-600'}`}>
+                  <div className="flex items-end gap-2">
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground">Recibe</label>
+                      <Input
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                        value={montoRecibido}
+                        onChange={(e) => setMontoRecibido(e.target.value)}
+                        className="h-9 text-sm font-medium"
+                        autoFocus
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-xs text-muted-foreground">
+                        {faltaDinero ? "Falta" : "Vuelto"}
+                      </label>
+                      <div className={`h-9 flex items-center justify-end px-3 rounded-md border ${
+                        faltaDinero 
+                          ? 'bg-destructive/10 border-destructive/20 text-destructive' 
+                          : 'bg-emerald-50 border-emerald-200 text-emerald-700 dark:bg-emerald-950 dark:border-emerald-800 dark:text-emerald-400'
+                      }`}>
+                        <span className="text-sm font-bold tabular-nums">
                           {formatCurrency(Math.abs(vuelto))}
-                        </div>
+                        </span>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Botones de Acción */}
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="default"
-                    size="lg"
-                    className="font-semibold"
-                    onClick={handleRegistrarVenta}
-                    disabled={
-                      carrito.length === 0 ||
-                      saving ||
-                      (paymentMethod === "efectivo" && recibido < total)
-                    }
-                  >
-                    {saving ? (
-                      <>
-                        <Loader2 className="mr-2 size-4 animate-spin" />
-                        Procesando
-                      </>
-                    ) : (
-                      <>
-                        <DollarSign className="mr-2 size-4" />
-                        Cobrar
-                      </>
-                    )}
-                  </Button>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="outline" 
-                        size="lg"
-                        disabled={carrito.length === 0 || saving}
-                      >
-                        <X className="mr-2 size-4" />
-                        Limpiar
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent>
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>Limpiar carrito</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Se eliminarán todos los productos del carrito. Esta acción no se puede deshacer.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleClearCarrito}>
-                          Confirmar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
+                {/* Botón de Acción Principal - Cobrar */}
+                <Button
+                  variant="default"
+                  size="lg"
+                  className="w-full font-semibold h-11"
+                  onClick={handleRegistrarVenta}
+                  disabled={
+                    carrito.length === 0 ||
+                    saving ||
+                    (paymentMethod === "efectivo" && recibido < total)
+                  }
+                >
+                  {saving ? (
+                    <>
+                      <Loader2 className="mr-2 size-4 animate-spin" />
+                      Procesando
+                    </>
+                  ) : (
+                    <>
+                      <DollarSign className="mr-2 size-5" />
+                      Cobrar {paymentMethod === "efectivo" && !faltaDinero && recibido > 0 ? `· ${formatCurrency(vuelto)} vuelto` : ''}
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>

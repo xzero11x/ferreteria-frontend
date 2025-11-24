@@ -4,9 +4,10 @@
  */
 
 import { useState } from "react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { AlertCircle, FileText } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui_official/alert";
+import { Button } from "@/components/ui_official/button";
+import { Skeleton } from "@/components/ui_official/skeleton";
+import { AlertCircle, FileText, FileDown } from "lucide-react";
 import { KardexFilters } from "@/components/KardexFilters";
 import { KardexTable } from "@/components/KardexTable";
 import { useGetApiReportesKardexProductoId } from "@/api/generated/reportes/reportes";
@@ -124,13 +125,15 @@ const KardexPage = () => {
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold">Kardex Fiscal</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          Consulta el historial completo de movimientos de inventario con información fiscal
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold">Kardex Fiscal</h1>
+          <p className="text-sm text-muted-foreground mt-1">
+            Consulta el historial completo de movimientos de inventario con información fiscal
+          </p>
+        </div>
       </div>
 
       {/* Filtros */}
@@ -148,70 +151,76 @@ const KardexPage = () => {
       />
 
       {/* Contenido Principal */}
-      <div className="rounded-lg border bg-card">
-        {!selectedProductoId ? (
-          // Estado inicial: sin producto seleccionado
-          <div className="flex flex-col items-center justify-center py-16 text-center">
-            <FileText className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Selecciona un producto</h3>
-            <p className="text-sm text-muted-foreground max-w-md">
-              Usa los filtros superiores para buscar y seleccionar el producto del cual deseas
-              consultar el kardex fiscal.
-            </p>
+      {!selectedProductoId ? (
+        // Estado inicial: sin producto seleccionado
+        <div className="flex flex-col items-center justify-center py-16 text-center rounded-lg border bg-card">
+          <FileText className="h-16 w-16 text-muted-foreground mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Selecciona un producto</h3>
+          <p className="text-sm text-muted-foreground max-w-md">
+            Usa los filtros superiores para buscar y seleccionar el producto del cual deseas
+            consultar el kardex fiscal.
+          </p>
+        </div>
+      ) : isLoading ? (
+        // Estado: cargando
+        <div className="rounded-lg border bg-card p-6 space-y-4">
+          <div className="space-y-2">
+            <Skeleton className="h-6 w-64" />
+            <Skeleton className="h-4 w-96" />
           </div>
-        ) : isLoading ? (
-          // Estado: cargando
-          <div className="p-6 space-y-4">
-            <div className="space-y-2">
-              <Skeleton className="h-6 w-64" />
-              <Skeleton className="h-4 w-96" />
-            </div>
-            <div className="space-y-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full" />
-              ))}
-            </div>
+          <div className="space-y-2">
+            {[...Array(5)].map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
           </div>
-        ) : isError ? (
-          // Estado: error
-          <div className="p-6">
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                Error al cargar el kardex:{" "}
-                {error?.message || "Ocurrió un error inesperado"}
-              </AlertDescription>
-            </Alert>
-          </div>
-        ) : kardexData ? (
-          // Estado: datos cargados
-          <div className="p-6 space-y-6">
-            {/* Información del producto */}
-            <div className="pb-4 border-b">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h2 className="text-xl font-semibold">{kardexData.producto.nombre}</h2>
-                  <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
-                    <span>SKU: {kardexData.producto.sku || "N/A"}</span>
-                    <span>•</span>
-                    <span>Stock Actual: <span className="font-semibold text-foreground">{kardexData.stockActual}</span></span>
-                    <span>•</span>
-                    <span>Total Movimientos: <span className="font-semibold text-foreground">{kardexData.totalMovimientos}</span></span>
-                  </div>
+        </div>
+      ) : isError ? (
+        // Estado: error
+        <div className="rounded-lg border bg-card p-6">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Error al cargar el kardex:{" "}
+              {error?.message || "Ocurrió un error inesperado"}
+            </AlertDescription>
+          </Alert>
+        </div>
+      ) : kardexData ? (
+        // Estado: datos cargados
+        <div className="rounded-lg border bg-card p-6 space-y-6">
+          {/* Información del producto */}
+          <div className="pb-4 border-b">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-semibold">{kardexData.producto.nombre}</h2>
+                <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
+                  <span>SKU: {kardexData.producto.sku || "N/A"}</span>
+                  <span>•</span>
+                  <span>Stock Actual: <span className="font-semibold text-foreground">{kardexData.stockActual}</span></span>
+                  <span>•</span>
+                  <span>Total Movimientos: <span className="font-semibold text-foreground">{kardexData.totalMovimientos}</span></span>
                 </div>
               </div>
+              <Button
+                variant="outline"
+                onClick={handleExportExcel}
+                disabled={isExporting}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                {isExporting ? "Exportando..." : "Exportar Excel"}
+              </Button>
             </div>
-
-            {/* Tabla de movimientos */}
-            <KardexTable
-              movimientos={kardexData.movimientos}
-              tipoFiltro={tipoMovimiento}
-              fechaInicio={fechaInicio}
-              fechaFin={fechaFin}
-            />
           </div>
-        ) : null}
-      </div>
+
+          {/* Tabla de movimientos */}
+          <KardexTable
+            movimientos={kardexData.movimientos}
+            tipoFiltro={tipoMovimiento}
+            fechaInicio={fechaInicio}
+            fechaFin={fechaFin}
+          />
+        </div>
+      ) : null}
     </div>
   );
 };
