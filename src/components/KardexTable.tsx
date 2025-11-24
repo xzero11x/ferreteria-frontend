@@ -1,8 +1,8 @@
 import { useMemo } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Badge } from "@/components/ui_official/badge";
+import { Alert, AlertDescription } from "@/components/ui_official/alert";
 import { TrendingUp, TrendingDown, AlertCircle } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui_official/table";
 import type { KardexCompletoMovimientosItem } from "@/api/generated/model";
 import { formatCurrency } from "@/hooks/usePurchaseOrderCalculator";
 
@@ -58,9 +58,9 @@ export const KardexTable: React.FC<KardexTableProps> = ({
   }, [movimientos, tipoFiltro, fechaInicio, fechaFin]);
 
   const getTipoBadge = (tipo: string) => {
-    const config: Record<string, { variant: any; label: string; icon: any }> = {
+    const config: Record<string, { variant: any; label: string; icon: any; className?: string }> = {
       compra: { variant: "default", label: "Compra", icon: TrendingUp },
-      venta: { variant: "destructive", label: "Venta", icon: TrendingDown },
+      venta: { variant: "destructive", label: "Venta", icon: TrendingDown, className: "text-white" },
       ajuste_entrada: { variant: "secondary", label: "Ajuste +", icon: TrendingUp },
       ajuste_salida: { variant: "outline", label: "Ajuste -", icon: TrendingDown },
     };
@@ -69,7 +69,7 @@ export const KardexTable: React.FC<KardexTableProps> = ({
     const Icon = item.icon;
 
     return (
-      <Badge variant={item.variant} className="flex items-center gap-1 w-fit">
+      <Badge variant={item.variant} className={`flex items-center gap-1 w-fit ${item.className || ""}`}>
         <Icon className="h-3 w-3" />
         {item.label}
       </Badge>

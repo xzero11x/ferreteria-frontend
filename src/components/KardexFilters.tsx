@@ -1,16 +1,17 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui_official/button";
+import { Label } from "@/components/ui_official/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { FileDown, Search } from "lucide-react";
-import { useGetApiProductos } from "@/api/generated/productos/productos";
+} from "@/components/ui_official/select";
+import { Input } from "@/components/ui_official/input";
+import { FileDown, Package, X } from "lucide-react";
+import { ProductSearchSelector } from "@/components/ProductSearchSelector";
+import type { Producto } from "@/api/generated/model";
 
 interface KardexFiltersProps {
   selectedProductoId: number | null;
@@ -37,162 +38,84 @@ export const KardexFilters: React.FC<KardexFiltersProps> = ({
   onExport,
   isExporting,
 }) => {
-  const [productoSearch, setProductoSearch] = useState("");
+  const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
 
-  // Fetch productos con búsqueda
-  const { data: productosData } = useGetApiProductos({});
-
-  const productos = productosData?.data || [];
-
-  // Filtrar productos por búsqueda
-  const productosFiltrados = productos.filter((p) => {
-    if (!productoSearch) return true;
-    const search = productoSearch.toLowerCase();
-    return (
-      p.nombre?.toLowerCase().includes(search) ||
-      p.sku?.toLowerCase().includes(search) ||
-      p.id.toString().includes(search)
-    );
-  });
-
-  const productoSeleccionado = productos.find((p) => p.id === selectedProductoId);
+  const handleProductoSelect = (producto: Producto) => {
+    setSelectedProducto(producto);
+    onProductoChange(producto.id);
+  };
 
   const handleLimpiarFiltros = () => {
+    setSelectedProducto(null);
     onProductoChange(null);
     onTipoMovimientoChange("todos");
     onFechaInicioChange("");
     onFechaFinChange("");
-    setProductoSearch("");
   };
 
   return (
-    <div className="rounded-lg border bg-card p-4">
-      <div className="space-y-4">
-        {/* Fila 1: Producto */}
-        <div className="space-y-2">
+    <div className="rounded-lg border bg-card p-4 relative">
+      {/* Botón X en esquina superior derecha */}
+      {(selectedProductoId || tipoMovimiento !== "todos" || fechaInicio || fechaFin) && (
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleLimpiarFiltros}
+          className="absolute top-2 right-2 h-6 w-6"
+        >
+          <X className="h-3 w-3" />
+        </Button>
+      )}
+
+      {/* Filtros en una sola fila */}
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+        {/* Producto - ocupa 2 columnas */}
+        <div className="space-y-2 md:col-span-2">
           <Label>Producto</Label>
-          <div className="flex gap-2">
-            <div className="flex-1">
-              <Input
-                placeholder="Buscar por nombre, SKU o ID..."
-                value={productoSearch}
-                onChange={(e) => setProductoSearch(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <Select
-              value={selectedProductoId?.toString() || ""}
-              onValueChange={(value) => onProductoChange(value ? parseInt(value) : null)}
-            >
-              <SelectTrigger className="w-[300px]">
-                <SelectValue
-                  placeholder={
-                    productoSeleccionado
-                      ? `${productoSeleccionado.nombre} (${productoSeleccionado.sku})`
-                      : "Seleccionar producto..."
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                {productosFiltrados.length === 0 ? (
-                  <div className="p-4 text-sm text-muted-foreground text-center">
-                    No se encontraron productos
-                  </div>
-                ) : (
-                  productosFiltrados.slice(0, 50).map((producto) => (
-                    <SelectItem key={producto.id} value={producto.id.toString()}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{producto.nombre}</span>
-                        <span className="text-xs text-muted-foreground">
-                          SKU: {producto.sku || "N/A"} | Stock: {Number(producto.stock) || 0}
-                        </span>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+          <ProductSearchSelector
+            selected={selectedProducto}
+            onSelect={handleProductoSelect}
+            placeholder="Buscar por nombre, SKU o código..."
+          />
         </div>
 
-        {/* Fila 2: Tipo de Movimiento, Fechas, Botones */}
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-          {/* Tipo de Movimiento */}
-          <div className="space-y-2">
-            <Label>Tipo de Movimiento</Label>
-            <Select value={tipoMovimiento} onValueChange={onTipoMovimientoChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos</SelectItem>
-                <SelectItem value="venta">Ventas</SelectItem>
-                <SelectItem value="compra">Compras</SelectItem>
-                <SelectItem value="ajuste_entrada">Ajustes +</SelectItem>
-                <SelectItem value="ajuste_salida">Ajustes -</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Fecha Inicio */}
-          <div className="space-y-2">
-            <Label>Fecha Inicio</Label>
-            <Input
-              type="date"
-              value={fechaInicio}
-              onChange={(e) => onFechaInicioChange(e.target.value)}
-            />
-          </div>
-
-          {/* Fecha Fin */}
-          <div className="space-y-2">
-            <Label>Fecha Fin</Label>
-            <Input
-              type="date"
-              value={fechaFin}
-              onChange={(e) => onFechaFinChange(e.target.value)}
-              min={fechaInicio || undefined}
-            />
-          </div>
-
-          {/* Botón Consultar */}
-          <div className="space-y-2">
-            <Label className="invisible">Acciones</Label>
-            <Button
-              className="w-full"
-              disabled={!selectedProductoId}
-              onClick={() => {
-                // Trigger re-fetch - handled by parent component
-              }}
-            >
-              <Search className="mr-2 h-4 w-4" />
-              Consultar
-            </Button>
-          </div>
-
-          {/* Botón Exportar */}
-          <div className="space-y-2">
-            <Label className="invisible">Exportar</Label>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={onExport}
-              disabled={!selectedProductoId || isExporting}
-            >
-              <FileDown className="mr-2 h-4 w-4" />
-              {isExporting ? "Exportando..." : "Exportar Excel"}
-            </Button>
-          </div>
+        {/* Tipo de Movimiento */}
+        <div className="space-y-2">
+          <Label>Tipo</Label>
+          <Select value={tipoMovimiento} onValueChange={onTipoMovimientoChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Todos" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="venta">Ventas</SelectItem>
+              <SelectItem value="compra">Compras</SelectItem>
+              <SelectItem value="ajuste_entrada">Ajustes +</SelectItem>
+              <SelectItem value="ajuste_salida">Ajustes -</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Botón Limpiar Filtros */}
-        {(selectedProductoId || tipoMovimiento !== "todos" || fechaInicio || fechaFin) && (
-          <div className="flex justify-end">
-            <Button variant="ghost" size="sm" onClick={handleLimpiarFiltros}>
-              Limpiar filtros
-            </Button>
-          </div>
-        )}
+        {/* Fecha Inicio */}
+        <div className="space-y-2">
+          <Label>Desde</Label>
+          <Input
+            type="date"
+            value={fechaInicio}
+            onChange={(e) => onFechaInicioChange(e.target.value)}
+          />
+        </div>
+
+        {/* Fecha Fin */}
+        <div className="space-y-2">
+          <Label>Hasta</Label>
+          <Input
+            type="date"
+            value={fechaFin}
+            onChange={(e) => onFechaFinChange(e.target.value)}
+            min={fechaInicio || undefined}
+          />
+        </div>
       </div>
     </div>
   );

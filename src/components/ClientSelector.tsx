@@ -42,8 +42,10 @@ export default function ClientSelector({ value, onChange, disabled = false }: Cl
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Solo buscar cuando hay término de búsqueda (no cargar todos al inicio)
   const { data: clientesResponse, isLoading: loading } = useGetApiClientes(
-    { limit: 50 }
+    { limit: 50 },
+    { query: { enabled: debouncedSearch.length > 0 } }
   );
 
   const allClientes = clientesResponse?.data ?? [];
@@ -54,7 +56,7 @@ export default function ClientSelector({ value, onChange, disabled = false }: Cl
         c.nombre?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
         c.documento_identidad?.toLowerCase().includes(debouncedSearch.toLowerCase())
       )
-    : allClientes;
+    : [];
 
   const handleSelect = (cliente: Cliente | null) => {
     setSelectedCliente(cliente);
@@ -70,8 +72,7 @@ export default function ClientSelector({ value, onChange, disabled = false }: Cl
     : "Público General";
 
   return (
-    <div className="flex gap-2">
-      <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="outline"
@@ -87,36 +88,39 @@ export default function ClientSelector({ value, onChange, disabled = false }: Cl
             <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[300px] p-0" align="start">
+        <PopoverContent className="w-[320px] p-0" align="start">
           <Command shouldFilter={false}>
             <CommandInput
               placeholder="Buscar cliente..."
               value={searchTerm}
               onValueChange={setSearchTerm}
             />
-            <CommandList>
+            <CommandList className="max-h-[300px]">
               <CommandEmpty>
-                {loading ? "Buscando..." : "No se encontraron clientes"}
+                {loading ? "Buscando..." : debouncedSearch.length === 0 ? "Escribe para buscar clientes" : "No se encontraron clientes"}
               </CommandEmpty>
               <CommandGroup>
                 {/* Opción: Público General */}
                 <CommandItem
                   value="publico-general"
                   onSelect={() => handleSelect(null)}
+                  className="justify-between"
                 >
+                  <div className="flex items-center gap-2">
+                    <User className="size-4" />
+                    <div className="flex flex-col">
+                      <span className="font-medium">Público General</span>
+                      <span className="text-xs text-muted-foreground">
+                        Sin cliente específico
+                      </span>
+                    </div>
+                  </div>
                   <Check
                     className={cn(
-                      "mr-2 size-4",
+                      "size-4",
                       value === null ? "opacity-100" : "opacity-0"
                     )}
                   />
-                  <User className="mr-2 size-4" />
-                  <div className="flex flex-col">
-                    <span className="font-medium">Público General</span>
-                    <span className="text-xs text-muted-foreground">
-                      Venta sin cliente específico
-                    </span>
-                  </div>
                 </CommandItem>
 
                 {/* Resultados de búsqueda */}
@@ -125,60 +129,47 @@ export default function ClientSelector({ value, onChange, disabled = false }: Cl
                     key={cliente.id}
                     value={String(cliente.id)}
                     onSelect={() => handleSelect(cliente)}
+                    className="justify-between"
                   >
+                    <div className="flex items-center gap-2">
+                      <User className="size-4" />
+                      <div className="flex flex-col">
+                        <span className="font-medium">{cliente.nombre}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {cliente.documento_identidad || cliente.email || "Sin documento"}
+                        </span>
+                      </div>
+                    </div>
                     <Check
                       className={cn(
-                        "mr-2 size-4",
+                        "size-4",
                         value === cliente.id ? "opacity-100" : "opacity-0"
                       )}
                     />
-                    <User className="mr-2 size-4" />
-                    <div className="flex flex-col">
-                      <span className="font-medium">{cliente.nombre}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {cliente.documento_identidad || cliente.email || "Sin documento"}
-                      </span>
-                    </div>
                   </CommandItem>
                 ))}
               </CommandGroup>
-
-              {/* Botón de crear cliente */}
-              <CommandSeparator />
-              <CommandGroup>
-                <CreateClientDialog
-                  onCreated={(newCliente) => {
-                    handleSelect(newCliente);
-                  }}
-                >
-                  <div className="cursor-pointer">
-                    <CommandItem
-                      value="create-new-client"
-                      className="cursor-pointer"
-                    >
-                      <UserPlus className="mr-2 size-4" />
-                      Crear nuevo cliente
-                    </CommandItem>
-                  </div>
-                </CreateClientDialog>
-              </CommandGroup>
             </CommandList>
+            
+            {/* Botón fijo de crear cliente */}
+            <div className="border-t p-1 bg-muted/30">
+              <CreateClientDialog
+                onCreated={(newCliente) => {
+                  handleSelect(newCliente);
+                }}
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start"
+                >
+                  <UserPlus className="mr-2 size-4" />
+                  Crear nuevo cliente
+                </Button>
+              </CreateClientDialog>
+            </div>
           </Command>
         </PopoverContent>
       </Popover>
-
-      {/* Botón de limpiar selección si hay un cliente seleccionado */}
-      {value !== null && (
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={() => handleSelect(null)}
-          disabled={disabled}
-          title="Volver a Público General"
-        >
-          ✕
-        </Button>
-      )}
-    </div>
   );
 }
