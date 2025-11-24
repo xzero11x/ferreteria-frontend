@@ -1,25 +1,37 @@
 /**
- * AdminCajasPage - Gestión de Cajas Físicas
- * 
- * Las cajas son entidades FIJAS que representan puntos de venta físicos.
- * Creadas una sola vez por el administrador al configurar el negocio.
- * 
- * Ejemplo: "Caja Principal", "Caja Secundaria", "Caja Patio"
- * 
- * Los cajeros NO crean cajas, solo las USAN al abrir su turno.
+ * AdminCajasPage - Gestión de Cajas Físicas con TanStack Table
  */
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+"use client"
+
+import * as React from "react"
+import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Plus, Store, Pencil, Trash2, Power, PowerOff } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
+
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  useGetApiCajas,
+  usePostApiCajas,
+  usePutApiCajasId,
+  useDeleteApiCajasId,
+} from '@/api/generated/cajas/cajas'
+import type { Caja } from '@/api/generated/model'
+
+import { Button } from '@/components/ui_official/button'
+import { Checkbox } from '@/components/ui_official/checkbox'
+import { Input } from '@/components/ui_official/input'
+import { Badge } from '@/components/ui_official/badge'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui_official/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -27,7 +39,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui_official/table'
 import {
   Dialog,
   DialogContent,
@@ -35,7 +47,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/ui_official/dialog'
 import {
   Form,
   FormControl,
@@ -44,7 +56,7 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
+} from '@/components/ui_official/form'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,389 +66,444 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import {
-  useGetApiCajas,
-  usePostApiCajas,
-  usePutApiCajasId,
-  useDeleteApiCajasId,
-} from '@/api/generated/cajas/cajas';
-import { toast } from 'sonner';
-import { Loader2, Plus, Store, Pencil, Trash2, Power, PowerOff } from 'lucide-react';
-import type { Caja } from '@/api/generated/model';
+} from '@/components/ui_official/alert-dialog'
 
 const cajaSchema = z.object({
   nombre: z
     .string()
     .min(3, 'El nombre debe tener al menos 3 caracteres')
     .max(50, 'El nombre no puede exceder 50 caracteres'),
-});
+})
 
-type CajaFormValues = z.infer<typeof cajaSchema>;
+type CajaFormValues = z.infer<typeof cajaSchema>
 
 export default function AdminCajasPage() {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingCaja, setEditingCaja] = useState<Caja | null>(null);
-  const [deletingCaja, setDeletingCaja] = useState<Caja | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false)
+  const [editingCaja, setEditingCaja] = React.useState<Caja | null>(null)
+  const [deletingCaja, setDeletingCaja] = React.useState<Caja | null>(null)
 
-  const { data: cajasResponse, isLoading, error: loadError, refetch } = useGetApiCajas(
+  // Estados de tabla
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
+
+  const { data: cajasResponse, isLoading, refetch } = useGetApiCajas(
     { includeInactive: 'true' },
     {}
-  );
-  const cajas = cajasResponse?.data ?? [];
+  )
+  const cajas = cajasResponse?.data ?? []
 
-  // Mostrar error de carga
-  if (loadError) {
-    console.error('Error al cargar cajas:', loadError);
-  }
-
-  const { mutateAsync: createCaja } = usePostApiCajas();
-  const { mutateAsync: updateCaja } = usePutApiCajasId();
-  const { mutateAsync: deleteCaja } = useDeleteApiCajasId();
+  const { mutateAsync: createCaja } = usePostApiCajas()
+  const { mutateAsync: updateCaja } = usePutApiCajasId()
+  const { mutateAsync: deleteCaja } = useDeleteApiCajasId()
 
   const createForm = useForm<CajaFormValues>({
     resolver: zodResolver(cajaSchema),
-    defaultValues: {
-      nombre: '',
-    },
-  });
+    defaultValues: { nombre: '' },
+  })
 
   const editForm = useForm<CajaFormValues>({
     resolver: zodResolver(cajaSchema),
-  });
+  })
 
   const handleCreate = async (data: CajaFormValues) => {
     try {
-      const response = await createCaja({
-        data: {
-          nombre: data.nombre,
-        },
-      });
-
-      console.log('Caja creada:', response);
-
-      toast.success('Caja creada exitosamente', {
-        description: `La caja "${data.nombre}" está lista para usarse`,
-      });
-
-      setShowCreateDialog(false);
-      createForm.reset();
-      await refetch();
+      await createCaja({ data: { nombre: data.nombre } })
+      toast.success('Caja creada exitosamente')
+      setShowCreateDialog(false)
+      createForm.reset()
+      refetch()
     } catch (error: unknown) {
-      console.error('Error al crear caja:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error('Error al crear caja', {
-        description: errorMessage,
-      });
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+      toast.error('Error al crear caja', { description: errorMessage })
     }
-  };
-
-  const handleOpenEdit = (caja: Caja) => {
-    setEditingCaja(caja);
-    editForm.reset({
-      nombre: caja.nombre,
-    });
-  };
+  }
 
   const handleEdit = async (data: CajaFormValues) => {
-    if (!editingCaja) return;
-
+    if (!editingCaja) return
     try {
-      await updateCaja({
-        id: editingCaja.id,
-        data: {
-          nombre: data.nombre,
-        },
-      });
-
-      toast.success('Caja actualizada', {
-        description: `La caja se renombró a "${data.nombre}"`,
-      });
-
-      setEditingCaja(null);
-      refetch();
+      await updateCaja({ id: editingCaja.id, data: { nombre: data.nombre } })
+      toast.success('Caja actualizada')
+      setEditingCaja(null)
+      refetch()
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error('Error al actualizar caja', {
-        description: errorMessage,
-      });
+      toast.error('Error al actualizar caja')
     }
-  };
+  }
 
   const handleToggleActive = async (caja: Caja) => {
     try {
       await updateCaja({
         id: caja.id,
-        data: {
-          nombre: caja.nombre,
-          isActive: !caja.isActive,
-        },
-      });
-
-      const newStatus = !caja.isActive ? 'activada' : 'desactivada';
-      toast.success(`Caja ${newStatus}`, {
-        description: caja.isActive
-          ? 'Los cajeros ya no podrán seleccionar esta caja'
-          : 'Los cajeros pueden volver a usar esta caja',
-      });
-
-      refetch();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error('Error al cambiar estado', {
-        description: errorMessage,
-      });
+        data: { nombre: caja.nombre, isActive: !caja.isActive },
+      })
+      toast.success(`Caja ${!caja.isActive ? 'activada' : 'desactivada'}`)
+      refetch()
+    } catch (error) {
+      toast.error('Error al cambiar estado')
     }
-  };
+  }
 
   const handleDelete = async () => {
-    if (!deletingCaja) return;
-
+    if (!deletingCaja) return
     try {
-      await deleteCaja({
-        id: deletingCaja.id,
-      });
-
-      toast.success('Caja eliminada', {
-        description: `La caja "${deletingCaja.nombre}" fue eliminada permanentemente`,
-      });
-
-      setDeletingCaja(null);
-      refetch();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error('Error al eliminar caja', {
-        description: errorMessage,
-      });
+      await deleteCaja({ id: deletingCaja.id })
+      toast.success('Caja eliminada')
+      setDeletingCaja(null)
+      refetch()
+    } catch (error) {
+      toast.error('Error al eliminar caja')
     }
-  };
+  }
+
+  // Definición de columnas
+  const columns = React.useMemo<ColumnDef<Caja>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "id",
+        header: "ID",
+        cell: ({ row }) => <span className="font-mono text-muted-foreground">#{row.original.id}</span>,
+      },
+      {
+        accessorKey: "nombre",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Nombre
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Store className="h-4 w-4 text-primary" />
+            <span className="font-medium">{row.original.nombre}</span>
+          </div>
+        ),
+      },
+      {
+        accessorKey: "isActive",
+        header: "Estado",
+        cell: ({ row }) => {
+          return row.original.isActive ? (
+            <Badge variant="default" className="bg-green-600 text-white">
+              <Power className="mr-1 h-3 w-3" />
+              Activa
+            </Badge>
+          ) : (
+            <Badge variant="secondary">
+              <PowerOff className="mr-1 h-3 w-3" />
+              Inactiva
+            </Badge>
+          )
+        },
+        filterFn: (row, _id, value) => {
+          if (value === "all") return true
+          if (value === "active") return row.original.isActive === true
+          if (value === "inactive") return row.original.isActive === false
+          return true
+        },
+      },
+      {
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const caja = row.original
+          return (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setEditingCaja(caja)
+                      editForm.reset({ nombre: caja.nombre })
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => handleToggleActive(caja)}>
+                    {caja.isActive ? (
+                      <><PowerOff className="mr-2 h-4 w-4" /> Desactivar</>
+                    ) : (
+                      <><Power className="mr-2 h-4 w-4" /> Activar</>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setDeletingCaja(caja)}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+      },
+    ],
+    [editForm]
+  )
+
+  const table = useReactTable({
+    data: cajas,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    );
+    )
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="size-6 text-primary" />
-                Gestión de Cajas
-              </CardTitle>
-              <CardDescription className="mt-2">
-                Las cajas son puntos de venta físicos creados una sola vez al configurar el negocio.
-                Los cajeros seleccionan una caja existente al abrir su turno.
-              </CardDescription>
-            </div>
-            <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="mr-2 size-4" />
-                  Nueva Caja
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Cajas</h1>
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Nueva Caja
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Crear Nueva Caja</DialogTitle>
+              <DialogDescription>
+                Define el nombre del punto de venta físico
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...createForm}>
+              <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
+                <FormField
+                  control={createForm.control}
+                  name="nombre"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Caja</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ej: Caja Principal" autoFocus />
+                      </FormControl>
+                      <FormDescription>
+                        Nombre descriptivo del punto de venta
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Crear Caja</Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      {/* Tabla */}
+      {cajas.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+          <Store className="h-16 w-16 mb-4 opacity-50" />
+          <p className="text-lg font-semibold mb-2">No hay cajas configuradas</p>
+          <p className="text-sm mb-4">
+            Crea al menos una caja para que los cajeros puedan abrir turnos
+          </p>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Crear Primera Caja
+          </Button>
+        </div>
+      ) : (
+        <div>
+          {/* Filtros */}
+          <div className="flex items-center gap-2 pb-4">
+            <Input
+              placeholder="Filtrar por nombre..."
+              value={(table.getColumn("nombre")?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn("nombre")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Crear Nueva Caja</DialogTitle>
-                  <DialogDescription>
-                    Define el nombre del punto de venta físico (ej: "Caja Principal", "Caja Patio").
-                  </DialogDescription>
-                </DialogHeader>
-
-                <Form {...createForm}>
-                  <form onSubmit={createForm.handleSubmit(handleCreate)} className="space-y-4">
-                    <FormField
-                      control={createForm.control}
-                      name="nombre"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nombre de la Caja</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              placeholder="Ej: Caja Principal"
-                              autoFocus
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Nombre descriptivo del punto de venta
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <div className="flex gap-2 justify-end">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        onClick={() => setShowCreateDialog(false)}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
                       >
-                        Cancelar
-                      </Button>
-                      <Button type="submit">
-                        <Plus className="mr-2 size-4" />
-                        Crear Caja
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        </CardHeader>
-        <CardContent>
-          {cajas.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Store className="size-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-semibold mb-2">No hay cajas configuradas</p>
-              <p className="text-sm mb-4">
-                Crea al menos una caja para que los cajeros puedan abrir turnos
-              </p>
-              <Button onClick={() => setShowCreateDialog(true)}>
-                <Plus className="mr-2 size-4" />
-                Crear Primera Caja
-              </Button>
-            </div>
-          ) : (
+
+          {/* Table */}
+          <div className="overflow-hidden rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead>Fecha Creación</TableHead>
-                  <TableHead className="text-left">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {cajas.map((caja: Caja) => (
-                  <TableRow key={caja.id}>
-                    <TableCell className="font-mono text-muted-foreground">
-                      #{caja.id}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Store className="size-4 text-primary" />
-                        <span className="font-medium">{caja.nombre}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {caja.isActive ? (
-                        <Badge variant="default" className="bg-green-600">
-                          <Power className="mr-1 size-3" />
-                          Activa
-                        </Badge>
-                      ) : (
-                        <Badge variant="secondary">
-                          <PowerOff className="mr-1 size-3" />
-                          Inactiva
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {new Date().toLocaleDateString('es-PE', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                      })}
-                    </TableCell>
-                    <TableCell className="text-left">
-                      <div className="flex items-center justify-start gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleOpenEdit(caja)}
-                        >
-                          <Pencil className="mr-2 size-4" />
-                          Editar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant={caja.isActive ? 'outline' : 'default'}
-                          onClick={() => handleToggleActive(caja)}
-                        >
-                          {caja.isActive ? (
-                            <>
-                              <PowerOff className="mr-2 size-4" />
-                              Desactivar
-                            </>
-                          ) : (
-                            <>
-                              <Power className="mr-2 size-4" />
-                              Activar
-                            </>
-                          )}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => setDeletingCaja(caja)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      )
+                    })}
                   </TableRow>
                 ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Edición */}
-      <Dialog open={!!editingCaja} onOpenChange={() => setEditingCaja(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Caja</DialogTitle>
-            <DialogDescription>
-              Modifica el nombre del punto de venta
-            </DialogDescription>
-          </DialogHeader>
-
-          <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
-              <FormField
-                control={editForm.control}
-                name="nombre"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nombre de la Caja</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Ej: Caja Principal" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex gap-2 justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditingCaja(null)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit">
-                  <Pencil className="mr-2 size-4" />
-                  Guardar Cambios
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
+      {editingCaja && (
+        <Dialog open={!!editingCaja} onOpenChange={() => setEditingCaja(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Caja</DialogTitle>
+              <DialogDescription>
+                Modifica el nombre del punto de venta
+              </DialogDescription>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="nombre"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Caja</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Ej: Caja Principal" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-2 justify-end">
+                  <Button type="button" variant="outline" onClick={() => setEditingCaja(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Guardar Cambios</Button>
+                </div>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* AlertDialog de Eliminación */}
       <AlertDialog open={!!deletingCaja} onOpenChange={() => setDeletingCaja(null)}>
@@ -447,22 +514,20 @@ export default function AdminCajasPage() {
               Estás por eliminar la caja <strong>"{deletingCaja?.nombre}"</strong>.
               <br />
               <br />
-              ⚠️ Esta acción NO se puede deshacer. Si esta caja tiene sesiones históricas,
-              podrían quedar referencias huérfanas.
-              <br />
-              <br />
-              Recomendación: En lugar de eliminar, considera <strong>desactivarla</strong>.
+              ⚠️ Esta acción NO se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              <Trash2 className="mr-2 size-4" />
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Eliminar Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }
