@@ -1,9 +1,20 @@
-import { useEffect, useRef, useState, useMemo } from "react";
-import { Loader2, X } from "lucide-react";
-import { Input } from "@/components/ui_official/input";
+import { useEffect, useState, useMemo } from "react";
+import { Check, ChevronsUpDown, Package } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui_official/button";
-import { Popover, PopoverContent, PopoverAnchor } from "@/components/ui_official/popover";
-import { Command, CommandEmpty, CommandGroup, CommandItem, CommandList } from "@/components/ui_official/command";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui_official/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui_official/popover";
 import { Badge } from "@/components/ui_official/badge";
 import { useGetApiProductos } from "@/api/generated/productos/productos";
 import type { Producto } from "@/api/generated/model";
@@ -19,39 +30,32 @@ type ProductSearchSelectorProps = {
 export function ProductSearchSelector({
   selected = null,
   onSelect,
-  placeholder = "Buscar por nombre, SKU o escanear código...",
+  placeholder = "Buscar producto...",
   disabled,
   items = [],
 }: ProductSearchSelectorProps) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const inputRef = useRef<HTMLInputElement | null>(null);
-  const MIN_CHARS = 2;
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   // Debounce del término de búsqueda
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(searchTerm.trim());
-    }, 300);
+    }, 200);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  // Fetch con React Query (solo si no hay items locales)
-  const { data: productosResponse, isLoading: loadingRemote } = useGetApiProductos(
+  // Fetch con React Query (solo si no hay items locales y hay búsqueda)
+  const { data: productosResponse, isLoading: loading } = useGetApiProductos(
     { q: debouncedSearch || undefined, limit: 50 },
-    { query: { enabled: items.length === 0 && debouncedSearch.length >= MIN_CHARS } }
+    { query: { enabled: items.length === 0 && debouncedSearch.length > 0 } }
   );
 
-  // Calcular resultados con useMemo en lugar de useEffect + useState
+  // Calcular resultados
   const results = useMemo(() => {
-    const term = debouncedSearch;
-    const t = term.toLowerCase();
+    const t = debouncedSearch.toLowerCase();
     
-    if (t.length < MIN_CHARS) {
-      return [];
-    }
-
     let productList: Producto[] = [];
     
     // Si hay items locales, usar solo esos
@@ -62,143 +66,94 @@ export function ProductSearchSelector({
       productList = productosResponse?.data ?? [];
     }
     
-    // Filtrar localmente
-    const filtered = productList.filter((p) => {
-      const byName = p.nombre?.toLowerCase().includes(t);
-      const bySku = p.sku ? p.sku.toLowerCase().includes(t) : false;
-      const byId = String(p.id).includes(t);
-      return byName || bySku || byId;
-    });
+    // Si hay término de búsqueda y items locales, filtrar
+    if (t && items.length > 0) {
+      productList = productList.filter((p) => {
+        const byName = p.nombre?.toLowerCase().includes(t);
+        const bySku = p.sku ? p.sku.toLowerCase().includes(t) : false;
+        const byId = String(p.id).includes(t);
+        return byName || bySku || byId;
+      });
+    }
     
     // Ordenar por nombre para consistencia
-    filtered.sort((a, b) => (a.nombre ?? "").localeCompare(b.nombre ?? "", "es"));
-    return filtered;
+    productList.sort((a, b) => (a.nombre ?? "").localeCompare(b.nombre ?? "", "es"));
+    return productList;
   }, [debouncedSearch, items, productosResponse?.data]);
 
-  // Abrir el popover al enfocar o escribir
-  function handleFocus() {
-    setOpen(true);
-  }
+  const handleSelect = (producto: Producto) => {
+    onSelect(producto);
+    setOpen(false);
+    setSearchTerm("");
+  };
 
-  // Selección inteligente al presionar Enter (lector de código de barras)
-  function handleEnterSelect() {
-    const code = searchTerm.trim();
-    if (!code) return;
-    const exact = results.find((p) => p.sku?.toLowerCase() === code.toLowerCase());
-    const pick = exact ?? (results.length === 1 ? results[0] : undefined);
-    if (pick) {
-      onSelect(pick);
-      setOpen(false);
-      setSearchTerm("");
-    }
-  }
+  const displayValue = selected
+    ? selected.nombre
+    : "Seleccionar producto...";
 
   return (
-    <div className="relative">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverAnchor asChild>
-          <div className="relative flex flex-col gap-2">
-            <div className="relative">
-              <Input
-                ref={inputRef}
-                placeholder={placeholder}
-                value={searchTerm}
-                disabled={!!disabled}
-                onFocus={handleFocus}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    handleEnterSelect();
-                  }
-                  if (e.key === "Escape") {
-                    setOpen(false);
-                    setSearchTerm("");
-                  }
-                }}
-                className="w-full pr-8"
-                aria-label="Buscar producto"
-                aria-autocomplete="list"
-                aria-controls="product-listbox"
-                aria-expanded={open}
-              />
-              {searchTerm && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => {
-                    setSearchTerm("");
-                    inputRef.current?.focus();
-                  }}
-                  className="absolute right-1 top-1 h-7 w-7"
-                  aria-label="Limpiar búsqueda"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            {selected && (
-              <div className="flex items-center gap-2 text-xs">
-                <Badge variant="secondary" className="font-normal">
-                  {selected.nombre}
-                </Badge>
-                {selected.sku && (
-                  <span className="text-muted-foreground">SKU: {selected.sku}</span>
-                )}
-              </div>
-            )}
-          </div>
-        </PopoverAnchor>
-        <PopoverContent 
-          className="w-[360px] sm:w-[420px] p-0" 
-          sideOffset={8}
-          onOpenAutoFocus={(e) => e.preventDefault()}
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+          disabled={disabled}
         >
-          <Command>
-            <CommandList id="product-listbox" role="listbox">
-              {loadingRemote && (
-                <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Buscando...
-                </div>
-              )}
-              {!loadingRemote && results.length === 0 ? (
-                <CommandEmpty>
-                  {searchTerm.trim().length < MIN_CHARS
-                    ? "Escribe al menos 2 caracteres para buscar"
-                    : "Sin resultados"}
-                </CommandEmpty>
-              ) : (
-                <CommandGroup>
-                  {results.map((p) => (
-                    <CommandItem
-                      key={p.id}
-                      onSelect={() => {
-                        onSelect(p);
-                        setOpen(false);
-                        setSearchTerm("");
-                      }}
-                      className="cursor-pointer"
-                    >
-                      <div className="flex w-full items-center justify-between gap-2">
-                        <div className="flex min-w-0 flex-col">
-                          <span className="font-medium truncate">{p.nombre}</span>
-                          <span className="text-xs text-muted-foreground truncate">
-                            {p.sku ? `SKU: ${p.sku}` : "Sin SKU"}
-                          </span>
-                        </div>
-                        <Badge variant="outline" className="shrink-0">
-                          Stock: {Number(p.stock ?? 0).toFixed(0)}
-                        </Badge>
-                      </div>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
-        </PopoverContent>
-      </Popover>
-    </div>
+          <span className="flex items-center gap-2 truncate">
+            <Package className="size-4 shrink-0" />
+            <span className="truncate">{displayValue}</span>
+          </span>
+          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[400px] p-0" align="start">
+        <Command shouldFilter={false}>
+          <CommandInput
+            placeholder={placeholder}
+            value={searchTerm}
+            onValueChange={setSearchTerm}
+          />
+          <CommandList className="max-h-[300px]">
+            <CommandEmpty>
+              {loading
+                ? "Buscando..."
+                : debouncedSearch.length === 0
+                ? "Escribe para buscar productos..."
+                : "No se encontraron productos"}
+            </CommandEmpty>
+            <CommandGroup>
+              {results.map((producto) => (
+                <CommandItem
+                  key={producto.id}
+                  value={String(producto.id)}
+                  onSelect={() => handleSelect(producto)}
+                  className="justify-between"
+                >
+                  <div className="flex items-center gap-2">
+                    <Check
+                      className={cn(
+                        "size-4",
+                        selected?.id === producto.id ? "opacity-100" : "opacity-0"
+                      )}
+                    />
+                    <div className="flex flex-col">
+                      <span className="font-medium">{producto.nombre}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {producto.sku ? `SKU: ${producto.sku}` : "Sin SKU"}
+                      </span>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="shrink-0">
+                    Stock: {Number(producto.stock ?? 0).toFixed(0)}
+                  </Badge>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

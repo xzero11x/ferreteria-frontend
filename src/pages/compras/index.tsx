@@ -2,25 +2,25 @@
 // Página de gestión de órdenes de compra con información fiscal (Historial + Detalle con Sheet)
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Package, Eye, Loader2, CheckCircle2, XCircle, Clock, AlertCircle, FileText, Receipt } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Plus, Package, Eye, Loader2, CheckCircle2, XCircle, Clock, AlertCircle, FileText, Receipt, X } from "lucide-react";
+import { Button } from "@/components/ui_official/button";
+import { Badge } from "@/components/ui_official/badge";
+import { Input } from "@/components/ui_official/input";
+import { Label } from "@/components/ui_official/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui_official/select";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@/components/ui_official/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,12 +30,12 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Separator } from "@/components/ui/separator";
+} from "@/components/ui_official/alert-dialog";
+import { Alert, AlertDescription } from "@/components/ui_official/alert";
+import { Separator } from "@/components/ui_official/separator";
 import { ProviderSelector } from "@/components/ProviderSelector";
 import { ReceiveOrderModal } from "@/components/ReceiveOrderModal";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui_official/table";
 import {
   useGetApiCompras,
   useGetApiComprasId,
@@ -67,16 +67,16 @@ function formatDateTime(dateString: string | null | undefined) {
 }
 
 const getEstadoBadge = (estado: string) => {
-  const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", icon: any, label: string }> = {
+  const config: Record<string, { variant: "default" | "secondary" | "destructive" | "outline", icon: any, label: string, className?: string }> = {
     pendiente: { variant: "secondary", icon: Clock, label: "Pendiente" },
     recibida: { variant: "default", icon: CheckCircle2, label: "Recibida" },
-    cancelada: { variant: "destructive", icon: XCircle, label: "Cancelada" },
+    cancelada: { variant: "destructive", icon: XCircle, label: "Cancelada", className: "text-white" },
   };
   const item = config[estado] || { variant: "outline" as const, icon: AlertCircle, label: estado };
   const Icon = item.icon;
   
   return (
-    <Badge variant={item.variant} className="gap-1">
+    <Badge variant={item.variant} className={`gap-1 ${item.className || ""}`}>
       <Icon className="h-3 w-3" />
       {item.label}
     </Badge>
@@ -202,7 +202,25 @@ const ComprasPage = () => {
       </div>
 
       {/* Filtros */}
-      <div className="rounded-lg border bg-card p-4">
+      <div className="rounded-lg border bg-card p-4 relative">
+        {/* Botón X en esquina superior derecha */}
+        {(estadoFilter !== "todas" || tipoComprobanteFilter !== "todos" || proveedorFilter || fechaInicio || fechaFin) && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              setEstadoFilter("todas");
+              setTipoComprobanteFilter("todos");
+              setProveedorFilter(null);
+              setFechaInicio("");
+              setFechaFin("");
+            }}
+            className="absolute top-2 right-2 h-6 w-6"
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           {/* Filtro de Estado */}
           <div className="space-y-2">
@@ -267,25 +285,6 @@ const ComprasPage = () => {
             />
           </div>
         </div>
-
-        {/* Botón limpiar filtros */}
-        {(estadoFilter !== "todas" || tipoComprobanteFilter !== "todos" || proveedorFilter || fechaInicio || fechaFin) && (
-          <div className="mt-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setEstadoFilter("todas");
-                setTipoComprobanteFilter("todos");
-                setProveedorFilter(null);
-                setFechaInicio("");
-                setFechaFin("");
-              }}
-            >
-              Limpiar filtros
-            </Button>
-          </div>
-        )}
       </div>
 
       {/* Tabla de Órdenes */}

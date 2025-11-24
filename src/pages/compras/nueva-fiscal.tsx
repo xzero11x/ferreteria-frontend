@@ -2,13 +2,14 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, Trash2, ShoppingCart, AlertCircle, Receipt } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, Trash2, ShoppingCart, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui_official/button";
+import { Input } from "@/components/ui_official/input";
+import { Label } from "@/components/ui_official/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui_official/card";
+import { Badge } from "@/components/ui_official/badge";
+import { Separator } from "@/components/ui_official/separator";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui_official/select";
 import { ProveedorFiscalSelector } from "@/components/ProveedorFiscalSelector";
 import { ProductSearchSelector } from "@/components/ProductSearchSelector";
 import { usePostApiCompras } from "@/api/generated/órdenes-de-compra/órdenes-de-compra";
@@ -178,7 +179,7 @@ const NuevaOrdenCompraPage = () => {
   };
 
   return (
-    <div className="space-y-6 px-4 lg:px-6 pt-1 md:pt-2 pb-8">
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2 pb-8">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Nueva Orden de Compra</h1>
@@ -191,60 +192,53 @@ const NuevaOrdenCompraPage = () => {
         </Button>
       </div>
 
-      {/* Sección A: Información del Proveedor y Datos Fiscales */}
+      {/* Sección: Información del Proveedor y Comprobante */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Receipt className="h-5 w-5" />
-            Información del Proveedor y Comprobante
-          </CardTitle>
-          <CardDescription>Datos del proveedor y del comprobante de compra (opcional al crear, obligatorio al recibir)</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Proveedor */}
-          <div className="space-y-2">
-            <Label>Proveedor *</Label>
-            <ProveedorFiscalSelector
-              value={selectedProveedor?.id}
-              onValueChange={setSelectedProveedor}
-              tipoComprobanteRequerido={tipoComprobante as any}
-              disabled={isPending}
-              required={true}
-            />
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Proveedor y Comprobante</CardTitle>
+              <CardDescription className="text-xs mt-1">Serie y número opcionales (se pueden ingresar al recibir)</CardDescription>
+            </div>
             {selectedProveedor && (
-              <div className="text-xs text-muted-foreground space-y-1 mt-2 p-3 bg-muted rounded-md">
-                <p><strong>Tipo:</strong> {selectedProveedor.tipo_documento}</p>
-                {selectedProveedor.ruc_identidad && (
-                  <p><strong>{selectedProveedor.tipo_documento}:</strong> {selectedProveedor.ruc_identidad}</p>
-                )}
-                {selectedProveedor.direccion && (
-                  <p><strong>Dirección:</strong> {selectedProveedor.direccion}</p>
-                )}
-                {selectedProveedor.telefono && (
-                  <p><strong>Teléfono:</strong> {selectedProveedor.telefono}</p>
-                )}
-              </div>
+              <Badge variant="outline" className="font-normal">
+                {selectedProveedor.tipo_documento}: {selectedProveedor.ruc_identidad}
+              </Badge>
             )}
           </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+            {/* Proveedor - ocupa 2 columnas */}
+            <div className="space-y-2 md:col-span-2">
+              <Label>Proveedor *</Label>
+              <ProveedorFiscalSelector
+                value={selectedProveedor?.id}
+                onValueChange={setSelectedProveedor}
+                tipoComprobanteRequerido={tipoComprobante as any}
+                disabled={isPending}
+                required={true}
+              />
+            </div>
 
-          {/* Datos del Comprobante */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Tipo de Comprobante */}
             <div className="space-y-2">
-              <Label htmlFor="tipo_comprobante">Tipo de Comprobante</Label>
+              <Label htmlFor="tipo_comprobante">Tipo</Label>
               <Select value={tipoComprobante} onValueChange={setTipoComprobante}>
                 <SelectTrigger id="tipo_comprobante">
-                  <SelectValue placeholder="Seleccionar" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="FACTURA">Factura</SelectItem>
                   <SelectItem value="BOLETA">Boleta</SelectItem>
-                  <SelectItem value="GUIA">Guía de Remisión</SelectItem>
+                  <SelectItem value="GUIA">Guía</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Serie */}
             <div className="space-y-2">
-              <Label htmlFor="serie">Serie (Opcional)</Label>
+              <Label htmlFor="serie">Serie</Label>
               <Input
                 id="serie"
                 placeholder="F001"
@@ -253,13 +247,11 @@ const NuevaOrdenCompraPage = () => {
                 maxLength={10}
                 disabled={isPending}
               />
-              <p className="text-xs text-muted-foreground">
-                Puedes ingresar después al recibir
-              </p>
             </div>
 
+            {/* Número */}
             <div className="space-y-2">
-              <Label htmlFor="numero">Número (Opcional)</Label>
+              <Label htmlFor="numero">Número</Label>
               <Input
                 id="numero"
                 placeholder="000001"
@@ -270,8 +262,9 @@ const NuevaOrdenCompraPage = () => {
               />
             </div>
 
+            {/* Fecha */}
             <div className="space-y-2">
-              <Label htmlFor="fecha">Fecha de Emisión</Label>
+              <Label htmlFor="fecha">Fecha</Label>
               <Input
                 id="fecha"
                 type="date"
@@ -284,104 +277,95 @@ const NuevaOrdenCompraPage = () => {
         </CardContent>
       </Card>
 
-      {/* Sección B: Agregar Productos */}
+      {/* Sección: Agregar Productos */}
       <Card>
-        <CardHeader>
-          <CardTitle>Agregar Productos a la Orden</CardTitle>
-          <CardDescription>Los precios deben incluir IGV (18%)</CardDescription>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg">Agregar Productos</CardTitle>
+              <CardDescription className="text-xs mt-1">Precios con IGV (18%) incluido</CardDescription>
+            </div>
+            {selectedProducto && (
+              <Badge variant="secondary" className="font-normal">
+                Stock: {Number(selectedProducto.stock).toFixed(3)}
+              </Badge>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
-              {/* Buscador de Producto */}
-              <div className="md:col-span-5 space-y-2">
-                <Label>Producto</Label>
-                <ProductSearchSelector
-                  selected={selectedProducto}
-                  onSelect={setSelectedProducto}
-                  placeholder="Buscar por nombre o SKU..."
-                  disabled={isPending}
-                />
-                <input ref={productoRef} className="sr-only" />
-              </div>
-
-              {/* Cantidad */}
-              <div className="md:col-span-2 space-y-2">
-                <Label htmlFor="cantidad">Cantidad</Label>
-                <Input
-                  ref={cantidadRef}
-                  id="cantidad"
-                  type="number"
-                  step="0.001"
-                  min="0"
-                  placeholder="10"
-                  value={cantidad}
-                  onChange={(e) => setCantidad(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, () => costoRef.current?.focus())}
-                  disabled={!selectedProducto || isPending}
-                />
-              </div>
-
-              {/* Costo Unitario (con IGV) */}
-              <div className="md:col-span-3 space-y-2">
-                <Label htmlFor="costo">Costo con IGV (S/)</Label>
-                <Input
-                  ref={costoRef}
-                  id="costo"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  placeholder="15.50"
-                  value={costoUnitario}
-                  onChange={(e) => setCostoUnitario(e.target.value)}
-                  onKeyDown={(e) => handleKeyDown(e, handleAgregarProducto)}
-                  disabled={!selectedProducto || isPending}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Precio con IGV incluido
-                </p>
-              </div>
-
-              {/* Botón Agregar */}
-              <div className="md:col-span-2 space-y-2">
-                <Label className="invisible">Acción</Label>
-                <Button
-                  onClick={handleAgregarProducto}
-                  disabled={!selectedProducto || isPending}
-                  className="w-full"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Agregar
-                </Button>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
+            {/* Buscador de Producto */}
+            <div className="md:col-span-5 space-y-2">
+              <Label>Producto</Label>
+              <ProductSearchSelector
+                selected={selectedProducto}
+                onSelect={setSelectedProducto}
+                placeholder="Buscar por nombre o SKU..."
+                disabled={isPending}
+              />
+              <input ref={productoRef} className="sr-only" />
             </div>
 
-            {selectedProducto && (
-              <Alert>
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>
-                  <strong>{selectedProducto.nombre}</strong>
-                  {selectedProducto.sku && <span className="ml-2 text-muted-foreground">SKU: {selectedProducto.sku}</span>}
-                  <br />
-                  <span className="text-xs">
-                    Stock actual: <strong>{Number(selectedProducto.stock).toFixed(3)}</strong>
-                    {/* @ts-ignore */}
-                    {selectedProducto.unidad_medida && ` ${selectedProducto.unidad_medida.codigo}`}
-                  </span>
-                </AlertDescription>
-              </Alert>
-            )}
+            {/* Cantidad */}
+            <div className="md:col-span-2 space-y-2">
+              <Label htmlFor="cantidad">Cantidad</Label>
+              <Input
+                ref={cantidadRef}
+                id="cantidad"
+                type="number"
+                step="0.001"
+                min="0"
+                placeholder="10"
+                value={cantidad}
+                onChange={(e) => setCantidad(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, () => costoRef.current?.focus())}
+                disabled={!selectedProducto || isPending}
+              />
+            </div>
+
+            {/* Costo Unitario (con IGV) */}
+            <div className="md:col-span-3 space-y-2">
+              <Label htmlFor="costo">Costo c/IGV</Label>
+              <Input
+                ref={costoRef}
+                id="costo"
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="15.50"
+                value={costoUnitario}
+                onChange={(e) => setCostoUnitario(e.target.value)}
+                onKeyDown={(e) => handleKeyDown(e, handleAgregarProducto)}
+                disabled={!selectedProducto || isPending}
+              />
+            </div>
+
+            {/* Botón Agregar */}
+            <div className="md:col-span-2 space-y-2">
+              <Label className="invisible">Acción</Label>
+              <Button
+                onClick={handleAgregarProducto}
+                disabled={!selectedProducto || isPending}
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Agregar
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Sección C: Carrito de Compra con Desglose de IGV */}
+      {/* Sección: Carrito de Compra */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShoppingCart className="h-5 w-5" />
-            Productos en la Orden ({items.length})
-          </CardTitle>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShoppingCart className="h-5 w-5" />
+              Productos en la Orden
+            </CardTitle>
+            <Badge variant="outline">{items.length} {items.length === 1 ? 'producto' : 'productos'}</Badge>
+          </div>
         </CardHeader>
         <CardContent>
           {items.length === 0 ? (
@@ -443,44 +427,51 @@ const NuevaOrdenCompraPage = () => {
                 </table>
               </div>
 
-              {/* Resumen con desglose fiscal */}
-              <div className="flex flex-col md:flex-row items-start md:items-end justify-between pt-4 border-t gap-6">
-                <div className="text-sm text-muted-foreground space-y-1">
-                  <p>Esta orden quedará en estado <strong>PENDIENTE</strong></p>
-                  <p className="text-xs">El stock se actualizará cuando recibas la mercadería</p>
-                  {!serie || !numero ? (
-                    <p className="text-xs text-amber-600">
-                      ⚠️ Deberás ingresar serie y número al recibir la mercadería
-                    </p>
-                  ) : null}
-                </div>
-                
-                <div className="w-full md:w-auto min-w-[300px] space-y-3">
-                  {/* Desglose de IGV */}
-                  <div className="bg-muted p-4 rounded-lg space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Subtotal (Base Imponible):</span>
-                      <span className="font-medium tabular-nums">{formatCurrency(subtotal_base)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">IGV (18%):</span>
-                      <span className="font-medium tabular-nums">{formatCurrency(impuesto_igv)}</span>
-                    </div>
-                    <div className="flex justify-between text-lg font-bold border-t pt-2">
-                      <span>TOTAL:</span>
-                      <span className="tabular-nums">{formatCurrency(total)}</span>
-                    </div>
+              {/* Resumen fiscal */}
+              <div className="pt-4 border-t">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                  <div className="text-sm text-muted-foreground space-y-1">
+                    <p>Estado: <Badge variant="secondary" className="font-normal">PENDIENTE</Badge></p>
+                    <p className="text-xs">El stock se actualizará al recibir la mercadería</p>
+                    {!serie || !numero ? (
+                      <p className="text-xs text-amber-600">
+                        ⚠️ Serie y número se pueden ingresar al recibir
+                      </p>
+                    ) : null}
                   </div>
+                  
+                  <div className="flex items-center gap-4">
+                    {/* Desglose compacto */}
+                    <div className="text-right space-y-1">
+                      <div className="text-xs text-muted-foreground">
+                        Base: {formatCurrency(subtotal_base)} + IGV: {formatCurrency(impuesto_igv)}
+                      </div>
+                      <div className="text-2xl font-bold tabular-nums">
+                        {formatCurrency(total)}
+                      </div>
+                    </div>
 
-                  <Button
-                    size="lg"
-                    onClick={handleGuardarOrden}
-                    disabled={items.length === 0 || isPending || !selectedProveedor}
-                    className="w-full"
-                  >
-                    <ShoppingCart className="mr-2 h-5 w-5" />
-                    {isPending ? "Generando orden..." : "Generar Orden de Compra"}
-                  </Button>
+                    <Separator orientation="vertical" className="h-12" />
+
+                    <Button
+                      size="lg"
+                      onClick={handleGuardarOrden}
+                      disabled={items.length === 0 || isPending || !selectedProveedor}
+                      className="min-w-[200px]"
+                    >
+                      {isPending ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Generando...
+                        </>
+                      ) : (
+                        <>
+                          <ShoppingCart className="mr-2 h-5 w-5" />
+                          Generar Orden
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
