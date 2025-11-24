@@ -1,25 +1,33 @@
 /**
- * AdminSesionesView - Página de administración de sesiones de caja
- * 
- * Según doc_funcional_caja.md Sección 4 (Cierre Forzoso):
- * "Supervisor/Administrador ingresa con permisos elevados"
- * "Accede a menú 'Cajas' → 'Sesiones Activas'"
- * "Identifica la sesión zombie de Pedro"
- * "Ejecuta 'Cierre Forzoso': Cuenta el dinero físico, ingresa monto real"
- * "Sistema calcula diferencia y cierra la sesión"
+ * AdminSesionesView - Gestión de Sesiones de Caja con TanStack Table
  */
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+"use client"
+
+import * as React from "react"
+import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, AlertTriangle, ShieldAlert, Calendar, User, Wallet } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
+
+import { useGetApiSesionesCajaHistorial, usePostApiSesionesCajaIdCierreAdministrativo } from '@/api/generated/sesiones-de-caja/sesiones-de-caja'
+import type { SesionCaja } from '@/api/generated/model'
+
+import { Button } from '@/components/ui_official/button'
+import { Checkbox } from '@/components/ui_official/checkbox'
+import { Input } from '@/components/ui_official/input'
+import { Textarea } from '@/components/ui_official/textarea'
+import { Badge } from '@/components/ui_official/badge'
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui_official/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -27,14 +35,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from '@/components/ui_official/table'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui_official/dialog'
 import {
   Form,
   FormControl,
@@ -43,15 +51,7 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useGetApiSesionesCajaHistorial, usePostApiSesionesCajaIdCierreAdministrativo } from '@/api/generated/sesiones-de-caja/sesiones-de-caja';
-import { toast } from 'sonner';
-import { Loader2, AlertTriangle, ShieldAlert, Calendar, User, Wallet } from 'lucide-react';
-import type { SesionCaja } from '@/api/generated/model';
+} from '@/components/ui_official/form'
 
 const cierreAdministrativoSchema = z.object({
   monto_final: z
@@ -61,18 +61,24 @@ const cierreAdministrativoSchema = z.object({
       message: 'Debe ser un número válido mayor o igual a 0',
     }),
   motivo: z.string().min(10, 'El motivo debe tener al menos 10 caracteres'),
-});
+})
 
-type CierreAdministrativoFormValues = z.infer<typeof cierreAdministrativoSchema>;
+type CierreAdministrativoFormValues = z.infer<typeof cierreAdministrativoSchema>
 
 export default function AdminSesionesPage() {
-  const [selectedSesion, setSelectedSesion] = useState<SesionCaja | null>(null);
-  const [showCierreModal, setShowCierreModal] = useState(false);
+  const [selectedSesion, setSelectedSesion] = React.useState<SesionCaja | null>(null)
+  const [showCierreModal, setShowCierreModal] = React.useState(false)
 
-  const { data: sesionesResponse, isLoading, refetch } = useGetApiSesionesCajaHistorial();
-  const sesiones = (sesionesResponse?.data ?? []).filter((s: { estado: string }) => s.estado === 'ABIERTA');
+  // Estados de tabla
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
 
-  const { mutateAsync: cerrarAdministrativamente } = usePostApiSesionesCajaIdCierreAdministrativo();
+  const { data: sesionesResponse, isLoading, refetch } = useGetApiSesionesCajaHistorial()
+  const sesiones = (sesionesResponse?.data ?? []).filter((s: { estado: string }) => s.estado === 'ABIERTA')
+
+  const { mutateAsync: cerrarAdministrativamente } = usePostApiSesionesCajaIdCierreAdministrativo()
 
   const form = useForm<CierreAdministrativoFormValues>({
     resolver: zodResolver(cierreAdministrativoSchema),
@@ -80,19 +86,19 @@ export default function AdminSesionesPage() {
       monto_final: '',
       motivo: '',
     },
-  });
+  })
 
   const handleOpenCierreModal = (sesion: SesionCaja) => {
-    setSelectedSesion(sesion);
+    setSelectedSesion(sesion)
     form.reset({
       monto_final: '',
       motivo: `Cierre administrativo: Usuario ${sesion.usuario?.nombre ?? 'desconocido'} no cerró su turno`,
-    });
-    setShowCierreModal(true);
-  };
+    })
+    setShowCierreModal(true)
+  }
 
   const handleCierreAdministrativo = async (data: CierreAdministrativoFormValues) => {
-    if (!selectedSesion) return;
+    if (!selectedSesion) return
 
     try {
       await cerrarAdministrativamente({
@@ -101,120 +107,299 @@ export default function AdminSesionesPage() {
           monto_final: Number(data.monto_final),
           motivo: data.motivo,
         },
-      });
+      })
 
       toast.success('Sesión cerrada administrativamente', {
         description: `Sesión de ${selectedSesion.usuario?.nombre ?? 'usuario'} cerrada con éxito`,
-      });
+      })
 
-      setShowCierreModal(false);
-      setSelectedSesion(null);
-      form.reset();
-      refetch();
+      setShowCierreModal(false)
+      setSelectedSesion(null)
+      form.reset()
+      refetch()
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
       toast.error('Error al cerrar sesión', {
         description: errorMessage,
-      });
+      })
     }
-  };
+  }
+
+  // Definición de columnas
+  const columns = React.useMemo<ColumnDef<SesionCaja>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        id: "usuario",
+        header: "Usuario",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <User className="h-4 w-4 text-muted-foreground" />
+            <span className="font-medium">{row.original.usuario?.nombre ?? 'Usuario'}</span>
+          </div>
+        ),
+      },
+      {
+        id: "caja",
+        header: "Caja",
+        cell: ({ row }) => <span>{row.original.caja?.nombre ?? 'Caja'}</span>,
+      },
+      {
+        accessorKey: "fecha_apertura",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Apertura
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+            {new Date(row.original.fecha_apertura).toLocaleString('es-PE', {
+              day: '2-digit',
+              month: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit',
+            })}
+          </div>
+        ),
+      },
+      {
+        accessorKey: "monto_inicial",
+        header: "Monto Inicial",
+        cell: ({ row }) => (
+          <span className="font-mono">S/ {Number(row.original.monto_inicial ?? 0).toFixed(2)}</span>
+        ),
+      },
+      {
+        accessorKey: "total_ventas",
+        header: "Ventas",
+        cell: ({ row }) => (
+          <span className="font-mono text-green-600">
+            S/ {Number(row.original.total_ventas ?? 0).toFixed(2)}
+          </span>
+        ),
+      },
+      {
+        accessorKey: "estado",
+        header: "Estado",
+        cell: ({ row }) => (
+          <Badge variant="default" className="bg-green-600 text-white">
+            {row.original.estado}
+          </Badge>
+        ),
+      },
+      {
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const sesion = row.original
+          return (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem
+                    onSelect={() => handleOpenCierreModal(sesion)}
+                    className="text-destructive focus:text-destructive"
+                  >
+                    <AlertTriangle className="mr-2 h-4 w-4" />
+                    Cierre Forzoso
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+      },
+    ],
+    []
+  )
+
+  const table = useReactTable({
+    data: sesiones,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="size-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    );
+    )
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <ShieldAlert className="size-6 text-amber-600" />
-            Administración de Sesiones de Caja
-          </CardTitle>
-          <CardDescription>
-            Vista de supervisores para gestionar sesiones abiertas y ejecutar cierres administrativos cuando un usuario no cierra su turno.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {sesiones.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Wallet className="size-16 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-semibold">No hay sesiones activas</p>
-              <p className="text-sm">Todas las cajas están cerradas correctamente</p>
-            </div>
-          ) : (
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Sesiones de Caja</h1>
+      </div>
+
+      {/* Tabla */}
+      {sesiones.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+          <Wallet className="h-16 w-16 mb-4 opacity-50" />
+          <p className="text-lg font-semibold mb-2">No hay sesiones activas</p>
+          <p className="text-sm">Todas las cajas están cerradas correctamente</p>
+        </div>
+      ) : (
+        <div>
+          {/* Filtros */}
+          <div className="flex items-center gap-2 pb-4">
+            <Input
+              placeholder="Filtrar por usuario..."
+              value={(table.getColumn("usuario")?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn("usuario")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-hidden rounded-md border">
             <Table>
               <TableHeader>
-                <TableRow>
-                  <TableHead>Usuario</TableHead>
-                  <TableHead>Caja</TableHead>
-                  <TableHead>Apertura</TableHead>
-                  <TableHead>Monto Inicial</TableHead>
-                  <TableHead>Ventas</TableHead>
-                  <TableHead>Estado</TableHead>
-                  <TableHead className="text-left">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {sesiones.map((sesion: SesionCaja) => (
-                  <TableRow key={sesion.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <User className="size-4 text-muted-foreground" />
-                        <span className="font-medium">{sesion.usuario?.nombre ?? 'Usuario'}</span>
-                      </div>
-                    </TableCell>
-                    <TableCell>{sesion.caja?.nombre ?? 'Caja'}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2 text-sm">
-                        <Calendar className="size-4 text-muted-foreground" />
-                        {new Date(sesion.fecha_apertura).toLocaleString('es-PE', {
-                          day: '2-digit',
-                          month: '2-digit',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    </TableCell>
-                    <TableCell className="font-mono">
-                      S/ {Number(sesion.monto_inicial ?? 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell className="font-mono">
-                      S/ {Number(sesion.total_ventas ?? 0).toFixed(2)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="default" className="bg-green-600">
-                        {sesion.estado}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-left">
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleOpenCierreModal(sesion)}
-                      >
-                        <AlertTriangle className="mr-2 size-4" />
-                        Cierre Forzoso
-                      </Button>
-                    </TableCell>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      )
+                    })}
                   </TableRow>
                 ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No results.
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
-          )}
-        </CardContent>
-      </Card>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal de Cierre Administrativo */}
       <Dialog open={showCierreModal} onOpenChange={setShowCierreModal}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <ShieldAlert className="size-5 text-amber-600" />
+              <ShieldAlert className="h-5 w-5 text-amber-600" />
               Cierre Administrativo
             </DialogTitle>
             <DialogDescription>
@@ -309,7 +494,7 @@ export default function AdminSesionesPage() {
                   Cancelar
                 </Button>
                 <Button type="submit" variant="destructive">
-                  <ShieldAlert className="mr-2 size-4" />
+                  <ShieldAlert className="mr-2 h-4 w-4" />
                   CONFIRMAR CIERRE FORZOSO
                 </Button>
               </div>
@@ -318,5 +503,5 @@ export default function AdminSesionesPage() {
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

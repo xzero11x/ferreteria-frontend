@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Check, ChevronsUpDown, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui_official/button";
 import {
   Command,
   CommandEmpty,
@@ -8,14 +8,14 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@/components/ui_official/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+} from "@/components/ui_official/popover";
+import { Badge } from "@/components/ui_official/badge";
+import { Alert, AlertDescription } from "@/components/ui_official/alert";
 import { useGetApiProveedores } from "@/api/generated/proveedores/proveedores";
 import type { Proveedor } from "@/api/generated/model";
 import { Loader2 } from "lucide-react";
@@ -121,7 +121,7 @@ export function ProveedorFiscalSelector({
               </div>
             ) : (
               <span className="text-muted-foreground">
-                {required ? 'Seleccionar proveedor *' : 'Seleccionar proveedor (opcional)'}
+                {required ? 'Seleccionar proveedor *' : 'Seleccionar proveedor'}
               </span>
             )}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

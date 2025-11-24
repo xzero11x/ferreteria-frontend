@@ -60,7 +60,7 @@ export function ProviderSelector({ value, onValueChange, disabled }: ProviderSel
           ) : selectedProveedor ? (
             <span className="truncate">{selectedProveedor.nombre}</span>
           ) : (
-            <span className="text-muted-foreground">Seleccionar proveedor (opcional)</span>
+            <span className="text-muted-foreground">Seleccionar proveedor</span>
           )}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
