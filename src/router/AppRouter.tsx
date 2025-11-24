@@ -33,6 +33,7 @@ import UsuariosPage from "@/pages/usuarios/index";
 import AdminCajasPage from "@/pages/admin/cajas";
 import AdminSesionesPage from "@/pages/admin/sesiones-caja";
 import AdminSeriesPage from "@/pages/admin/series";
+import CatalogoCarrito from "@/pages/Catalogo";
 
 const AppRouter: React.FC = () => {
 
@@ -41,6 +42,8 @@ const AppRouter: React.FC = () => {
             <Routes>
                 {/* Rutas públicas */}
                 <Route path="/" element={<Home />} />
+                <Route path="/catalogo" element={<CatalogoCarrito />} />
+                
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 {/* Rutas protegidas del dashboard */}
