@@ -5,6 +5,20 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import AppRouter from './router/AppRouter'
 import { AuthProvider } from './auth/AuthContext'
+import { CajaProvider } from './context/CajaContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+
+// Configuración del cliente de React Query
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+      staleTime: 5 * 60 * 1000, // 5 minutos
+    },
+  },
+});
 
 // Scrollbar visibility: per-container (no global effect, no content shift)
 (() => {
@@ -62,8 +76,13 @@ import { AuthProvider } from './auth/AuthContext'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AuthProvider>
-      <AppRouter />
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <CajaProvider>
+          <AppRouter />
+        </CajaProvider>
+      </AuthProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   </StrictMode>,
 )

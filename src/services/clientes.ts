@@ -35,10 +35,7 @@ export async function listClientes(params: PaginationParams = {}): Promise<Pagin
   if (q) qs.set("q", q);
   const url = `${endpoints.clientes.list()}${qs.toString() ? `?${qs.toString()}` : ""}`;
   const res = await http.get<PaginatedResponse<Cliente>>(url);
-<<<<<<< HEAD
   console.log("listClientes response →", res);
-=======
->>>>>>> parent of bafa93d (Merge remote-tracking branch 'origin/up-upload' into dante)
   return res;
 }
 
@@ -46,10 +43,7 @@ export async function listClientes(params: PaginationParams = {}): Promise<Pagin
 // Retorna solo el array de clientes para compatibilidad con selectores
 export async function searchClientes(term: string, params: Omit<PaginationParams, "q"> = {}): Promise<Cliente[]> {
   const response = await listClientes({ ...params, q: term });
-<<<<<<< HEAD
   
-=======
->>>>>>> parent of bafa93d (Merge remote-tracking branch 'origin/up-upload' into dante)
   return response.data;
 }
 

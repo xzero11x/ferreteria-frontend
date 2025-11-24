@@ -9,12 +9,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@/components/ui_official/dialog";
+import { Button } from "@/components/ui_official/button";
+import { ScrollArea } from "@/components/ui_official/scroll-area";
 import { Plus } from "lucide-react";
 import CategoryForm from "@/components/CategoryForm";
 import { toast } from "sonner";
-import { createCategoria, type Categoria } from "@/services/categorias";
+import { usePostApiCategorias } from "@/api/generated/categorías/categorías";
+import type { Categoria } from "@/api/generated/model";
+import { useQueryClient } from "@tanstack/react-query";
 
 const createCategorySchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -34,6 +37,8 @@ type CreateCategoryDialogProps = {
 
 export default function CreateCategoryDialog({ onCreated }: CreateCategoryDialogProps) {
   const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const { mutateAsync: createCategoria } = usePostApiCategorias();
 
   const form = useForm<CreateCategoryFormValues>({
     resolver: zodResolver(createCategorySchema),
@@ -56,12 +61,13 @@ export default function CreateCategoryDialog({ onCreated }: CreateCategoryDialog
         nombre: values.nombre.trim(),
         descripcion: values.descripcion?.trim() || undefined,
       };
-      const created = await createCategoria(payload);
-      toast.success("Categoría creada");
+      const created = await createCategoria({ data: payload });
+      await queryClient.invalidateQueries({ queryKey: ['api', 'categorias'] });
+      toast.success("Categor\u00eda creada");
       onCreated?.(created);
       setOpen(false);
     } catch (err: any) {
-      const message = err?.body?.message || err?.message || "No se pudo crear la categoría";
+      const message = err?.response?.data?.message || err?.message || "No se pudo crear la categor\u00eda";
       toast.error(message);
     }
   }
@@ -73,12 +79,16 @@ export default function CreateCategoryDialog({ onCreated }: CreateCategoryDialog
 <Plus className="mr-2 size-4" /> Crear Categoría
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0">
+        <DialogHeader className="px-6 pt-6">
           <DialogTitle>Crear categoría</DialogTitle>
-          <DialogDescription>Completa los datos para registrar una nueva categoría.</DialogDescription>
+          <DialogDescription>Completa los datos para registrar una nueva categoría</DialogDescription>
         </DialogHeader>
-        <CategoryForm form={form} onSubmit={onSubmit} submitLabel="Crear" />
+        <ScrollArea className="max-h-[calc(90vh-8rem)] px-6 pb-6">
+          <div className="space-y-6 pb-6">
+            <CategoryForm form={form} onSubmit={onSubmit} submitLabel="Crear categoría" />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
