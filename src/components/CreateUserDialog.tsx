@@ -9,24 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui_official/dialog";
-import { Button } from "@/components/ui_official/button";
-import { ScrollArea } from "@/components/ui_official/scroll-area";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import UserForm from "@/components/UserForm";
 import { toast } from "sonner";
-import { usePostApiUsuarios } from "@/api/generated/usuarios/usuarios";
-import type { Usuario } from "@/api/generated/model";
-import { useQueryClient } from "@tanstack/react-query";
-
-type RolUsuario = "admin" | "empleado";
-
-type UsuarioCreateInput = {
-  email: string;
-  password: string;
-  nombre?: string;
-  rol: RolUsuario;
-};
+import { createUsuario, type Usuario, type UsuarioCreateInput, type RolUsuario } from "@/services/usuarios";
 
 const createUserSchema = z.object({
   email: z.string().min(1, "El email es obligatorio").email("Email inválido"),
@@ -51,9 +39,6 @@ type CreateUserDialogProps = {
 
 export default function CreateUserDialog({ onCreated }: CreateUserDialogProps) {
   const [open, setOpen] = useState(false);
-  const queryClient = useQueryClient();
-  const { mutateAsync: createUsuario } = usePostApiUsuarios();
-
   const form = useForm<CreateUserFormValues>({
     resolver: zodResolver(createUserSchema),
     defaultValues: { email: "", nombre: "", password: "", rol: "empleado" },
@@ -75,13 +60,12 @@ export default function CreateUserDialog({ onCreated }: CreateUserDialogProps) {
         rol: values.rol,
       };
 
-      const created = await createUsuario({ data: payload });
-      await queryClient.invalidateQueries({ queryKey: ['api', 'usuarios'] });
+      const created = await createUsuario(payload);
       toast.success("Usuario creado correctamente");
       onCreated?.(created);
       setOpen(false);
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "Error al crear el usuario";
+      const message = err?.body?.message || err?.message || "Error al crear el usuario";
       toast.error(message);
     }
   }
@@ -93,16 +77,12 @@ export default function CreateUserDialog({ onCreated }: CreateUserDialogProps) {
 <Plus className="mr-2 size-4" /> Crear Usuario
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] p-0">
-        <div className="p-6 pb-4">
-          <DialogHeader>
-            <DialogTitle>Crear usuario</DialogTitle>
-            <DialogDescription>Completa los datos para registrar un nuevo usuario.</DialogDescription>
-          </DialogHeader>
-        </div>
-        <ScrollArea className="max-h-[calc(90vh-8rem)] px-6 pb-6">
-          <UserForm form={form} onSubmit={onSubmit} submitLabel="Crear usuario" />
-        </ScrollArea>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Crear usuario</DialogTitle>
+          <DialogDescription>Completa los datos para registrar un nuevo usuario.</DialogDescription>
+        </DialogHeader>
+        <UserForm form={form} onSubmit={onSubmit} submitLabel="Crear" />
       </DialogContent>
     </Dialog>
   );

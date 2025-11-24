@@ -15,24 +15,16 @@ import RegisterPage from "@/pages/auth/Register";
 
 import ProductosPage from "@/pages/productos/index";
 import CategoriasPage from "@/pages/categorias/index";
-import MarcasPage from "@/pages/marcas/index";
-import UnidadesMedidaPage from "@/pages/unidades-medida/index";
 import InventarioPage from "@/pages/inventario/index";
 import ComprasPage from "@/pages/compras/index";
-import NuevaOrdenCompraFiscalPage from "@/pages/compras/nueva-fiscal";
-import KardexPage from "@/pages/kardex/index";
 import POSPage from "@/pages/ventas/POS";
 import HistorialVentasPage from "@/pages/ventas/historial";
 import ReportesPage from "@/pages/reportes/index";
-import ReportesFiscalesPage from "@/pages/reportes/fiscales";
 import ConfiguracionPage from "@/pages/configuracion/index";
 import ClientesPage from "@/pages/clientes/index";
 import ProveedoresPage from "@/pages/proveedores/index";
 import PedidosPage from "@/pages/pedidos/index";
 import UsuariosPage from "@/pages/usuarios/index";
-import AdminCajasPage from "@/pages/admin/cajas";
-import AdminSesionesPage from "@/pages/admin/sesiones-caja";
-import AdminSeriesPage from "@/pages/admin/series";
 
 const AppRouter: React.FC = () => {
 
@@ -54,10 +46,6 @@ const AppRouter: React.FC = () => {
 
                         <Route path="categorias" element={<CategoriasPage />} />
 
-                        <Route path="marcas" element={<MarcasPage />} />
-
-                        <Route path="unidades-medida" element={<UnidadesMedidaPage />} />
-
                         <Route path="inventario" element={<InventarioPage />} />
 
                         <Route path="usuarios" element={<UsuariosPage />} />
@@ -69,22 +57,13 @@ const AppRouter: React.FC = () => {
                         <Route path="pedidos" element={<PedidosPage />} />
 
                         <Route path="compras" element={<ComprasPage />} />
-                        <Route path="compras/nueva-fiscal" element={<NuevaOrdenCompraFiscalPage />} />
-
-                        <Route path="kardex" element={<KardexPage />} />
 
                         <Route path="ventas" element={<POSPage />} />
                         <Route path="ventas/historial" element={<HistorialVentasPage />} />
 
                         <Route path="reportes" element={<ReportesPage />} />
-                        <Route path="reportes/fiscales" element={<ReportesFiscalesPage />} />
 
                         <Route path="configuracion" element={<ConfiguracionPage />} />
-
-                        {/* Administración de Caja */}
-                        <Route path="admin/cajas" element={<AdminCajasPage />} />
-                        <Route path="admin/sesiones" element={<AdminSesionesPage />} />
-                        <Route path="admin/series" element={<AdminSeriesPage />} />
                     </Route>
                 </Route>
             </Routes>

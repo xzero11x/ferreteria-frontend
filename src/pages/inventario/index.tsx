@@ -17,40 +17,11 @@ import {
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import type { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "@/components/ui/data-table";
-import { DataTableColumnHeader } from "@/components/ui/data-table-column-header";
-import { ServerDataTablePagination } from "@/components/ui/server-data-table-pagination";
-import { useGetApiInventarioAjustes, usePostApiInventarioAjustes } from "@/api/generated/inventario/inventario";
-import type { Producto } from "@/api/generated/model";
+import { EntityDataTable } from "@/components/entity-data-table";
+import type { AjusteCreateInput, Ajuste } from "@/services/inventario";
+import { createAjuste, listAjustes } from "@/services/inventario";
+import type { Producto } from "@/services/productos";
 import { ProductSearchSelector } from "@/components/ProductSearchSelector";
-import { useQueryClient } from "@tanstack/react-query";
-
-// Tipos inline para ajustes (no están exportados en el cliente generado)
-type Ajuste = {
-	id?: number;
-	tipo?: "entrada" | "salida";
-	cantidad?: number;
-	motivo?: string;
-	created_at?: string;
-	producto?: {
-		id?: number;
-		nombre?: string;
-		sku?: string;
-		stock_actual?: number;
-	} | null;
-	usuario?: {
-		id?: number;
-		nombre?: string;
-		email?: string;
-	} | null;
-};
-
-type AjusteCreateInput = {
-	tipo: "entrada" | "salida";
-	cantidad: number;
-	motivo: string;
-	producto_id: number;
-};
 
 type AjusteFormState = {
 	producto_id: string;
@@ -70,6 +41,7 @@ const InventarioPage = () => {
   const [searchParams] = useSearchParams();
   const [productos] = useState<Producto[]>([]); // Solo para referencia de filtro, ProductSearchSelector hace su propia búsqueda
   const [ajustes, setAjustes] = useState<Ajuste[]>([]);
+  const [loadingAjustes, setLoadingAjustes] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState<AjusteFormState>(initialFormState);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -87,47 +59,39 @@ const InventarioPage = () => {
   const [tipoFilter, setTipoFilter] = useState<"entrada" | "salida" | "all">("all");
   const [productoIdFilter, setProductoIdFilter] = useState<number | null>(null);
 
-	// Hook para cargar ajustes (query manual)
-	const [ajustesParams, setAjustesParams] = useState<{
-		tipo?: "entrada" | "salida";
-		producto_id?: number;
-		page?: number;
-		limit?: number;
-	}>({});
-
-	const { data: ajustesResponse, isLoading: loadingAjustes, refetch: refetchAjustes } = useGetApiInventarioAjustes(
-		ajustesParams,
-		{ query: { enabled: false } } // Manual fetch
-	);
-
 	// Cargar ajustes con filtros server-side
 	const fetchAjustes = useCallback(async (
-		_page: number, 
-		_limit: number, 
-		_search: string,
+		page: number, 
+		limit: number, 
+		search: string,
 		tipo?: "entrada" | "salida",
 		productoId?: number
 	) => {
-		setAjustesParams({
-			tipo: tipo || undefined,
-			producto_id: productoId || undefined,
-			page: _page,
-			limit: _limit,
-		});
-		await refetchAjustes();
-	}, [refetchAjustes]);
-
-	// Actualizar estado local cuando llega la respuesta
-	useEffect(() => {
-		if (!ajustesResponse) return;
-		const ajustesData = ajustesResponse.data ?? [];
-		setAjustes(ajustesData);
-		setTotalPages(ajustesResponse.meta?.totalPages ?? 1);
-		setTotalItems(ajustesResponse.meta?.total ?? 0);
-		setCurrentPage(ajustesResponse.meta?.page ?? 1);
-		console.log('📊 Total ajustes en esta página:', ajustesData.length);
-		console.log('📊 Total de registros:', ajustesResponse.meta?.total);
-	}, [ajustesResponse]);
+		setLoadingAjustes(true);
+		try {
+			const response = await listAjustes({ 
+				page, 
+				limit, 
+				q: search || undefined,
+				tipo: tipo || undefined,
+				producto_id: productoId || undefined
+			});
+			
+			setAjustes(response.data);
+			setTotalPages(response.meta.totalPages);
+			setTotalItems(response.meta.total);
+			setCurrentPage(response.meta.page);
+			
+			console.log('📊 Total ajustes en esta página:', response.data.length);
+			console.log('📊 Total de registros:', response.meta.total);
+		} catch (err: any) {
+			const message = err?.body?.message || err?.message || "No se pudieron cargar los ajustes";
+			toast.error(message);
+			console.error('❌ Error cargando ajustes:', err);
+		} finally {
+			setLoadingAjustes(false);
+		}
+	}, []);
 
 	// Ref para controlar si es el primer renderizado absoluto
     const isFirstRender = useRef(true);
@@ -213,68 +177,63 @@ const InventarioPage = () => {
 		};
 	}
 
-	const queryClient = useQueryClient();
-	const { mutateAsync: createAjuste } = usePostApiInventarioAjustes();
+async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+	event.preventDefault();
+	setSaving(true);
+	try {
+		const payload = buildPayload();
+		console.log('📝 Registrando ajuste:', payload);
+		const ajusteCreado = await createAjuste(payload);
+		console.log('✅ Ajuste creado:', ajusteCreado);
 
-	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		setSaving(true);
-		try {
-			const payload = buildPayload();
-			console.log('📝 Registrando ajuste:', payload);
-			const ajusteCreado = await createAjuste({ data: payload });
-			console.log('✅ Ajuste creado:', ajusteCreado);
+		// Determinar si el submit fue "Registrar y continuar"
+		const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+		const keepOpen = submitter?.dataset?.action === "continue";
 
-			// Determinar si el submit fue "Registrar y continuar"
-			const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-			const keepOpen = submitter?.dataset?.action === "continue";
+		toast.success(`Ajuste de ${payload.tipo} registrado correctamente`);
 
-			toast.success(`Ajuste de ${payload.tipo} registrado correctamente`);
-
-			if (keepOpen) {
-				// Actualizar stock optimistamente en el display
-				if (selectedProductoInfo) {
-					const ajuste = payload.tipo === "entrada" ? payload.cantidad : -payload.cantidad;
-					const stockActual = selectedProductoInfo.stock ?? 0;
-					setSelectedProductoInfo(prev => prev ? {...prev, stock: stockActual + ajuste} : null);
-				}
-				
-				// Mantener producto, tipo y motivo; limpiar solo cantidad
-				setForm(prev => ({ ...prev, cantidad: "" }));
-				
-				// Foco rápido en cantidad para el siguiente ajuste
-				setTimeout(() => cantidadRef.current?.focus(), 0);
-			} else {
-				resetForm();
-				setDialogOpen(false);
+		if (keepOpen) {
+			// Actualizar stock optimísticamente en el display
+			if (selectedProductoInfo) {
+				const ajuste = payload.tipo === "entrada" ? payload.cantidad : -payload.cantidad;
+				setSelectedProductoInfo(prev => prev ? {...prev, stock: prev.stock + ajuste} : null);
 			}
 			
-			// Recargar el historial de ajustes con filtros actuales
-			console.log('🔄 Recargando historial de ajustes...');
-			await queryClient.invalidateQueries({ queryKey: ['api', 'inventario-ajustes'] });
-			await fetchAjustes(
-				currentPage, 
-				pageSize, 
-				searchTerm,
-				tipoFilter === "all" ? undefined : tipoFilter,
-				productoIdFilter || undefined
-			);
-		} catch (err: any) {
-			const message = err?.response?.data?.message || err?.message || "Error al registrar el ajuste";
-			toast.error(message);
-			console.error('❌ Error al registrar ajuste:', err);
-		} finally {
-			setSaving(false);
+			// Mantener producto, tipo y motivo; limpiar solo cantidad
+			setForm(prev => ({ ...prev, cantidad: "" }));
+			
+			// Foco rápido en cantidad para el siguiente ajuste
+			setTimeout(() => cantidadRef.current?.focus(), 0);
+		} else {
+			resetForm();
+			setDialogOpen(false);
 		}
-	}	const selectedProducto = productos.find(p => p.id === Number(form.producto_id));
+		
+		// Recargar el historial de ajustes con filtros actuales
+		console.log('🔄 Recargando historial de ajustes...');
+		await fetchAjustes(
+			currentPage, 
+			pageSize, 
+			searchTerm,
+			tipoFilter === "all" ? undefined : tipoFilter,
+			productoIdFilter || undefined
+		);
+	} catch (err: any) {
+		const message = err?.message || err?.body?.message || "Error al registrar el ajuste";
+		toast.error(message);
+		console.error('❌ Error al registrar ajuste:', err);
+	} finally {
+		setSaving(false);
+	}
+}
 
-    const columns = useMemo<ColumnDef<Ajuste>[]>(() => [
+	const selectedProducto = productos.find(p => p.id === Number(form.producto_id));
+
+	const columns = useMemo<ColumnDef<Ajuste>[]>(() => [
     {
       id: "fecha",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Fecha" />
-      ),
-      accessorFn: (row) => row.created_at,
+      header: "Fecha",
+      accessorFn: (row) => row.created_at, // ✅ Campo real del backend
       cell: ({ getValue }) => {
         const fechaStr = getValue<string>();
         if (!fechaStr) return "—";
@@ -293,9 +252,7 @@ const InventarioPage = () => {
     },
     {
       id: "producto",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Producto" />
-      ),
+      header: "Producto",
       cell: ({ row }) => (
         <div>
           <div className="font-medium">{row.original.producto?.nombre || "Producto desconocido"}</div>
@@ -323,13 +280,9 @@ const InventarioPage = () => {
     },
     {
       accessorKey: "cantidad",
-      header: ({ column }) => (
-        <div className="w-full text-left">
-          <DataTableColumnHeader column={column} title="Cantidad" />
-        </div>
-      ),
+      header: () => <div className="w-full text-right">Cantidad</div>,
       cell: ({ row }) => (
-        <div className="w-full text-left font-medium tabular-nums">{row.original.tipo === "entrada" ? "+" : "-"}{row.original.cantidad}</div>
+        <div className="w-full text-right font-medium tabular-nums">{row.original.tipo === "entrada" ? "+" : "-"}{row.original.cantidad}</div>
       ),
       enableSorting: true,
     },
@@ -341,12 +294,17 @@ const InventarioPage = () => {
     },
     {
       id: "usuario",
-      header: ({ column }) => (
-        <DataTableColumnHeader column={column} title="Usuario" />
-      ),
+      header: "Usuario",
       accessorFn: (row) => row.usuario?.nombre ?? row.usuario?.email ?? "Usuario desconocido",
       cell: ({ row }) => <span className="text-sm">{row.original.usuario?.nombre || row.original.usuario?.email || "Usuario desconocido"}</span>,
       enableSorting: true,
+    },
+    {
+      id: "producto_id",
+      header: "",
+      accessorFn: (row) => row.producto_id,
+      cell: () => null,
+      enableHiding: false,
     },
   ], []);
 
@@ -516,13 +474,11 @@ const InventarioPage = () => {
                     <div className={loadingAjustes ? "pointer-events-none opacity-80 transition-opacity" : "transition-opacity"}>
                         
                         {/* TABLA */}
-                        <DataTable
+                        <EntityDataTable<Ajuste>
                             columns={columns}
                             data={ajustes}
                             manualPagination={true}
-                            toolbarRender={(table) => {
-                                void table;
-                                return (
+                            toolbarRender={() => (
                                 <div className="flex items-center gap-2">
                                     {/* Filtro por tipo */}
                                     <Select
@@ -548,7 +504,7 @@ const InventarioPage = () => {
                                             selected={productos.find(p => p.id === productoIdFilter) || null}
                                             placeholder="Filtrar por producto..."
                                             onSelect={(p) => {
-                                                setProductoIdFilter(p.id ?? null);
+                                                setProductoIdFilter(p.id);
                                                 setCurrentPage(1);
                                             }}
                                             items={productos}
@@ -583,24 +539,55 @@ const InventarioPage = () => {
                                         Actualizar
                                     </Button>
                                 </div>
-                                );
-                            }}
-                            footerRender={(table) => (
-                                <ServerDataTablePagination
-                                  selectedCount={table.getFilteredSelectedRowModel().rows.length}
-                                  totalFiltered={table.getFilteredRowModel().rows.length}
-                                  currentPage={currentPage}
-                                  totalPages={totalPages}
-                                  pageSize={pageSize}
-                                  onPrev={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                                  onNext={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                                  onPageSizeChange={(size) => {
-                                    setPageSize(size);
-                                    setCurrentPage(1);
-                                  }}
-                                />
                             )}
                         />
+
+                        {/* --- AQUÍ ESTÁ LA PAGINACIÓN RESTAURADA --- */}
+                        <div className="flex items-center justify-between mt-4">
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                                    disabled={currentPage === 1 || loadingAjustes}
+                                >
+                                    Anterior
+                                </Button>
+                                <div className="text-sm text-muted-foreground">
+                                    Página {currentPage} de {totalPages}
+                                </div>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                                    disabled={currentPage === totalPages || loadingAjustes}
+                                >
+                                    Siguiente
+                                </Button>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">Filas por página:</span>
+                                <Select
+                                    value={String(pageSize)}
+                                    onValueChange={(v) => {
+                                        setPageSize(Number(v));
+                                        setCurrentPage(1);
+                                    }}
+                                >
+                                    <SelectTrigger className="h-8 w-20">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="10">10</SelectItem>
+                                        <SelectItem value="20">20</SelectItem>
+                                        <SelectItem value="50">50</SelectItem>
+                                        <SelectItem value="100">100</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        {/* --- FIN PAGINACIÓN --- */}
 
                     </div>
                 </div>

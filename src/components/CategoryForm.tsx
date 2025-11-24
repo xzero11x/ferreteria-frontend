@@ -1,7 +1,6 @@
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui_official/form";
-import { Input } from "@/components/ui_official/input";
-import { Button } from "@/components/ui_official/button";
-import { Textarea } from "@/components/ui_official/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import type { UseFormReturn, FieldValues, FieldPath } from "react-hook-form";
 
 type CategoryFormProps<TValues extends FieldValues = FieldValues> = {
@@ -18,7 +17,7 @@ export default function CategoryForm<TValues extends FieldValues>({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-4">
           {/* Nombre */}
           <FormField
             control={form.control}
@@ -39,18 +38,18 @@ export default function CategoryForm<TValues extends FieldValues>({
             control={form.control}
             name={"descripcion" as FieldPath<TValues>}
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
+              <FormItem>
                 <FormLabel>Descripción</FormLabel>
                 <FormControl>
-                  <Textarea
-                    placeholder="Descripción detallada de la categoría..."
+                  <textarea
+                    placeholder="Opcional"
                     rows={3}
                     value={field.value ?? ""}
                     onChange={field.onChange}
                     onBlur={field.onBlur}
                     name={field.name}
-                    ref={field.ref}
-                    className="resize-none"
+                    ref={field.ref as any}
+                    className="min-h-[96px] rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   />
                 </FormControl>
                 <FormMessage />

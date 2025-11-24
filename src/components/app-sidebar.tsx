@@ -52,8 +52,7 @@ const data = {
 
     // Ventas (POS)
     { label: "Ventas (POS)" },
-    { title: "Punto de Venta", url: "/dashboard/ventas", icon: ShoppingCartIcon },
-    { title: "Historial de Ventas", url: "/dashboard/ventas/historial", icon: FileTextIcon },
+    { title: "Ventas", url: "/dashboard/ventas", icon: ShoppingCartIcon },
     { title: "Clientes", url: "/dashboard/clientes", icon: UsersIcon },
     { title: "Pedidos", url: "/dashboard/pedidos", icon: ClipboardCheckIcon },
 
@@ -61,13 +60,10 @@ const data = {
     { label: "Catálogo" },
     { title: "Productos", url: "/dashboard/productos", icon: BoxIcon },
     { title: "Categorías", url: "/dashboard/categorias", icon: TagsIcon },
-    { title: "Marcas", url: "/dashboard/marcas", icon: TagsIcon },
-    { title: "Unidades de Medida", url: "/dashboard/unidades-medida", icon: TagsIcon },
 
     // Inventario
     { label: "Inventario" },
     { title: "Inventario", url: "/dashboard/inventario", icon: BoxesIcon },
-    { title: "Kardex Fiscal", url: "/dashboard/kardex", icon: ClipboardListIcon },
 
     // Compras
     { label: "Compras" },
@@ -77,18 +73,11 @@ const data = {
     // Reportes
     { label: "Reportes" },
     { title: "Reportes", url: "/dashboard/reportes", icon: BarChartIcon },
-    { title: "Reportes Fiscales", url: "/dashboard/reportes/fiscales", icon: FileTextIcon },
 
     // Configuración
     { label: "Configuración" },
     { title: "Configuración", url: "/dashboard/configuracion", icon: SettingsIcon },
     { title: "Usuarios", url: "/dashboard/usuarios", icon: UserCogIcon },
-    
-    // Administración
-    { label: "Administración" },
-    { title: "Cajas", url: "/dashboard/admin/cajas", icon: BoxIcon },
-    { title: "Series SUNAT", url: "/dashboard/admin/series", icon: FileTextIcon },
-    { title: "Sesiones de Caja", url: "/dashboard/admin/sesiones", icon: ClipboardListIcon },
   ],
   navClouds: [
     {

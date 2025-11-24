@@ -9,19 +9,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui_official/dialog";
-import { Button } from "@/components/ui_official/button";
-import { ScrollArea } from "@/components/ui_official/scroll-area";
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import CategoryForm from "@/components/CategoryForm";
 import { toast } from "sonner";
-import { usePutApiCategoriasId } from "@/api/generated/categorías/categorías";
-import type { Categoria } from "@/api/generated/model";
-import { useQueryClient } from "@tanstack/react-query";
-
-type CategoriaUpdateInput = {
-  nombre?: string;
-  descripcion?: string;
-};
+import { updateCategoria, type Categoria, type CategoriaUpdateInput } from "@/services/categorias";
+import { Pencil } from "lucide-react";
 
 const updateCategorySchema = z.object({
   nombre: z.string().trim().min(1, "El nombre es obligatorio"),
@@ -47,8 +40,6 @@ export default function EditCategoryDialog({ categoria, onUpdated, children, ope
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = onOpenChange ?? setInternalOpen;
-  const queryClient = useQueryClient();
-  const { mutateAsync: updateCategoria } = usePutApiCategoriasId();
 
   const form = useForm<UpdateCategoryFormValues>({
     resolver: zodResolver(updateCategorySchema),
@@ -71,13 +62,12 @@ export default function EditCategoryDialog({ categoria, onUpdated, children, ope
         nombre: values.nombre.trim(),
         descripcion: values.descripcion?.trim() || undefined,
       };
-      const updated = await updateCategoria({ id: categoria.id!, data: payload });
-      await queryClient.invalidateQueries({ queryKey: ['api', 'categorias'] });
-      toast.success("Categor\u00eda actualizada");
+      const updated = await updateCategoria(categoria.id, payload);
+      toast.success("Categoría actualizada");
       onUpdated?.(updated);
       setOpen(false);
     } catch (err: any) {
-      const message = err?.response?.data?.message || err?.message || "No se pudo actualizar";
+      const message = err?.body?.message || err?.message || "No se pudo actualizar";
       toast.error(message);
     }
   }
@@ -87,16 +77,12 @@ export default function EditCategoryDialog({ categoria, onUpdated, children, ope
       {children ? (
         <DialogTrigger asChild>{children}</DialogTrigger>
       ) : null}
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] p-0">
-        <DialogHeader className="px-6 pt-6">
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
           <DialogTitle>Editar categoría</DialogTitle>
-          <DialogDescription>Actualiza los datos de la categoría seleccionada</DialogDescription>
+          <DialogDescription>Actualiza los datos de la categoría seleccionada.</DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[calc(90vh-8rem)] px-6 pb-6">
-          <div className="space-y-6 pb-6">
-            <CategoryForm form={form} onSubmit={onSubmit} submitLabel="Actualizar categoría" />
-          </div>
-        </ScrollArea>
+        <CategoryForm form={form} onSubmit={onSubmit} submitLabel="Actualizar" />
       </DialogContent>
     </Dialog>
   );
