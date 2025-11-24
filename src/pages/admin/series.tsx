@@ -1,8 +1,47 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
+/**
+ * AdminSeriesPage - Gestión de Series SUNAT con TanStack Table
+ */
+
+"use client"
+
+import * as React from "react"
+import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from "@tanstack/react-table"
+import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
+import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, Plus, FileText, Receipt, FileSignature, Pencil, Trash2 } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { toast } from 'sonner'
+import { useQueryClient } from '@tanstack/react-query'
+
+import {
+  useGetApiSeries,
+  usePostApiSeries,
+  usePutApiSeriesId,
+  useDeleteApiSeriesId,
+} from '@/api/generated/series-sunat/series-sunat'
+import { useGetApiCajas } from '@/api/generated/cajas/cajas'
+import type { Serie } from '@/api/generated/model'
+
+import { Button } from '@/components/ui_official/button'
+import { Checkbox } from '@/components/ui_official/checkbox'
+import { Input } from '@/components/ui_official/input'
+import { Badge } from '@/components/ui_official/badge'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui_official/dropdown-menu'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui_official/table'
 import {
   Dialog,
   DialogContent,
@@ -10,7 +49,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui_official/dialog'
 import {
   Form,
   FormControl,
@@ -19,30 +58,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from '@/components/ui_official/form'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui_official/select'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,20 +75,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { MoreHorizontal, Plus, FileText, Receipt, FileSignature, Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  useGetApiSeries,
-  usePostApiSeries,
-  usePutApiSeriesId,
-  useDeleteApiSeriesId,
-} from '@/api/generated/series-sunat/series-sunat';
-import { useGetApiCajas } from '@/api/generated/cajas/cajas';
-import type { Serie, CreateSerie, UpdateSerie } from '@/api/generated/model';
-import { useQueryClient } from '@tanstack/react-query';
+} from '@/components/ui_official/alert-dialog'
 
-// Schema de validación para el formulario
 const serieSchema = z.object({
   codigo: z
     .string()
@@ -73,38 +84,43 @@ const serieSchema = z.object({
     .regex(/^[A-Z0-9]{4}$/, 'Solo letras mayúsculas y números'),
   tipo_comprobante: z.enum(['FACTURA', 'BOLETA', 'NOTA_VENTA']),
   caja_id: z.number().nullable().optional(),
-});
+})
 
-type SerieFormValues = z.infer<typeof serieSchema>;
+type SerieFormValues = z.infer<typeof serieSchema>
 
 const TIPO_COMPROBANTE_ICONS = {
   FACTURA: FileText,
   BOLETA: Receipt,
   NOTA_VENTA: FileSignature,
-};
+}
 
 const TIPO_COMPROBANTE_COLORS = {
   FACTURA: 'bg-blue-100 text-blue-800',
   BOLETA: 'bg-green-100 text-green-800',
   NOTA_VENTA: 'bg-purple-100 text-purple-800',
-};
+}
 
 export default function AdminSeriesPage() {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [editingSerie, setEditingSerie] = useState<Serie | null>(null);
-  const [deletingSerie, setDeletingSerie] = useState<Serie | null>(null);
-  const queryClient = useQueryClient();
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false)
+  const [editingSerie, setEditingSerie] = React.useState<Serie | null>(null)
+  const [deletingSerie, setDeletingSerie] = React.useState<Serie | null>(null)
+  const queryClient = useQueryClient()
 
-  // Fetch series y cajas
-  const { data: seriesResponse, isLoading, error: loadError } = useGetApiSeries({}, {});
-  const series = seriesResponse?.data ?? [];
+  // Estados de tabla
+  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+  const [rowSelection, setRowSelection] = React.useState({})
 
-  const { data: cajasResponse } = useGetApiCajas({ includeInactive: 'false' }, {});
-  const cajas = cajasResponse?.data ?? [];
+  const { data: seriesResponse, isLoading } = useGetApiSeries({}, {})
+  const series = seriesResponse?.data ?? []
 
-  const { mutateAsync: createSerie } = usePostApiSeries();
-  const { mutateAsync: updateSerie } = usePutApiSeriesId();
-  const { mutateAsync: deleteSerie } = useDeleteApiSeriesId();
+  const { data: cajasResponse } = useGetApiCajas({ includeInactive: 'false' }, {})
+  const cajas = cajasResponse?.data ?? []
+
+  const { mutateAsync: createSerie } = usePostApiSeries()
+  const { mutateAsync: updateSerie } = usePutApiSeriesId()
+  const { mutateAsync: deleteSerie } = useDeleteApiSeriesId()
 
   const createForm = useForm<SerieFormValues>({
     resolver: zodResolver(serieSchema),
@@ -113,204 +129,342 @@ export default function AdminSeriesPage() {
       tipo_comprobante: 'FACTURA',
       caja_id: null,
     },
-  });
+  })
 
   const editForm = useForm<SerieFormValues>({
     resolver: zodResolver(serieSchema),
-  });
+  })
 
-  // Handlers
   const handleCreate = async (data: SerieFormValues) => {
     try {
-      const payload: CreateSerie = {
-        codigo: data.codigo.toUpperCase(),
-        tipo_comprobante: data.tipo_comprobante,
-        caja_id: data.caja_id ?? undefined,
-        isActive: true,
-      };
-
-      await createSerie({ data: payload });
-      
-      toast.success('Serie creada exitosamente', {
-        description: `Serie ${payload.codigo} registrada`,
-      });
-
-      setShowCreateDialog(false);
-      createForm.reset();
-      queryClient.invalidateQueries({ queryKey: ['/api/series'] });
+      await createSerie({
+        data: {
+          codigo: data.codigo,
+          tipo_comprobante: data.tipo_comprobante,
+          caja_id: data.caja_id || null,
+        },
+      })
+      toast.success('Serie creada exitosamente')
+      setShowCreateDialog(false)
+      createForm.reset()
+      queryClient.invalidateQueries({ queryKey: ['/api/series'] })
     } catch (error: any) {
-      console.error('Error al crear serie:', error);
-      toast.error('Error al crear serie', {
-        description: error?.response?.data?.message || 'No se pudo crear la serie',
-      });
+      toast.error('Error al crear serie')
     }
-  };
+  }
 
   const handleEdit = async (data: SerieFormValues) => {
-    if (!editingSerie) return;
-
+    if (!editingSerie) return
     try {
-      const payload: UpdateSerie = {
-        codigo: data.codigo.toUpperCase(),
-        tipo_comprobante: data.tipo_comprobante,
-        caja_id: data.caja_id ?? undefined,
-      };
-
-      await updateSerie({ id: editingSerie.id, data: payload });
-      
-      toast.success('Serie actualizada', {
-        description: `Serie ${payload.codigo} actualizada exitosamente`,
-      });
-
-      setEditingSerie(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/series'] });
-    } catch (error: any) {
-      console.error('Error al actualizar serie:', error);
-      toast.error('Error al actualizar serie', {
-        description: error?.response?.data?.message || 'No se pudo actualizar la serie',
-      });
+      await updateSerie({
+        id: editingSerie.id,
+        data: {
+          codigo: data.codigo,
+          tipo_comprobante: data.tipo_comprobante,
+          caja_id: data.caja_id || null,
+        },
+      })
+      toast.success('Serie actualizada')
+      setEditingSerie(null)
+      queryClient.invalidateQueries({ queryKey: ['/api/series'] })
+    } catch (error) {
+      toast.error('Error al actualizar serie')
     }
-  };
+  }
 
-  const confirmDelete = async () => {
-    if (!deletingSerie) return;
-
+  const handleDelete = async () => {
+    if (!deletingSerie) return
     try {
-      await deleteSerie({ id: deletingSerie.id });
-      
-      toast.success('Serie eliminada', {
-        description: `Serie ${deletingSerie.codigo} eliminada exitosamente`,
-      });
-
-      setDeletingSerie(null);
-      queryClient.invalidateQueries({ queryKey: ['/api/series'] });
-    } catch (error: any) {
-      console.error('Error al eliminar serie:', error);
-      toast.error('Error al eliminar serie', {
-        description: error?.response?.data?.message || 'No se pudo eliminar la serie',
-      });
+      await deleteSerie({ id: deletingSerie.id })
+      toast.success('Serie eliminada')
+      setDeletingSerie(null)
+      queryClient.invalidateQueries({ queryKey: ['/api/series'] })
+    } catch (error) {
+      toast.error('Error al eliminar serie')
     }
-  };
+  }
 
-  const openEditDialog = (serie: Serie) => {
-    setEditingSerie(serie);
-    editForm.reset({
-      codigo: serie.codigo,
-      tipo_comprobante: serie.tipo_comprobante,
-      caja_id: serie.caja_id ?? null,
-    });
-  };
+  // Definición de columnas
+  const columns = React.useMemo<ColumnDef<Serie>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "codigo",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Código
+              <ArrowUpDown className="ml-2 h-4 w-4" />
+            </Button>
+          )
+        },
+        cell: ({ row }) => <span className="font-mono font-semibold">{row.original.codigo}</span>,
+      },
+      {
+        accessorKey: "tipo_comprobante",
+        header: "Tipo",
+        cell: ({ row }) => {
+          const tipo = row.original.tipo_comprobante
+          const Icon = TIPO_COMPROBANTE_ICONS[tipo]
+          const colorClass = TIPO_COMPROBANTE_COLORS[tipo]
+          return (
+            <Badge variant="outline" className={colorClass}>
+              <Icon className="mr-1 h-3 w-3" />
+              {tipo.replace('_', ' ')}
+            </Badge>
+          )
+        },
+      },
+      {
+        accessorKey: "correlativo_actual",
+        header: "Correlativo",
+        cell: ({ row }) => (
+          <span className="font-mono">{row.original.correlativo_actual.toString().padStart(8, '0')}</span>
+        ),
+      },
+      {
+        id: "caja",
+        header: "Caja",
+        cell: ({ row }) => {
+          const caja = cajas.find((c) => c.id === row.original.caja_id)
+          return caja ? (
+            <span className="text-sm">{caja.nombre}</span>
+          ) : (
+            <span className="text-muted-foreground text-sm">Sin asignar</span>
+          )
+        },
+      },
+      {
+        accessorKey: "isActive",
+        header: "Estado",
+        cell: ({ row }) => {
+          return row.original.isActive ? (
+            <Badge variant="default" className="bg-green-600 text-white">Activa</Badge>
+          ) : (
+            <Badge variant="secondary">Inactiva</Badge>
+          )
+        },
+      },
+      {
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const serie = row.original
+          return (
+            <div className="flex justify-end">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      setEditingSerie(serie)
+                      editForm.reset({
+                        codigo: serie.codigo,
+                        tipo_comprobante: serie.tipo_comprobante,
+                        caja_id: serie.caja_id ?? null,
+                      })
+                    }}
+                  >
+                    <Pencil className="mr-2 h-4 w-4" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => setDeletingSerie(serie)}>
+                    <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
+        },
+      },
+    ],
+    [cajas, editForm]
+  )
+
+  const table = useReactTable({
+    data: series,
+    columns,
+    onSortingChange: setSorting,
+    onColumnFiltersChange: setColumnFilters,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: setRowSelection,
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  })
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Cargando series...</p>
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
-    );
-  }
-
-  if (loadError) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-destructive">Error al cargar las series</p>
-      </div>
-    );
+    )
   }
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Series de Comprobantes</h1>
-          <p className="text-muted-foreground mt-1">
-            Gestiona las series SUNAT para facturación electrónica
-          </p>
-        </div>
+        <h1 className="text-2xl font-semibold">Series SUNAT</h1>
         <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Nueva Serie
         </Button>
       </div>
 
-      {/* Tabla de Series */}
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Tipo Comprobante</TableHead>
-              <TableHead>Correlativo Actual</TableHead>
-              <TableHead>Caja Asignada</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-left">Acciones</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {series.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No hay series registradas. Crea tu primera serie para comenzar a facturar.
-                </TableCell>
-              </TableRow>
-            ) : (
-              series.map((serie) => {
-                const Icon = TIPO_COMPROBANTE_ICONS[serie.tipo_comprobante];
-                const colorClass = TIPO_COMPROBANTE_COLORS[serie.tipo_comprobante];
-                const cajaAsignada = cajas.find((c) => c.id === serie.caja_id);
+      {/* Tabla */}
+      {series.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+          <FileText className="h-16 w-16 mb-4 opacity-50" />
+          <p className="text-lg font-semibold mb-2">No hay series registradas</p>
+          <p className="text-sm mb-4">
+            Crea tu primera serie para comenzar a facturar
+          </p>
+          <Button onClick={() => setShowCreateDialog(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Crear Primera Serie
+          </Button>
+        </div>
+      ) : (
+        <div>
+          {/* Filtros */}
+          <div className="flex items-center gap-2 pb-4">
+            <Input
+              placeholder="Filtrar por código..."
+              value={(table.getColumn("codigo")?.getFilterValue() as string) ?? ""}
+              onChange={(event) =>
+                table.getColumn("codigo")?.setFilterValue(event.target.value)
+              }
+              className="max-w-sm"
+            />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="ml-auto">
+                  Columns <ChevronDown className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {table
+                  .getAllColumns()
+                  .filter((column) => column.getCanHide())
+                  .map((column) => {
+                    return (
+                      <DropdownMenuCheckboxItem
+                        key={column.id}
+                        className="capitalize"
+                        checked={column.getIsVisible()}
+                        onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                      >
+                        {column.id}
+                      </DropdownMenuCheckboxItem>
+                    )
+                  })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-                return (
-                  <TableRow key={serie.id}>
-                    <TableCell className="font-mono font-semibold">{serie.codigo}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={colorClass}>
-                        <Icon className="mr-1 h-3 w-3" />
-                        {serie.tipo_comprobante.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="font-mono">{serie.correlativo_actual.toString().padStart(8, '0')}</TableCell>
-                    <TableCell>
-                      {cajaAsignada ? (
-                        <span className="text-sm">{cajaAsignada.nombre}</span>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">Sin asignar</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {serie.isActive ? (
-                        <Badge variant="default" className="bg-green-500">Activa</Badge>
-                      ) : (
-                        <Badge variant="secondary">Inactiva</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-left">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(serie)}>
-                            <Pencil className="mr-2 h-4 w-4" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => setDeletingSerie(serie)}
-                            className="text-destructive"
-                          >
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Eliminar
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+          {/* Table */}
+          <div className="overflow-hidden rounded-md border">
+            <Table>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => {
+                      return (
+                        <TableHead key={header.id}>
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(header.column.columnDef.header, header.getContext())}
+                        </TableHead>
+                      )
+                    })}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id}>
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={columns.length} className="h-24 text-center">
+                      No results.
                     </TableCell>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between space-x-2 py-4">
+            <div className="flex-1 text-sm text-muted-foreground">
+              {table.getFilteredSelectedRowModel().rows.length} of{" "}
+              {table.getFilteredRowModel().rows.length} row(s) selected.
+            </div>
+            <div className="space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dialog Crear Serie */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
@@ -318,7 +472,7 @@ export default function AdminSeriesPage() {
           <DialogHeader>
             <DialogTitle>Crear Nueva Serie</DialogTitle>
             <DialogDescription>
-              Registra una serie de comprobantes SUNAT. Ejemplo: F001 para facturas, B001 para boletas.
+              Registra una serie de comprobantes SUNAT
             </DialogDescription>
           </DialogHeader>
           <Form {...createForm}>
@@ -336,130 +490,6 @@ export default function AdminSeriesPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="FACTURA">
-                          <div className="flex items-center">
-                            <FileText className="mr-2 h-4 w-4" />
-                            Factura (RUC 11 dígitos)
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="BOLETA">
-                          <div className="flex items-center">
-                            <Receipt className="mr-2 h-4 w-4" />
-                            Boleta (DNI/RUC)
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="NOTA_VENTA">
-                          <div className="flex items-center">
-                            <FileSignature className="mr-2 h-4 w-4" />
-                            Nota de Venta (Interno)
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      SUNAT valida el tipo según el RUC del cliente
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={createForm.control}
-                name="codigo"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código de Serie</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="F001"
-                        maxLength={4}
-                        className="font-mono uppercase"
-                        {...field}
-                        onChange={(e) => field.onChange(e.target.value.toUpperCase())}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      4 caracteres. Ej: F001, F002, B001, NV01
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={createForm.control}
-                name="caja_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Caja Asignada (Opcional)</FormLabel>
-                    <Select
-                      onValueChange={(val) => field.onChange(val === 'null' ? null : Number(val))}
-                      value={field.value?.toString() ?? 'null'}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sin asignar" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="null">Sin asignar</SelectItem>
-                        {cajas.map((caja) => (
-                          <SelectItem key={caja.id} value={caja.id.toString()}>
-                            {caja.nombre}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Recomendado para organización fiscal
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowCreateDialog(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button type="submit" disabled={createForm.formState.isSubmitting}>
-                  {createForm.formState.isSubmitting ? 'Creando...' : 'Crear Serie'}
-                </Button>
-              </DialogFooter>
-            </form>
-          </Form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog Editar Serie */}
-      <Dialog open={!!editingSerie} onOpenChange={(open) => !open && setEditingSerie(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Editar Serie</DialogTitle>
-            <DialogDescription>
-              Modifica los datos de la serie. El correlativo se mantiene automáticamente.
-            </DialogDescription>
-          </DialogHeader>
-          <Form {...editForm}>
-            <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
-              <FormField
-                control={editForm.control}
-                name="tipo_comprobante"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tipo de Comprobante</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
                         <SelectItem value="FACTURA">Factura</SelectItem>
                         <SelectItem value="BOLETA">Boleta</SelectItem>
                         <SelectItem value="NOTA_VENTA">Nota de Venta</SelectItem>
@@ -471,42 +501,44 @@ export default function AdminSeriesPage() {
               />
 
               <FormField
-                control={editForm.control}
+                control={createForm.control}
                 name="codigo"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Código de Serie</FormLabel>
                     <FormControl>
                       <Input
+                        {...field}
                         placeholder="F001"
                         maxLength={4}
-                        className="font-mono uppercase"
-                        {...field}
                         onChange={(e) => field.onChange(e.target.value.toUpperCase())}
                       />
                     </FormControl>
+                    <FormDescription>
+                      4 caracteres (ej: F001 para facturas, B001 para boletas)
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
               <FormField
-                control={editForm.control}
+                control={createForm.control}
                 name="caja_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Caja Asignada</FormLabel>
+                    <FormLabel>Asignar a Caja (Opcional)</FormLabel>
                     <Select
-                      onValueChange={(val) => field.onChange(val === 'null' ? null : Number(val))}
-                      value={field.value?.toString() ?? 'null'}
+                      onValueChange={(val) => field.onChange(val ? Number(val) : null)}
+                      value={field.value?.toString() || ""}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue />
+                          <SelectValue placeholder="Sin asignar" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="null">Sin asignar</SelectItem>
+                        <SelectItem value="">Sin asignar</SelectItem>
                         {cajas.map((caja) => (
                           <SelectItem key={caja.id} value={caja.id.toString()}>
                             {caja.nombre}
@@ -520,40 +552,128 @@ export default function AdminSeriesPage() {
               />
 
               <DialogFooter>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setEditingSerie(null)}
-                >
+                <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={editForm.formState.isSubmitting}>
-                  {editForm.formState.isSubmitting ? 'Guardando...' : 'Guardar Cambios'}
-                </Button>
+                <Button type="submit">Crear Serie</Button>
               </DialogFooter>
             </form>
           </Form>
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog Eliminar */}
-      <AlertDialog open={!!deletingSerie} onOpenChange={(open) => !open && setDeletingSerie(null)}>
+      {/* Dialog Editar Serie */}
+      {editingSerie && (
+        <Dialog open={!!editingSerie} onOpenChange={() => setEditingSerie(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Editar Serie</DialogTitle>
+            </DialogHeader>
+            <Form {...editForm}>
+              <form onSubmit={editForm.handleSubmit(handleEdit)} className="space-y-4">
+                <FormField
+                  control={editForm.control}
+                  name="tipo_comprobante"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Tipo de Comprobante</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="FACTURA">Factura</SelectItem>
+                          <SelectItem value="BOLETA">Boleta</SelectItem>
+                          <SelectItem value="NOTA_VENTA">Nota de Venta</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="codigo"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Código de Serie</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          maxLength={4}
+                          onChange={(e) => field.onChange(e.target.value.toUpperCase())}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={editForm.control}
+                  name="caja_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Asignar a Caja</FormLabel>
+                      <Select
+                        onValueChange={(val) => field.onChange(val ? Number(val) : null)}
+                        value={field.value?.toString() || ""}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Sin asignar" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="">Sin asignar</SelectItem>
+                          {cajas.map((caja) => (
+                            <SelectItem key={caja.id} value={caja.id.toString()}>
+                              {caja.nombre}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setEditingSerie(null)}>
+                    Cancelar
+                  </Button>
+                  <Button type="submit">Guardar Cambios</Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* AlertDialog Eliminar */}
+      <AlertDialog open={!!deletingSerie} onOpenChange={() => setDeletingSerie(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar serie {deletingSerie?.codigo}?</AlertDialogTitle>
+            <AlertDialogTitle>¿Eliminar serie?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Se eliminará la serie pero los comprobantes
-              emitidos con ella se mantendrán registrados.
+              Estás por eliminar la serie <strong>{deletingSerie?.codigo}</strong>.
+              Esta acción NO se puede deshacer.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Eliminar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }
