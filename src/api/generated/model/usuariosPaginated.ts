@@ -16,8 +16,8 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { Usuario } from './usuario';
-import type { UsuariosPaginatedMeta } from './usuariosPaginatedMeta';
+import type { Usuario } from "./usuario";
+import type { UsuariosPaginatedMeta } from "./usuariosPaginatedMeta";
 
 export interface UsuariosPaginated {
   data: Usuario[];

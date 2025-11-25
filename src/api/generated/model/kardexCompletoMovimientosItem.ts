@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { KardexCompletoMovimientosItemTipo } from './kardexCompletoMovimientosItemTipo';
+import type { KardexCompletoMovimientosItemTipo } from "./kardexCompletoMovimientosItemTipo";
 
 export type KardexCompletoMovimientosItem = {
   /** Fecha del movimiento */

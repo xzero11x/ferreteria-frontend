@@ -20,11 +20,11 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de entrega: tienda o envío
  */
-export type PedidoTipoRecojo = typeof PedidoTipoRecojo[keyof typeof PedidoTipoRecojo];
-
+export type PedidoTipoRecojo =
+  (typeof PedidoTipoRecojo)[keyof typeof PedidoTipoRecojo];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const PedidoTipoRecojo = {
-  tienda: 'tienda',
-  envio: 'envio',
+  tienda: "tienda",
+  envio: "envio",
 } as const;

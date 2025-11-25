@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { RegisterResponseTenant } from './registerResponseTenant';
+import type { RegisterResponseTenant } from "./registerResponseTenant";
 
 export interface RegisterResponse {
   message: string;

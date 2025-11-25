@@ -16,10 +16,10 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { EstadisticasAuditoriaPeriodo } from './estadisticasAuditoriaPeriodo';
-import type { EstadisticasAuditoriaPorAccion } from './estadisticasAuditoriaPorAccion';
-import type { EstadisticasAuditoriaPorTabla } from './estadisticasAuditoriaPorTabla';
-import type { EstadisticasAuditoriaUsuariosMasActivosItem } from './estadisticasAuditoriaUsuariosMasActivosItem';
+import type { EstadisticasAuditoriaPeriodo } from "./estadisticasAuditoriaPeriodo";
+import type { EstadisticasAuditoriaPorAccion } from "./estadisticasAuditoriaPorAccion";
+import type { EstadisticasAuditoriaPorTabla } from "./estadisticasAuditoriaPorTabla";
+import type { EstadisticasAuditoriaUsuariosMasActivosItem } from "./estadisticasAuditoriaUsuariosMasActivosItem";
 
 export interface EstadisticasAuditoria {
   /** Periodo de las estadísticas */

@@ -20,12 +20,12 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Estado de la orden
  */
-export type OrdenCompraEstado = typeof OrdenCompraEstado[keyof typeof OrdenCompraEstado];
-
+export type OrdenCompraEstado =
+  (typeof OrdenCompraEstado)[keyof typeof OrdenCompraEstado];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const OrdenCompraEstado = {
-  pendiente: 'pendiente',
-  recibida: 'recibida',
-  cancelada: 'cancelada',
+  pendiente: "pendiente",
+  recibida: "recibida",
+  cancelada: "cancelada",
 } as const;

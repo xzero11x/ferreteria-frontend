@@ -20,11 +20,11 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de ajuste: entrada (aumenta stock) o salida (reduce stock)
  */
-export type CreateInventarioAjusteTipo = typeof CreateInventarioAjusteTipo[keyof typeof CreateInventarioAjusteTipo];
-
+export type CreateInventarioAjusteTipo =
+  (typeof CreateInventarioAjusteTipo)[keyof typeof CreateInventarioAjusteTipo];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateInventarioAjusteTipo = {
-  entrada: 'entrada',
-  salida: 'salida',
+  entrada: "entrada",
+  salida: "salida",
 } as const;

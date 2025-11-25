@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { ListPedidosQueryEstado } from './listPedidosQueryEstado';
+import type { ListPedidosQueryEstado } from "./listPedidosQueryEstado";
 
 export interface ListPedidosQuery {
   /** Filtrar por estado del pedido */

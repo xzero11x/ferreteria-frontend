@@ -16,13 +16,13 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { PedidoEstado } from './pedidoEstado';
-import type { PedidoTipoRecojo } from './pedidoTipoRecojo';
-import type { PedidoClienteId } from './pedidoClienteId';
-import type { PedidoCliente } from './pedidoCliente';
-import type { PedidoUsuarioGestionId } from './pedidoUsuarioGestionId';
-import type { PedidoUsuarioGestion } from './pedidoUsuarioGestion';
-import type { PedidoDetallesItem } from './pedidoDetallesItem';
+import type { PedidoEstado } from "./pedidoEstado";
+import type { PedidoTipoRecojo } from "./pedidoTipoRecojo";
+import type { PedidoClienteId } from "./pedidoClienteId";
+import type { PedidoCliente } from "./pedidoCliente";
+import type { PedidoUsuarioGestionId } from "./pedidoUsuarioGestionId";
+import type { PedidoUsuarioGestion } from "./pedidoUsuarioGestion";
+import type { PedidoDetallesItem } from "./pedidoDetallesItem";
 
 export interface Pedido {
   /** ID único del pedido */

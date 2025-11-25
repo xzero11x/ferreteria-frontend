@@ -34,7 +34,11 @@ import UsuariosPage from "@/pages/usuarios/index";
 import AdminCajasPage from "@/pages/admin/cajas";
 import AdminSesionesPage from "@/pages/admin/sesiones-caja";
 import AdminSeriesPage from "@/pages/admin/series";
-import CatalogoCarrito from "@/pages/Catalogo";
+// Tienda pública
+import Catalogo from "@/pages/tienda/Catalogo"
+import Checkout from "@/pages/tienda/Checkout"
+import PedidoConfirmado from "@/pages/tienda/PedidoConfirmado"
+
 
 const AppRouter: React.FC = () => {
 
@@ -43,7 +47,12 @@ const AppRouter: React.FC = () => {
             <Routes>
                 {/* Rutas públicas */}
                 <Route path="/" element={<Home />} />
-                <Route path="/catalogo" element={<CatalogoCarrito />} />
+
+                {/* Rutas Tienda Pública */}
+                <Route path="/tienda/catalogo" element={<Catalogo />} />
+                <Route path="/tienda/checkout" element={<Checkout />} />
+                <Route path="/tienda/pedido-confirmado/:id" element={<PedidoConfirmado />} />
+
                 
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />

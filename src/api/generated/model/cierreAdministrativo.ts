@@ -16,7 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { CierreAdministrativoMontoFinal } from './cierreAdministrativoMontoFinal';
+import type { CierreAdministrativoMontoFinal } from "./cierreAdministrativoMontoFinal";
 
 export interface CierreAdministrativo {
   /** Monto contado físicamente en la caja al momento del cierre forzoso */

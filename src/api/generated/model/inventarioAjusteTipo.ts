@@ -17,11 +17,11 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 
-export type InventarioAjusteTipo = typeof InventarioAjusteTipo[keyof typeof InventarioAjusteTipo];
-
+export type InventarioAjusteTipo =
+  (typeof InventarioAjusteTipo)[keyof typeof InventarioAjusteTipo];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const InventarioAjusteTipo = {
-  entrada: 'entrada',
-  salida: 'salida',
+  entrada: "entrada",
+  salida: "salida",
 } as const;

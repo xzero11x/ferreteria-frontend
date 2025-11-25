@@ -20,11 +20,10 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Rol del usuario (admin, empleado)
  */
-export type UsuarioRol = typeof UsuarioRol[keyof typeof UsuarioRol];
-
+export type UsuarioRol = (typeof UsuarioRol)[keyof typeof UsuarioRol];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const UsuarioRol = {
-  admin: 'admin',
-  empleado: 'empleado',
+  admin: "admin",
+  empleado: "empleado",
 } as const;

@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   Caja,
@@ -71,389 +68,712 @@ import type {
   PutApiCajasId409,
   PutApiCajasId500,
   SuccessResponse,
-  UpdateCaja
-} from '.././model';
+  UpdateCaja,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * @summary Crear una nueva caja registradora
  */
 export const postApiCajas = (
-    createCaja: CreateCaja,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createCaja: CreateCaja,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Caja>(
-      {url: `/api/cajas`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createCaja, signal
+  return customInstance<Caja>(
+    {
+      url: `/api/cajas`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createCaja,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiCajasMutationOptions = <
+  TError = ErrorType<
+    | PostApiCajas400
+    | PostApiCajas401
+    | PostApiCajas403
+    | PostApiCajas404
+    | PostApiCajas409
+    | PostApiCajas500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiCajas>>,
+    TError,
+    { data: CreateCaja },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiCajas>>,
+  TError,
+  { data: CreateCaja },
+  TContext
+> => {
+  const mutationKey = ["postApiCajas"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiCajasMutationOptions = <TError = ErrorType<PostApiCajas400 | PostApiCajas401 | PostApiCajas403 | PostApiCajas404 | PostApiCajas409 | PostApiCajas500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiCajas>>, TError,{data: CreateCaja}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiCajas>>, TError,{data: CreateCaja}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiCajas>>,
+    { data: CreateCaja }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiCajas'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiCajas(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiCajasMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiCajas>>
+>;
+export type PostApiCajasMutationBody = CreateCaja;
+export type PostApiCajasMutationError = ErrorType<
+  | PostApiCajas400
+  | PostApiCajas401
+  | PostApiCajas403
+  | PostApiCajas404
+  | PostApiCajas409
+  | PostApiCajas500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiCajas>>, {data: CreateCaja}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiCajas(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiCajasMutationResult = NonNullable<Awaited<ReturnType<typeof postApiCajas>>>
-    export type PostApiCajasMutationBody = CreateCaja
-    export type PostApiCajasMutationError = ErrorType<PostApiCajas400 | PostApiCajas401 | PostApiCajas403 | PostApiCajas404 | PostApiCajas409 | PostApiCajas500>
-
-    /**
+/**
  * @summary Crear una nueva caja registradora
  */
-export const usePostApiCajas = <TError = ErrorType<PostApiCajas400 | PostApiCajas401 | PostApiCajas403 | PostApiCajas404 | PostApiCajas409 | PostApiCajas500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiCajas>>, TError,{data: CreateCaja}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiCajas>>,
-        TError,
-        {data: CreateCaja},
-        TContext
-      > => {
+export const usePostApiCajas = <
+  TError = ErrorType<
+    | PostApiCajas400
+    | PostApiCajas401
+    | PostApiCajas403
+    | PostApiCajas404
+    | PostApiCajas409
+    | PostApiCajas500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiCajas>>,
+      TError,
+      { data: CreateCaja },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiCajas>>,
+  TError,
+  { data: CreateCaja },
+  TContext
+> => {
+  const mutationOptions = getPostApiCajasMutationOptions(options);
 
-      const mutationOptions = getPostApiCajasMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * @summary Obtener todas las cajas registradoras
  */
 export const getApiCajas = (
-    params?: GetApiCajasParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  params?: GetApiCajasParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<GetApiCajas200>(
-      {url: `/api/cajas`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-  
+  return customInstance<GetApiCajas200>(
+    { url: `/api/cajas`, method: "GET", params, signal },
+    options,
+  );
+};
 
+export const getGetApiCajasQueryKey = (params?: GetApiCajasParams) => {
+  return [`/api/cajas`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetApiCajasQueryKey = (params?: GetApiCajasParams,) => {
-    return [
-    `/api/cajas`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetApiCajasQueryOptions = <TData = Awaited<ReturnType<typeof getApiCajas>>, TError = ErrorType<GetApiCajas400 | GetApiCajas401 | GetApiCajas403 | GetApiCajas404 | GetApiCajas409 | GetApiCajas500>>(params?: GetApiCajasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiCajasQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiCajas>>,
+  TError = ErrorType<
+    | GetApiCajas400
+    | GetApiCajas401
+    | GetApiCajas403
+    | GetApiCajas404
+    | GetApiCajas409
+    | GetApiCajas500
+  >,
+>(
+  params?: GetApiCajasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiCajasQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiCajasQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCajas>>> = ({
+    signal,
+  }) => getApiCajas(params, requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiCajas>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCajas>>> = ({ signal }) => getApiCajas(params, requestOptions, signal);
+export type GetApiCajasQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiCajas>>
+>;
+export type GetApiCajasQueryError = ErrorType<
+  | GetApiCajas400
+  | GetApiCajas401
+  | GetApiCajas403
+  | GetApiCajas404
+  | GetApiCajas409
+  | GetApiCajas500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiCajasQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCajas>>>
-export type GetApiCajasQueryError = ErrorType<GetApiCajas400 | GetApiCajas401 | GetApiCajas403 | GetApiCajas404 | GetApiCajas409 | GetApiCajas500>
-
-
-export function useGetApiCajas<TData = Awaited<ReturnType<typeof getApiCajas>>, TError = ErrorType<GetApiCajas400 | GetApiCajas401 | GetApiCajas403 | GetApiCajas404 | GetApiCajas409 | GetApiCajas500>>(
- params: undefined |  GetApiCajasParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>> & Pick<
+export function useGetApiCajas<
+  TData = Awaited<ReturnType<typeof getApiCajas>>,
+  TError = ErrorType<
+    | GetApiCajas400
+    | GetApiCajas401
+    | GetApiCajas403
+    | GetApiCajas404
+    | GetApiCajas409
+    | GetApiCajas500
+  >,
+>(
+  params: undefined | GetApiCajasParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCajas>>,
           TError,
           Awaited<ReturnType<typeof getApiCajas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCajas<TData = Awaited<ReturnType<typeof getApiCajas>>, TError = ErrorType<GetApiCajas400 | GetApiCajas401 | GetApiCajas403 | GetApiCajas404 | GetApiCajas409 | GetApiCajas500>>(
- params?: GetApiCajasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiCajas<
+  TData = Awaited<ReturnType<typeof getApiCajas>>,
+  TError = ErrorType<
+    | GetApiCajas400
+    | GetApiCajas401
+    | GetApiCajas403
+    | GetApiCajas404
+    | GetApiCajas409
+    | GetApiCajas500
+  >,
+>(
+  params?: GetApiCajasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCajas>>,
           TError,
           Awaited<ReturnType<typeof getApiCajas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCajas<TData = Awaited<ReturnType<typeof getApiCajas>>, TError = ErrorType<GetApiCajas400 | GetApiCajas401 | GetApiCajas403 | GetApiCajas404 | GetApiCajas409 | GetApiCajas500>>(
- params?: GetApiCajasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiCajas<
+  TData = Awaited<ReturnType<typeof getApiCajas>>,
+  TError = ErrorType<
+    | GetApiCajas400
+    | GetApiCajas401
+    | GetApiCajas403
+    | GetApiCajas404
+    | GetApiCajas409
+    | GetApiCajas500
+  >,
+>(
+  params?: GetApiCajasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener todas las cajas registradoras
  */
 
-export function useGetApiCajas<TData = Awaited<ReturnType<typeof getApiCajas>>, TError = ErrorType<GetApiCajas400 | GetApiCajas401 | GetApiCajas403 | GetApiCajas404 | GetApiCajas409 | GetApiCajas500>>(
- params?: GetApiCajasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiCajas<
+  TData = Awaited<ReturnType<typeof getApiCajas>>,
+  TError = ErrorType<
+    | GetApiCajas400
+    | GetApiCajas401
+    | GetApiCajas403
+    | GetApiCajas404
+    | GetApiCajas409
+    | GetApiCajas500
+  >,
+>(
+  params?: GetApiCajasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiCajasQueryOptions(params, options);
 
-  const queryOptions = getGetApiCajasQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * @summary Obtener una caja por ID
  */
 export const getApiCajasId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Caja>(
-      {url: `/api/cajas/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<Caja>(
+    { url: `/api/cajas/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiCajasIdQueryKey = (id?: number) => {
+  return [`/api/cajas/${id}`] as const;
+};
 
-
-export const getGetApiCajasIdQueryKey = (id?: number,) => {
-    return [
-    `/api/cajas/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiCajasIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiCajasId>>, TError = ErrorType<GetApiCajasId400 | GetApiCajasId401 | GetApiCajasId403 | GetApiCajasId404 | GetApiCajasId409 | GetApiCajasId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiCajasIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiCajasId>>,
+  TError = ErrorType<
+    | GetApiCajasId400
+    | GetApiCajasId401
+    | GetApiCajasId403
+    | GetApiCajasId404
+    | GetApiCajasId409
+    | GetApiCajasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiCajasIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiCajasIdQueryKey(id);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCajasId>>> = ({
+    signal,
+  }) => getApiCajasId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiCajasId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiCajasId>>> = ({ signal }) => getApiCajasId(id, requestOptions, signal);
+export type GetApiCajasIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiCajasId>>
+>;
+export type GetApiCajasIdQueryError = ErrorType<
+  | GetApiCajasId400
+  | GetApiCajasId401
+  | GetApiCajasId403
+  | GetApiCajasId404
+  | GetApiCajasId409
+  | GetApiCajasId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiCajasIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiCajasId>>>
-export type GetApiCajasIdQueryError = ErrorType<GetApiCajasId400 | GetApiCajasId401 | GetApiCajasId403 | GetApiCajasId404 | GetApiCajasId409 | GetApiCajasId500>
-
-
-export function useGetApiCajasId<TData = Awaited<ReturnType<typeof getApiCajasId>>, TError = ErrorType<GetApiCajasId400 | GetApiCajasId401 | GetApiCajasId403 | GetApiCajasId404 | GetApiCajasId409 | GetApiCajasId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>> & Pick<
+export function useGetApiCajasId<
+  TData = Awaited<ReturnType<typeof getApiCajasId>>,
+  TError = ErrorType<
+    | GetApiCajasId400
+    | GetApiCajasId401
+    | GetApiCajasId403
+    | GetApiCajasId404
+    | GetApiCajasId409
+    | GetApiCajasId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCajasId>>,
           TError,
           Awaited<ReturnType<typeof getApiCajasId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCajasId<TData = Awaited<ReturnType<typeof getApiCajasId>>, TError = ErrorType<GetApiCajasId400 | GetApiCajasId401 | GetApiCajasId403 | GetApiCajasId404 | GetApiCajasId409 | GetApiCajasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiCajasId<
+  TData = Awaited<ReturnType<typeof getApiCajasId>>,
+  TError = ErrorType<
+    | GetApiCajasId400
+    | GetApiCajasId401
+    | GetApiCajasId403
+    | GetApiCajasId404
+    | GetApiCajasId409
+    | GetApiCajasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiCajasId>>,
           TError,
           Awaited<ReturnType<typeof getApiCajasId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiCajasId<TData = Awaited<ReturnType<typeof getApiCajasId>>, TError = ErrorType<GetApiCajasId400 | GetApiCajasId401 | GetApiCajasId403 | GetApiCajasId404 | GetApiCajasId409 | GetApiCajasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiCajasId<
+  TData = Awaited<ReturnType<typeof getApiCajasId>>,
+  TError = ErrorType<
+    | GetApiCajasId400
+    | GetApiCajasId401
+    | GetApiCajasId403
+    | GetApiCajasId404
+    | GetApiCajasId409
+    | GetApiCajasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener una caja por ID
  */
 
-export function useGetApiCajasId<TData = Awaited<ReturnType<typeof getApiCajasId>>, TError = ErrorType<GetApiCajasId400 | GetApiCajasId401 | GetApiCajasId403 | GetApiCajasId404 | GetApiCajasId409 | GetApiCajasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiCajasId<
+  TData = Awaited<ReturnType<typeof getApiCajasId>>,
+  TError = ErrorType<
+    | GetApiCajasId400
+    | GetApiCajasId401
+    | GetApiCajasId403
+    | GetApiCajasId404
+    | GetApiCajasId409
+    | GetApiCajasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiCajasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiCajasIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiCajasIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * @summary Actualizar una caja registradora
  */
 export const putApiCajasId = (
-    id: number,
-    updateCaja: UpdateCaja,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<Caja>(
-      {url: `/api/cajas/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateCaja
+  id: number,
+  updateCaja: UpdateCaja,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<Caja>(
+    {
+      url: `/api/cajas/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateCaja,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPutApiCajasIdMutationOptions = <
+  TError = ErrorType<
+    | PutApiCajasId400
+    | PutApiCajasId401
+    | PutApiCajasId403
+    | PutApiCajasId404
+    | PutApiCajasId409
+    | PutApiCajasId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiCajasId>>,
+    TError,
+    { id: number; data: UpdateCaja },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiCajasId>>,
+  TError,
+  { id: number; data: UpdateCaja },
+  TContext
+> => {
+  const mutationKey = ["putApiCajasId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiCajasIdMutationOptions = <TError = ErrorType<PutApiCajasId400 | PutApiCajasId401 | PutApiCajasId403 | PutApiCajasId404 | PutApiCajasId409 | PutApiCajasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiCajasId>>, TError,{id: number;data: UpdateCaja}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiCajasId>>, TError,{id: number;data: UpdateCaja}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiCajasId>>,
+    { id: number; data: UpdateCaja }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-const mutationKey = ['putApiCajasId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return putApiCajasId(id, data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PutApiCajasIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiCajasId>>
+>;
+export type PutApiCajasIdMutationBody = UpdateCaja;
+export type PutApiCajasIdMutationError = ErrorType<
+  | PutApiCajasId400
+  | PutApiCajasId401
+  | PutApiCajasId403
+  | PutApiCajasId404
+  | PutApiCajasId409
+  | PutApiCajasId500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiCajasId>>, {id: number;data: UpdateCaja}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  putApiCajasId(id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiCajasIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiCajasId>>>
-    export type PutApiCajasIdMutationBody = UpdateCaja
-    export type PutApiCajasIdMutationError = ErrorType<PutApiCajasId400 | PutApiCajasId401 | PutApiCajasId403 | PutApiCajasId404 | PutApiCajasId409 | PutApiCajasId500>
-
-    /**
+/**
  * @summary Actualizar una caja registradora
  */
-export const usePutApiCajasId = <TError = ErrorType<PutApiCajasId400 | PutApiCajasId401 | PutApiCajasId403 | PutApiCajasId404 | PutApiCajasId409 | PutApiCajasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiCajasId>>, TError,{id: number;data: UpdateCaja}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiCajasId>>,
-        TError,
-        {id: number;data: UpdateCaja},
-        TContext
-      > => {
+export const usePutApiCajasId = <
+  TError = ErrorType<
+    | PutApiCajasId400
+    | PutApiCajasId401
+    | PutApiCajasId403
+    | PutApiCajasId404
+    | PutApiCajasId409
+    | PutApiCajasId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiCajasId>>,
+      TError,
+      { id: number; data: UpdateCaja },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiCajasId>>,
+  TError,
+  { id: number; data: UpdateCaja },
+  TContext
+> => {
+  const mutationOptions = getPutApiCajasIdMutationOptions(options);
 
-      const mutationOptions = getPutApiCajasIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * @summary Desactivar una caja registradora
  */
 export const deleteApiCajasId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/cajas/${id}`, method: 'DELETE'
-    },
-      options);
-    }
-  
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<SuccessResponse>(
+    { url: `/api/cajas/${id}`, method: "DELETE" },
+    options,
+  );
+};
 
+export const getDeleteApiCajasIdMutationOptions = <
+  TError = ErrorType<
+    | DeleteApiCajasId400
+    | DeleteApiCajasId401
+    | DeleteApiCajasId403
+    | DeleteApiCajasId404
+    | DeleteApiCajasId409
+    | DeleteApiCajasId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteApiCajasId>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteApiCajasId>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteApiCajasId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getDeleteApiCajasIdMutationOptions = <TError = ErrorType<DeleteApiCajasId400 | DeleteApiCajasId401 | DeleteApiCajasId403 | DeleteApiCajasId404 | DeleteApiCajasId409 | DeleteApiCajasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiCajasId>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof deleteApiCajasId>>, TError,{id: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteApiCajasId>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['deleteApiCajasId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return deleteApiCajasId(id, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type DeleteApiCajasIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteApiCajasId>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiCajasId>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+export type DeleteApiCajasIdMutationError = ErrorType<
+  | DeleteApiCajasId400
+  | DeleteApiCajasId401
+  | DeleteApiCajasId403
+  | DeleteApiCajasId404
+  | DeleteApiCajasId409
+  | DeleteApiCajasId500
+>;
 
-          return  deleteApiCajasId(id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type DeleteApiCajasIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiCajasId>>>
-    
-    export type DeleteApiCajasIdMutationError = ErrorType<DeleteApiCajasId400 | DeleteApiCajasId401 | DeleteApiCajasId403 | DeleteApiCajasId404 | DeleteApiCajasId409 | DeleteApiCajasId500>
-
-    /**
+/**
  * @summary Desactivar una caja registradora
  */
-export const useDeleteApiCajasId = <TError = ErrorType<DeleteApiCajasId400 | DeleteApiCajasId401 | DeleteApiCajasId403 | DeleteApiCajasId404 | DeleteApiCajasId409 | DeleteApiCajasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof deleteApiCajasId>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof deleteApiCajasId>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const useDeleteApiCajasId = <
+  TError = ErrorType<
+    | DeleteApiCajasId400
+    | DeleteApiCajasId401
+    | DeleteApiCajasId403
+    | DeleteApiCajasId404
+    | DeleteApiCajasId409
+    | DeleteApiCajasId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof deleteApiCajasId>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof deleteApiCajasId>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions = getDeleteApiCajasIdMutationOptions(options);
 
-      const mutationOptions = getDeleteApiCajasIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

@@ -16,31 +16,31 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { GetApiAuditoriaAccion } from './getApiAuditoriaAccion';
+import type { GetApiAuditoriaAccion } from "./getApiAuditoriaAccion";
 
 export type GetApiAuditoriaParams = {
-/**
- * Filtrar por ID de usuario
- */
-usuario_id?: number;
-/**
- * Filtrar por tipo de acción
- */
-accion?: GetApiAuditoriaAccion;
-/**
- * Filtrar por tabla afectada
- */
-tabla_afectada?: string;
-/**
- * Fecha de inicio del rango (ISO 8601)
- */
-fecha_inicio?: string;
-/**
- * Fecha de fin del rango (ISO 8601)
- */
-fecha_fin?: string;
-/**
- * Límite de resultados
- */
-limit?: number;
+  /**
+   * Filtrar por ID de usuario
+   */
+  usuario_id?: number;
+  /**
+   * Filtrar por tipo de acción
+   */
+  accion?: GetApiAuditoriaAccion;
+  /**
+   * Filtrar por tabla afectada
+   */
+  tabla_afectada?: string;
+  /**
+   * Fecha de inicio del rango (ISO 8601)
+   */
+  fecha_inicio?: string;
+  /**
+   * Fecha de fin del rango (ISO 8601)
+   */
+  fecha_fin?: string;
+  /**
+   * Límite de resultados
+   */
+  limit?: number;
 };

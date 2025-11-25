@@ -17,12 +17,12 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  * OpenAPI spec version: 2.0.0
  */
 
-export type GetApiSeriesTipoComprobante = typeof GetApiSeriesTipoComprobante[keyof typeof GetApiSeriesTipoComprobante];
-
+export type GetApiSeriesTipoComprobante =
+  (typeof GetApiSeriesTipoComprobante)[keyof typeof GetApiSeriesTipoComprobante];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const GetApiSeriesTipoComprobante = {
-  FACTURA: 'FACTURA',
-  BOLETA: 'BOLETA',
-  NOTA_VENTA: 'NOTA_VENTA',
+  FACTURA: "FACTURA",
+  BOLETA: "BOLETA",
+  NOTA_VENTA: "NOTA_VENTA",
 } as const;

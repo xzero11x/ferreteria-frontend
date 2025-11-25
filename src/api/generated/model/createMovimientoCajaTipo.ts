@@ -20,11 +20,11 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de movimiento
  */
-export type CreateMovimientoCajaTipo = typeof CreateMovimientoCajaTipo[keyof typeof CreateMovimientoCajaTipo];
-
+export type CreateMovimientoCajaTipo =
+  (typeof CreateMovimientoCajaTipo)[keyof typeof CreateMovimientoCajaTipo];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const CreateMovimientoCajaTipo = {
-  INGRESO: 'INGRESO',
-  EGRESO: 'EGRESO',
+  INGRESO: "INGRESO",
+  EGRESO: "EGRESO",
 } as const;

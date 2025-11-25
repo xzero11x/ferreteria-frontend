@@ -16,13 +16,13 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { ProductoSku } from './productoSku';
-import type { ProductoDescripcion } from './productoDescripcion';
-import type { ProductoAfectacionIgv } from './productoAfectacionIgv';
-import type { ProductoCostoCompra } from './productoCostoCompra';
-import type { ProductoImagenUrl } from './productoImagenUrl';
-import type { ProductoMarcaId } from './productoMarcaId';
-import type { ProductoCategoriaId } from './productoCategoriaId';
+import type { ProductoSku } from "./productoSku";
+import type { ProductoDescripcion } from "./productoDescripcion";
+import type { ProductoAfectacionIgv } from "./productoAfectacionIgv";
+import type { ProductoCostoCompra } from "./productoCostoCompra";
+import type { ProductoImagenUrl } from "./productoImagenUrl";
+import type { ProductoMarcaId } from "./productoMarcaId";
+import type { ProductoCategoriaId } from "./productoCategoriaId";
 
 export interface Producto {
   /** ID único del producto */

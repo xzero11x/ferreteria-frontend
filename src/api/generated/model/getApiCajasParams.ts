@@ -18,8 +18,8 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  */
 
 export type GetApiCajasParams = {
-/**
- * Incluir cajas inactivas (true/false)
- */
-includeInactive?: string;
+  /**
+   * Incluir cajas inactivas (true/false)
+   */
+  includeInactive?: string;
 };

@@ -16,23 +16,23 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { GetApiInventarioAjustesTipo } from './getApiInventarioAjustesTipo';
+import type { GetApiInventarioAjustesTipo } from "./getApiInventarioAjustesTipo";
 
 export type GetApiInventarioAjustesParams = {
-/**
- * Filtrar por ID de producto
- */
-producto_id?: number;
-/**
- * Filtrar por tipo de ajuste
- */
-tipo?: GetApiInventarioAjustesTipo;
-/**
- * Fecha de inicio del rango (ISO 8601)
- */
-fecha_inicio?: string;
-/**
- * Fecha de fin del rango (ISO 8601)
- */
-fecha_fin?: string;
+  /**
+   * Filtrar por ID de producto
+   */
+  producto_id?: number;
+  /**
+   * Filtrar por tipo de ajuste
+   */
+  tipo?: GetApiInventarioAjustesTipo;
+  /**
+   * Fecha de inicio del rango (ISO 8601)
+   */
+  fecha_inicio?: string;
+  /**
+   * Fecha de fin del rango (ISO 8601)
+   */
+  fecha_fin?: string;
 };

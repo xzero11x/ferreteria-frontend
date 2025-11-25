@@ -20,13 +20,13 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Tipo de movimiento que afecta el stock
  */
-export type KardexCompletoMovimientosItemTipo = typeof KardexCompletoMovimientosItemTipo[keyof typeof KardexCompletoMovimientosItemTipo];
-
+export type KardexCompletoMovimientosItemTipo =
+  (typeof KardexCompletoMovimientosItemTipo)[keyof typeof KardexCompletoMovimientosItemTipo];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const KardexCompletoMovimientosItemTipo = {
-  venta: 'venta',
-  compra: 'compra',
-  ajuste_entrada: 'ajuste_entrada',
-  ajuste_salida: 'ajuste_salida',
+  venta: "venta",
+  compra: "compra",
+  ajuste_entrada: "ajuste_entrada",
+  ajuste_salida: "ajuste_salida",
 } as const;

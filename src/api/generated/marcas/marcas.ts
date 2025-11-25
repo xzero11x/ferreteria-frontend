@@ -16,10 +16,7 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import {
-  useMutation,
-  useQuery
-} from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   DataTag,
   DefinedInitialDataOptions,
@@ -32,8 +29,8 @@ import type {
   UseMutationOptions,
   UseMutationResult,
   UseQueryOptions,
-  UseQueryResult
-} from '@tanstack/react-query';
+  UseQueryResult,
+} from "@tanstack/react-query";
 
 import type {
   CreateMarca,
@@ -71,390 +68,713 @@ import type {
   PutApiMarcasId409,
   PutApiMarcasId500,
   SuccessResponse,
-  UpdateMarca
-} from '.././model';
+  UpdateMarca,
+} from ".././model";
 
-import { customInstance } from '../../mutator/custom-instance';
-import type { ErrorType } from '../../mutator/custom-instance';
-
+import { customInstance } from "../../mutator/custom-instance";
+import type { ErrorType } from "../../mutator/custom-instance";
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
-
-
 
 /**
  * Obtiene todas las marcas activas del tenant con paginación estándar. Accesible para empleados (usado en dropdowns).
  * @summary Listar marcas del tenant (Paginado)
  */
 export const getApiMarcas = (
-    params?: GetApiMarcasParams,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  params?: GetApiMarcasParams,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<PaginatedMarcaResponse>(
-      {url: `/api/marcas`, method: 'GET',
-        params, signal
-    },
-      options);
-    }
-  
+  return customInstance<PaginatedMarcaResponse>(
+    { url: `/api/marcas`, method: "GET", params, signal },
+    options,
+  );
+};
 
+export const getGetApiMarcasQueryKey = (params?: GetApiMarcasParams) => {
+  return [`/api/marcas`, ...(params ? [params] : [])] as const;
+};
 
-
-export const getGetApiMarcasQueryKey = (params?: GetApiMarcasParams,) => {
-    return [
-    `/api/marcas`, ...(params ? [params]: [])
-    ] as const;
-    }
-
-    
-export const getGetApiMarcasQueryOptions = <TData = Awaited<ReturnType<typeof getApiMarcas>>, TError = ErrorType<GetApiMarcas400 | GetApiMarcas401 | GetApiMarcas403 | GetApiMarcas404 | GetApiMarcas409 | GetApiMarcas500>>(params?: GetApiMarcasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiMarcasQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiMarcas>>,
+  TError = ErrorType<
+    | GetApiMarcas400
+    | GetApiMarcas401
+    | GetApiMarcas403
+    | GetApiMarcas404
+    | GetApiMarcas409
+    | GetApiMarcas500
+  >,
+>(
+  params?: GetApiMarcasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiMarcasQueryKey(params);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiMarcasQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMarcas>>> = ({
+    signal,
+  }) => getApiMarcas(params, requestOptions, signal);
 
-  
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiMarcas>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMarcas>>> = ({ signal }) => getApiMarcas(params, requestOptions, signal);
+export type GetApiMarcasQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiMarcas>>
+>;
+export type GetApiMarcasQueryError = ErrorType<
+  | GetApiMarcas400
+  | GetApiMarcas401
+  | GetApiMarcas403
+  | GetApiMarcas404
+  | GetApiMarcas409
+  | GetApiMarcas500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiMarcasQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMarcas>>>
-export type GetApiMarcasQueryError = ErrorType<GetApiMarcas400 | GetApiMarcas401 | GetApiMarcas403 | GetApiMarcas404 | GetApiMarcas409 | GetApiMarcas500>
-
-
-export function useGetApiMarcas<TData = Awaited<ReturnType<typeof getApiMarcas>>, TError = ErrorType<GetApiMarcas400 | GetApiMarcas401 | GetApiMarcas403 | GetApiMarcas404 | GetApiMarcas409 | GetApiMarcas500>>(
- params: undefined |  GetApiMarcasParams, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>> & Pick<
+export function useGetApiMarcas<
+  TData = Awaited<ReturnType<typeof getApiMarcas>>,
+  TError = ErrorType<
+    | GetApiMarcas400
+    | GetApiMarcas401
+    | GetApiMarcas403
+    | GetApiMarcas404
+    | GetApiMarcas409
+    | GetApiMarcas500
+  >,
+>(
+  params: undefined | GetApiMarcasParams,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMarcas>>,
           TError,
           Awaited<ReturnType<typeof getApiMarcas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMarcas<TData = Awaited<ReturnType<typeof getApiMarcas>>, TError = ErrorType<GetApiMarcas400 | GetApiMarcas401 | GetApiMarcas403 | GetApiMarcas404 | GetApiMarcas409 | GetApiMarcas500>>(
- params?: GetApiMarcasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMarcas<
+  TData = Awaited<ReturnType<typeof getApiMarcas>>,
+  TError = ErrorType<
+    | GetApiMarcas400
+    | GetApiMarcas401
+    | GetApiMarcas403
+    | GetApiMarcas404
+    | GetApiMarcas409
+    | GetApiMarcas500
+  >,
+>(
+  params?: GetApiMarcasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMarcas>>,
           TError,
           Awaited<ReturnType<typeof getApiMarcas>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMarcas<TData = Awaited<ReturnType<typeof getApiMarcas>>, TError = ErrorType<GetApiMarcas400 | GetApiMarcas401 | GetApiMarcas403 | GetApiMarcas404 | GetApiMarcas409 | GetApiMarcas500>>(
- params?: GetApiMarcasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMarcas<
+  TData = Awaited<ReturnType<typeof getApiMarcas>>,
+  TError = ErrorType<
+    | GetApiMarcas400
+    | GetApiMarcas401
+    | GetApiMarcas403
+    | GetApiMarcas404
+    | GetApiMarcas409
+    | GetApiMarcas500
+  >,
+>(
+  params?: GetApiMarcasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Listar marcas del tenant (Paginado)
  */
 
-export function useGetApiMarcas<TData = Awaited<ReturnType<typeof getApiMarcas>>, TError = ErrorType<GetApiMarcas400 | GetApiMarcas401 | GetApiMarcas403 | GetApiMarcas404 | GetApiMarcas409 | GetApiMarcas500>>(
- params?: GetApiMarcasParams, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiMarcas<
+  TData = Awaited<ReturnType<typeof getApiMarcas>>,
+  TError = ErrorType<
+    | GetApiMarcas400
+    | GetApiMarcas401
+    | GetApiMarcas403
+    | GetApiMarcas404
+    | GetApiMarcas409
+    | GetApiMarcas500
+  >,
+>(
+  params?: GetApiMarcasParams,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcas>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiMarcasQueryOptions(params, options);
 
-  const queryOptions = getGetApiMarcasQueryOptions(params,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * @summary Crear marca (Solo Admin)
  */
 export const postApiMarcas = (
-    createMarca: CreateMarca,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  createMarca: CreateMarca,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Marca>(
-      {url: `/api/marcas`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: createMarca, signal
+  return customInstance<Marca>(
+    {
+      url: `/api/marcas`,
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      data: createMarca,
+      signal,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPostApiMarcasMutationOptions = <
+  TError = ErrorType<
+    | PostApiMarcas400
+    | PostApiMarcas401
+    | PostApiMarcas403
+    | PostApiMarcas404
+    | PostApiMarcas409
+    | PostApiMarcas500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof postApiMarcas>>,
+    TError,
+    { data: CreateMarca },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof postApiMarcas>>,
+  TError,
+  { data: CreateMarca },
+  TContext
+> => {
+  const mutationKey = ["postApiMarcas"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPostApiMarcasMutationOptions = <TError = ErrorType<PostApiMarcas400 | PostApiMarcas401 | PostApiMarcas403 | PostApiMarcas404 | PostApiMarcas409 | PostApiMarcas500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMarcas>>, TError,{data: CreateMarca}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof postApiMarcas>>, TError,{data: CreateMarca}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof postApiMarcas>>,
+    { data: CreateMarca }
+  > = (props) => {
+    const { data } = props ?? {};
 
-const mutationKey = ['postApiMarcas'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return postApiMarcas(data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PostApiMarcasMutationResult = NonNullable<
+  Awaited<ReturnType<typeof postApiMarcas>>
+>;
+export type PostApiMarcasMutationBody = CreateMarca;
+export type PostApiMarcasMutationError = ErrorType<
+  | PostApiMarcas400
+  | PostApiMarcas401
+  | PostApiMarcas403
+  | PostApiMarcas404
+  | PostApiMarcas409
+  | PostApiMarcas500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiMarcas>>, {data: CreateMarca}> = (props) => {
-          const {data} = props ?? {};
-
-          return  postApiMarcas(data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PostApiMarcasMutationResult = NonNullable<Awaited<ReturnType<typeof postApiMarcas>>>
-    export type PostApiMarcasMutationBody = CreateMarca
-    export type PostApiMarcasMutationError = ErrorType<PostApiMarcas400 | PostApiMarcas401 | PostApiMarcas403 | PostApiMarcas404 | PostApiMarcas409 | PostApiMarcas500>
-
-    /**
+/**
  * @summary Crear marca (Solo Admin)
  */
-export const usePostApiMarcas = <TError = ErrorType<PostApiMarcas400 | PostApiMarcas401 | PostApiMarcas403 | PostApiMarcas404 | PostApiMarcas409 | PostApiMarcas500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof postApiMarcas>>, TError,{data: CreateMarca}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof postApiMarcas>>,
-        TError,
-        {data: CreateMarca},
-        TContext
-      > => {
+export const usePostApiMarcas = <
+  TError = ErrorType<
+    | PostApiMarcas400
+    | PostApiMarcas401
+    | PostApiMarcas403
+    | PostApiMarcas404
+    | PostApiMarcas409
+    | PostApiMarcas500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof postApiMarcas>>,
+      TError,
+      { data: CreateMarca },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof postApiMarcas>>,
+  TError,
+  { data: CreateMarca },
+  TContext
+> => {
+  const mutationOptions = getPostApiMarcasMutationOptions(options);
 
-      const mutationOptions = getPostApiMarcasMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * @summary Obtener marca por ID
  */
 export const getApiMarcasId = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,signal?: AbortSignal
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+  signal?: AbortSignal,
 ) => {
-      
-      
-      return customInstance<Marca>(
-      {url: `/api/marcas/${id}`, method: 'GET', signal
-    },
-      options);
-    }
-  
+  return customInstance<Marca>(
+    { url: `/api/marcas/${id}`, method: "GET", signal },
+    options,
+  );
+};
 
+export const getGetApiMarcasIdQueryKey = (id?: number) => {
+  return [`/api/marcas/${id}`] as const;
+};
 
-
-export const getGetApiMarcasIdQueryKey = (id?: number,) => {
-    return [
-    `/api/marcas/${id}`
-    ] as const;
-    }
-
-    
-export const getGetApiMarcasIdQueryOptions = <TData = Awaited<ReturnType<typeof getApiMarcasId>>, TError = ErrorType<GetApiMarcasId400 | GetApiMarcasId401 | GetApiMarcasId403 | GetApiMarcasId404 | GetApiMarcasId409 | GetApiMarcasId500>>(id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
+export const getGetApiMarcasIdQueryOptions = <
+  TData = Awaited<ReturnType<typeof getApiMarcasId>>,
+  TError = ErrorType<
+    | GetApiMarcasId400
+    | GetApiMarcasId401
+    | GetApiMarcasId403
+    | GetApiMarcasId404
+    | GetApiMarcasId409
+    | GetApiMarcasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
 ) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
 
-const {query: queryOptions, request: requestOptions} = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetApiMarcasIdQueryKey(id);
 
-  const queryKey =  queryOptions?.queryKey ?? getGetApiMarcasIdQueryKey(id);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMarcasId>>> = ({
+    signal,
+  }) => getApiMarcasId(id, requestOptions, signal);
 
-  
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getApiMarcasId>>,
+    TError,
+    TData
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiMarcasId>>> = ({ signal }) => getApiMarcasId(id, requestOptions, signal);
+export type GetApiMarcasIdQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getApiMarcasId>>
+>;
+export type GetApiMarcasIdQueryError = ErrorType<
+  | GetApiMarcasId400
+  | GetApiMarcasId401
+  | GetApiMarcasId403
+  | GetApiMarcasId404
+  | GetApiMarcasId409
+  | GetApiMarcasId500
+>;
 
-      
-
-      
-
-   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData> & { queryKey: DataTag<QueryKey, TData, TError> }
-}
-
-export type GetApiMarcasIdQueryResult = NonNullable<Awaited<ReturnType<typeof getApiMarcasId>>>
-export type GetApiMarcasIdQueryError = ErrorType<GetApiMarcasId400 | GetApiMarcasId401 | GetApiMarcasId403 | GetApiMarcasId404 | GetApiMarcasId409 | GetApiMarcasId500>
-
-
-export function useGetApiMarcasId<TData = Awaited<ReturnType<typeof getApiMarcasId>>, TError = ErrorType<GetApiMarcasId400 | GetApiMarcasId401 | GetApiMarcasId403 | GetApiMarcasId404 | GetApiMarcasId409 | GetApiMarcasId500>>(
- id: number, options: { query:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>> & Pick<
+export function useGetApiMarcasId<
+  TData = Awaited<ReturnType<typeof getApiMarcasId>>,
+  TError = ErrorType<
+    | GetApiMarcasId400
+    | GetApiMarcasId401
+    | GetApiMarcasId403
+    | GetApiMarcasId404
+    | GetApiMarcasId409
+    | GetApiMarcasId500
+  >,
+>(
+  id: number,
+  options: {
+    query: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>
+    > &
+      Pick<
         DefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMarcasId>>,
           TError,
           Awaited<ReturnType<typeof getApiMarcasId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMarcasId<TData = Awaited<ReturnType<typeof getApiMarcasId>>, TError = ErrorType<GetApiMarcasId400 | GetApiMarcasId401 | GetApiMarcasId403 | GetApiMarcasId404 | GetApiMarcasId409 | GetApiMarcasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>> & Pick<
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): DefinedUseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMarcasId<
+  TData = Awaited<ReturnType<typeof getApiMarcasId>>,
+  TError = ErrorType<
+    | GetApiMarcasId400
+    | GetApiMarcasId401
+    | GetApiMarcasId403
+    | GetApiMarcasId404
+    | GetApiMarcasId409
+    | GetApiMarcasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>
+    > &
+      Pick<
         UndefinedInitialDataOptions<
           Awaited<ReturnType<typeof getApiMarcasId>>,
           TError,
           Awaited<ReturnType<typeof getApiMarcasId>>
-        > , 'initialData'
-      >, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
-export function useGetApiMarcasId<TData = Awaited<ReturnType<typeof getApiMarcasId>>, TError = ErrorType<GetApiMarcasId400 | GetApiMarcasId401 | GetApiMarcasId403 | GetApiMarcasId404 | GetApiMarcasId409 | GetApiMarcasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient
-  ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> }
+        >,
+        "initialData"
+      >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
+export function useGetApiMarcasId<
+  TData = Awaited<ReturnType<typeof getApiMarcasId>>,
+  TError = ErrorType<
+    | GetApiMarcasId400
+    | GetApiMarcasId401
+    | GetApiMarcasId403
+    | GetApiMarcasId404
+    | GetApiMarcasId409
+    | GetApiMarcasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+};
 /**
  * @summary Obtener marca por ID
  */
 
-export function useGetApiMarcasId<TData = Awaited<ReturnType<typeof getApiMarcasId>>, TError = ErrorType<GetApiMarcasId400 | GetApiMarcasId401 | GetApiMarcasId403 | GetApiMarcasId404 | GetApiMarcasId409 | GetApiMarcasId500>>(
- id: number, options?: { query?:Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient 
- ):  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+export function useGetApiMarcasId<
+  TData = Awaited<ReturnType<typeof getApiMarcasId>>,
+  TError = ErrorType<
+    | GetApiMarcasId400
+    | GetApiMarcasId401
+    | GetApiMarcasId403
+    | GetApiMarcasId404
+    | GetApiMarcasId409
+    | GetApiMarcasId500
+  >,
+>(
+  id: number,
+  options?: {
+    query?: Partial<
+      UseQueryOptions<Awaited<ReturnType<typeof getApiMarcasId>>, TError, TData>
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseQueryResult<TData, TError> & {
+  queryKey: DataTag<QueryKey, TData, TError>;
+} {
+  const queryOptions = getGetApiMarcasIdQueryOptions(id, options);
 
-  const queryOptions = getGetApiMarcasIdQueryOptions(id,options)
+  const query = useQuery(queryOptions, queryClient) as UseQueryResult<
+    TData,
+    TError
+  > & { queryKey: DataTag<QueryKey, TData, TError> };
 
-  const query = useQuery(queryOptions, queryClient) as  UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-
-  query.queryKey = queryOptions.queryKey ;
+  query.queryKey = queryOptions.queryKey;
 
   return query;
 }
-
-
-
 
 /**
  * @summary Actualizar marca (Solo Admin)
  */
 export const putApiMarcasId = (
-    id: number,
-    updateMarca: UpdateMarca,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<Marca>(
-      {url: `/api/marcas/${id}`, method: 'PUT',
-      headers: {'Content-Type': 'application/json', },
-      data: updateMarca
+  id: number,
+  updateMarca: UpdateMarca,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<Marca>(
+    {
+      url: `/api/marcas/${id}`,
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      data: updateMarca,
     },
-      options);
-    }
-  
+    options,
+  );
+};
 
+export const getPutApiMarcasIdMutationOptions = <
+  TError = ErrorType<
+    | PutApiMarcasId400
+    | PutApiMarcasId401
+    | PutApiMarcasId403
+    | PutApiMarcasId404
+    | PutApiMarcasId409
+    | PutApiMarcasId500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof putApiMarcasId>>,
+    TError,
+    { id: number; data: UpdateMarca },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof putApiMarcasId>>,
+  TError,
+  { id: number; data: UpdateMarca },
+  TContext
+> => {
+  const mutationKey = ["putApiMarcasId"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPutApiMarcasIdMutationOptions = <TError = ErrorType<PutApiMarcasId400 | PutApiMarcasId401 | PutApiMarcasId403 | PutApiMarcasId404 | PutApiMarcasId409 | PutApiMarcasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiMarcasId>>, TError,{id: number;data: UpdateMarca}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof putApiMarcasId>>, TError,{id: number;data: UpdateMarca}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof putApiMarcasId>>,
+    { id: number; data: UpdateMarca }
+  > = (props) => {
+    const { id, data } = props ?? {};
 
-const mutationKey = ['putApiMarcasId'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return putApiMarcasId(id, data, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PutApiMarcasIdMutationResult = NonNullable<
+  Awaited<ReturnType<typeof putApiMarcasId>>
+>;
+export type PutApiMarcasIdMutationBody = UpdateMarca;
+export type PutApiMarcasIdMutationError = ErrorType<
+  | PutApiMarcasId400
+  | PutApiMarcasId401
+  | PutApiMarcasId403
+  | PutApiMarcasId404
+  | PutApiMarcasId409
+  | PutApiMarcasId500
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof putApiMarcasId>>, {id: number;data: UpdateMarca}> = (props) => {
-          const {id,data} = props ?? {};
-
-          return  putApiMarcasId(id,data,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PutApiMarcasIdMutationResult = NonNullable<Awaited<ReturnType<typeof putApiMarcasId>>>
-    export type PutApiMarcasIdMutationBody = UpdateMarca
-    export type PutApiMarcasIdMutationError = ErrorType<PutApiMarcasId400 | PutApiMarcasId401 | PutApiMarcasId403 | PutApiMarcasId404 | PutApiMarcasId409 | PutApiMarcasId500>
-
-    /**
+/**
  * @summary Actualizar marca (Solo Admin)
  */
-export const usePutApiMarcasId = <TError = ErrorType<PutApiMarcasId400 | PutApiMarcasId401 | PutApiMarcasId403 | PutApiMarcasId404 | PutApiMarcasId409 | PutApiMarcasId500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof putApiMarcasId>>, TError,{id: number;data: UpdateMarca}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof putApiMarcasId>>,
-        TError,
-        {id: number;data: UpdateMarca},
-        TContext
-      > => {
+export const usePutApiMarcasId = <
+  TError = ErrorType<
+    | PutApiMarcasId400
+    | PutApiMarcasId401
+    | PutApiMarcasId403
+    | PutApiMarcasId404
+    | PutApiMarcasId409
+    | PutApiMarcasId500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof putApiMarcasId>>,
+      TError,
+      { id: number; data: UpdateMarca },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof putApiMarcasId>>,
+  TError,
+  { id: number; data: UpdateMarca },
+  TContext
+> => {
+  const mutationOptions = getPutApiMarcasIdMutationOptions(options);
 
-      const mutationOptions = getPutApiMarcasIdMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    /**
+  return useMutation(mutationOptions, queryClient);
+};
+/**
  * @summary Desactivar marca (Solo Admin)
  */
 export const patchApiMarcasIdDesactivar = (
-    id: number,
- options?: SecondParameter<typeof customInstance>,) => {
-      
-      
-      return customInstance<SuccessResponse>(
-      {url: `/api/marcas/${id}/desactivar`, method: 'PATCH'
-    },
-      options);
-    }
-  
+  id: number,
+  options?: SecondParameter<typeof customInstance>,
+) => {
+  return customInstance<SuccessResponse>(
+    { url: `/api/marcas/${id}/desactivar`, method: "PATCH" },
+    options,
+  );
+};
 
+export const getPatchApiMarcasIdDesactivarMutationOptions = <
+  TError = ErrorType<
+    | PatchApiMarcasIdDesactivar400
+    | PatchApiMarcasIdDesactivar401
+    | PatchApiMarcasIdDesactivar403
+    | PatchApiMarcasIdDesactivar404
+    | PatchApiMarcasIdDesactivar409
+    | PatchApiMarcasIdDesactivar500
+  >,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["patchApiMarcasIdDesactivar"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
 
-export const getPatchApiMarcasIdDesactivarMutationOptions = <TError = ErrorType<PatchApiMarcasIdDesactivar400 | PatchApiMarcasIdDesactivar401 | PatchApiMarcasIdDesactivar403 | PatchApiMarcasIdDesactivar404 | PatchApiMarcasIdDesactivar409 | PatchApiMarcasIdDesactivar500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
-): UseMutationOptions<Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>, TError,{id: number}, TContext> => {
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
 
-const mutationKey = ['patchApiMarcasIdDesactivar'];
-const {mutation: mutationOptions, request: requestOptions} = options ?
-      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-      options
-      : {...options, mutation: {...options.mutation, mutationKey}}
-      : {mutation: { mutationKey, }, request: undefined};
+    return patchApiMarcasIdDesactivar(id, requestOptions);
+  };
 
-      
+  return { mutationFn, ...mutationOptions };
+};
 
+export type PatchApiMarcasIdDesactivarMutationResult = NonNullable<
+  Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>
+>;
 
-      const mutationFn: MutationFunction<Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>, {id: number}> = (props) => {
-          const {id} = props ?? {};
+export type PatchApiMarcasIdDesactivarMutationError = ErrorType<
+  | PatchApiMarcasIdDesactivar400
+  | PatchApiMarcasIdDesactivar401
+  | PatchApiMarcasIdDesactivar403
+  | PatchApiMarcasIdDesactivar404
+  | PatchApiMarcasIdDesactivar409
+  | PatchApiMarcasIdDesactivar500
+>;
 
-          return  patchApiMarcasIdDesactivar(id,requestOptions)
-        }
-
-        
-
-
-  return  { mutationFn, ...mutationOptions }}
-
-    export type PatchApiMarcasIdDesactivarMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>>
-    
-    export type PatchApiMarcasIdDesactivarMutationError = ErrorType<PatchApiMarcasIdDesactivar400 | PatchApiMarcasIdDesactivar401 | PatchApiMarcasIdDesactivar403 | PatchApiMarcasIdDesactivar404 | PatchApiMarcasIdDesactivar409 | PatchApiMarcasIdDesactivar500>
-
-    /**
+/**
  * @summary Desactivar marca (Solo Admin)
  */
-export const usePatchApiMarcasIdDesactivar = <TError = ErrorType<PatchApiMarcasIdDesactivar400 | PatchApiMarcasIdDesactivar401 | PatchApiMarcasIdDesactivar403 | PatchApiMarcasIdDesactivar404 | PatchApiMarcasIdDesactivar409 | PatchApiMarcasIdDesactivar500>,
-    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customInstance>}
- , queryClient?: QueryClient): UseMutationResult<
-        Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>,
-        TError,
-        {id: number},
-        TContext
-      > => {
+export const usePatchApiMarcasIdDesactivar = <
+  TError = ErrorType<
+    | PatchApiMarcasIdDesactivar400
+    | PatchApiMarcasIdDesactivar401
+    | PatchApiMarcasIdDesactivar403
+    | PatchApiMarcasIdDesactivar404
+    | PatchApiMarcasIdDesactivar409
+    | PatchApiMarcasIdDesactivar500
+  >,
+  TContext = unknown,
+>(
+  options?: {
+    mutation?: UseMutationOptions<
+      Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>,
+      TError,
+      { id: number },
+      TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+  },
+  queryClient?: QueryClient,
+): UseMutationResult<
+  Awaited<ReturnType<typeof patchApiMarcasIdDesactivar>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationOptions = getPatchApiMarcasIdDesactivarMutationOptions(options);
 
-      const mutationOptions = getPatchApiMarcasIdDesactivarMutationOptions(options);
-
-      return useMutation(mutationOptions, queryClient);
-    }
-    
+  return useMutation(mutationOptions, queryClient);
+};

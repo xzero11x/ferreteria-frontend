@@ -20,11 +20,11 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Estado de la sesión
  */
-export type SesionCajaEstado = typeof SesionCajaEstado[keyof typeof SesionCajaEstado];
-
+export type SesionCajaEstado =
+  (typeof SesionCajaEstado)[keyof typeof SesionCajaEstado];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const SesionCajaEstado = {
-  ABIERTA: 'ABIERTA',
-  CERRADA: 'CERRADA',
+  ABIERTA: "ABIERTA",
+  CERRADA: "CERRADA",
 } as const;

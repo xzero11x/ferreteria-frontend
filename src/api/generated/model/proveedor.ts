@@ -16,11 +16,11 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { ProveedorTipoDocumento } from './proveedorTipoDocumento';
-import type { ProveedorRucIdentidad } from './proveedorRucIdentidad';
-import type { ProveedorEmail } from './proveedorEmail';
-import type { ProveedorTelefono } from './proveedorTelefono';
-import type { ProveedorDireccion } from './proveedorDireccion';
+import type { ProveedorTipoDocumento } from "./proveedorTipoDocumento";
+import type { ProveedorRucIdentidad } from "./proveedorRucIdentidad";
+import type { ProveedorEmail } from "./proveedorEmail";
+import type { ProveedorTelefono } from "./proveedorTelefono";
+import type { ProveedorDireccion } from "./proveedorDireccion";
 
 export interface Proveedor {
   /** ID único del proveedor */

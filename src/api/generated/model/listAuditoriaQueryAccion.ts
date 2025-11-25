@@ -20,16 +20,16 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
 /**
  * Filtrar por tipo de acción
  */
-export type ListAuditoriaQueryAccion = typeof ListAuditoriaQueryAccion[keyof typeof ListAuditoriaQueryAccion];
-
+export type ListAuditoriaQueryAccion =
+  (typeof ListAuditoriaQueryAccion)[keyof typeof ListAuditoriaQueryAccion];
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
 export const ListAuditoriaQueryAccion = {
-  CREAR: 'CREAR',
-  ACTUALIZAR: 'ACTUALIZAR',
-  ELIMINAR: 'ELIMINAR',
-  ANULAR: 'ANULAR',
-  AJUSTAR: 'AJUSTAR',
-  LOGIN: 'LOGIN',
-  LOGOUT: 'LOGOUT',
+  CREAR: "CREAR",
+  ACTUALIZAR: "ACTUALIZAR",
+  ELIMINAR: "ELIMINAR",
+  ANULAR: "ANULAR",
+  AJUSTAR: "AJUSTAR",
+  LOGIN: "LOGIN",
+  LOGOUT: "LOGOUT",
 } as const;

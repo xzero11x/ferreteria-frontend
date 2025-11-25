@@ -16,15 +16,15 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { GetApiSeriesTipoComprobante } from './getApiSeriesTipoComprobante';
+import type { GetApiSeriesTipoComprobante } from "./getApiSeriesTipoComprobante";
 
 export type GetApiSeriesParams = {
-/**
- * Filtrar por tipo de comprobante
- */
-tipo_comprobante?: GetApiSeriesTipoComprobante;
-/**
- * Incluir series inactivas (true/false)
- */
-includeInactive?: string;
+  /**
+   * Filtrar por tipo de comprobante
+   */
+  tipo_comprobante?: GetApiSeriesTipoComprobante;
+  /**
+   * Incluir series inactivas (true/false)
+   */
+  includeInactive?: string;
 };

@@ -16,9 +16,10 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { SesionActivaResponseSesionAllOfAnyOf } from './sesionActivaResponseSesionAllOfAnyOf';
+import type { SesionActivaResponseSesionAllOfAnyOf } from "./sesionActivaResponseSesionAllOfAnyOf";
 
 /**
  * Sesión activa del usuario (null si no hay ninguna)
  */
-export type SesionActivaResponseSesionAllOf = SesionActivaResponseSesionAllOfAnyOf | null;
+export type SesionActivaResponseSesionAllOf =
+  SesionActivaResponseSesionAllOfAnyOf | null;

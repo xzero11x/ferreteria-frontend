@@ -18,16 +18,16 @@ Todos los endpoints (excepto /auth) requieren token JWT en header Authorization:
  */
 
 export type GetApiSesionesCajaHistorialParams = {
-/**
- * Filtrar por ID de caja
- */
-caja_id?: number;
-/**
- * Filtrar por ID de usuario
- */
-usuario_id?: number;
-/**
- * Límite de resultados
- */
-limit?: number;
+  /**
+   * Filtrar por ID de caja
+   */
+  caja_id?: number;
+  /**
+   * Filtrar por ID de usuario
+   */
+  usuario_id?: number;
+  /**
+   * Límite de resultados
+   */
+  limit?: number;
 };

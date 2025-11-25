@@ -16,21 +16,21 @@
 Todos los endpoints (excepto /auth) requieren token JWT en header Authorization: Bearer <token>
  * OpenAPI spec version: 2.0.0
  */
-import type { OrdenCompraTotal } from './ordenCompraTotal';
-import type { OrdenCompraSubtotalBase } from './ordenCompraSubtotalBase';
-import type { OrdenCompraImpuestoIgv } from './ordenCompraImpuestoIgv';
-import type { OrdenCompraTipoComprobante } from './ordenCompraTipoComprobante';
-import type { OrdenCompraSerie } from './ordenCompraSerie';
-import type { OrdenCompraNumero } from './ordenCompraNumero';
-import type { OrdenCompraFechaEmision } from './ordenCompraFechaEmision';
-import type { OrdenCompraProveedorRuc } from './ordenCompraProveedorRuc';
-import type { OrdenCompraEstado } from './ordenCompraEstado';
-import type { OrdenCompraFechaRecepcion } from './ordenCompraFechaRecepcion';
-import type { OrdenCompraProveedorId } from './ordenCompraProveedorId';
-import type { OrdenCompraProveedor } from './ordenCompraProveedor';
-import type { OrdenCompraUsuarioId } from './ordenCompraUsuarioId';
-import type { OrdenCompraUsuario } from './ordenCompraUsuario';
-import type { OrdenCompraDetallesItem } from './ordenCompraDetallesItem';
+import type { OrdenCompraTotal } from "./ordenCompraTotal";
+import type { OrdenCompraSubtotalBase } from "./ordenCompraSubtotalBase";
+import type { OrdenCompraImpuestoIgv } from "./ordenCompraImpuestoIgv";
+import type { OrdenCompraTipoComprobante } from "./ordenCompraTipoComprobante";
+import type { OrdenCompraSerie } from "./ordenCompraSerie";
+import type { OrdenCompraNumero } from "./ordenCompraNumero";
+import type { OrdenCompraFechaEmision } from "./ordenCompraFechaEmision";
+import type { OrdenCompraProveedorRuc } from "./ordenCompraProveedorRuc";
+import type { OrdenCompraEstado } from "./ordenCompraEstado";
+import type { OrdenCompraFechaRecepcion } from "./ordenCompraFechaRecepcion";
+import type { OrdenCompraProveedorId } from "./ordenCompraProveedorId";
+import type { OrdenCompraProveedor } from "./ordenCompraProveedor";
+import type { OrdenCompraUsuarioId } from "./ordenCompraUsuarioId";
+import type { OrdenCompraUsuario } from "./ordenCompraUsuario";
+import type { OrdenCompraDetallesItem } from "./ordenCompraDetallesItem";
 
 export interface OrdenCompra {
   /** ID único de la orden de compra */
