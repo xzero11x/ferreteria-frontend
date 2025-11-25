@@ -1,465 +1,170 @@
-import { useState,useEffect, useMemo } from "react";
-import { useGetApiPedidos } from "@/api/generated/pedidos/pedidos";
-import { usePostApiPedidosIdConfirmar,usePostApiPedidosIdCancelar ,useGetApiPedidosId} from "@/api/generated/pedidos/pedidos";
-import type { ColumnDef } from "@tanstack/react-table";
-import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
-import {
-  flexRender,
-  getCoreRowModel,
-  getPaginationRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { toast } from "sonner";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import { MoreHorizontal, Eye, Pencil, Trash2, ArrowUpDown } from "lucide-react";
-import { format } from "date-fns";
-
-import type { Pedido } from "@/api/generated/model/pedido";
-import DetallePedidoSheet from "./DetallePedidoSheet";
-
-// -----------------------------------------------------------
-// Colores de estados
-// -----------------------------------------------------------
-const estadoColorMap: Record<string, string> = {
-  pendiente: "bg-yellow-100 text-yellow-600",
-  confirmado: "bg-blue-100 text-blue-800",
-  entregado: "bg-green-100 text-green-800",
-  cancelado: "bg-red-100 text-red-800",
-};
-
-
-
-
-export default function PedidosPage() {
-  const [pedidoIdSeleccionado, setPedidoIdSeleccionado] = useState<number | null>(null);
-  const { data, isLoading } = useGetApiPedidos();
-
-  const [estadoFiltro, setEstadoFiltro] = useState("all");
-
-  const [fechaFiltro, setFechaFiltro] = useState("");
-  const [pedidosLocal, setPedidosLocal] = useState<Pedido[]>([]);
-
-
-  const [openDetalle, setOpenDetalle] = useState(false);
-const [pedidoId, setPedidoId] = useState<number | null>(null);
-
-
-  const pedidos = data?.data ?? [];
-
-
-  const { data: pedidoCompleto, isLoading: cargandoPedido } = useGetApiPedidosId(
-  pedidoIdSeleccionado!,
+// Datos estáticos simulados
+const pedidosMock = [
   {
-    query: { enabled: pedidoIdSeleccionado !== null },
-  }
-);
-  // -----------------------------------------------------------
-  // Filtros (estilo ClientesPageV2)
-  // -----------------------------------------------------------
-useEffect(() => {
-  if (data?.data) {
-    setPedidosLocal(data.data);
-  }
-}, [data]);
-
-  
-  const pedidosFiltrados = useMemo(() => {
-    return pedidosLocal.filter((p) => {
-      const byEstado = estadoFiltro === "all" ? true : p.estado === estadoFiltro;
-
-
-      let byFecha = true;
-      if (fechaFiltro) {
-        const fecha = new Date(p.created_at);
-        const sel = new Date(fechaFiltro);
-        byFecha =
-          fecha.getFullYear() === sel.getFullYear() &&
-          fecha.getMonth() === sel.getMonth() &&
-          fecha.getDate() === sel.getDate();
-      }
-
-      return byEstado && byFecha;
-    });
-  }, [pedidosLocal, estadoFiltro, fechaFiltro]);
-
-  // -----------------------------------------------------------
-  // Acciones
-  // -----------------------------------------------------------
-  const confirmarMutation = usePostApiPedidosIdConfirmar(
-  {
-    mutation: {
-      onSuccess: () => {
-        toast.success("Pedido confirmado correctamente");
-      },
-      onError: () => {
-        toast.error("No se pudo confirmar el pedido");
-      },
-    },
-  }
-);
-const confirmarPedido = (id: number) => {
-  confirmarMutation.mutate(
-    {
-      id,
-      data: {}, // tu API espera ConfirmarPedido
-    },
-    {
-      onSuccess: () => {
-        toast.success("Pedido confirmado correctamente");
-
-        // Actualiza localmente el estado del pedido
-        setPedidosLocal((prev) =>
-          prev.map((pedido) =>
-            pedido.id === id ? { ...pedido, estado: "confirmado" } : pedido
-          )
-        );
-      },
-      onError: () => {
-        toast.error("No se pudo confirmar el pedido");
-      },
-    }
-  );
-};
-
-  const cancelarMutation = usePostApiPedidosIdCancelar({
-  mutation: {
-    onSuccess: () => {
-      toast.success("Pedido cancelado correctamente");
-    },
-    onError: () => {
-      toast.error("No se pudo cancelar el pedido");
-    },
-  },
-});
-
-
-  const cancelarPedido = (id: number) => {
-  cancelarMutation.mutate(
-    { id, data: { razon: "cancelacion manual" }}, // ajusta `data` si tu API requiere algo
-    {
-      onSuccess: () => {
-        toast.success("Pedido cancelado correctamente");
-
-        // Actualiza localmente el estado del pedido
-        setPedidosLocal((prev) =>
-          prev.map((pedido) =>
-            pedido.id === id ? { ...pedido, estado: "cancelado" } : pedido
-          )
-        );
-      },
-      onError: () => {
-        toast.error("No se pudo cancelar el pedido");
-      },
-    }
-  );
-};
-
-
-  const navigate = useNavigate();
-
-useEffect(() => {
-  if (pedidoCompleto) {
-    navigate("/dashboard/ventas", {
-      state: {
-        pedido: pedidoCompleto, // enviamos pedido completo
-      },
-    });
-  }
-}, [pedidoCompleto]);
-
-
-  // -----------------------------------------------------------
-  // Columnas estilo profesional
-  // -----------------------------------------------------------
-  const columns = useMemo<ColumnDef<Pedido>[]>(
-    () => [
-      {
-        accessorKey: "id",
-        header: ({ column }) => (
-          <Button
-            variant="ghost"
-            className="text-left"
-            onClick={() =>
-              column.toggleSorting(column.getIsSorted() === "asc")
-            }
-          >
-            ID
-            <ArrowUpDown className="ml-2 h-4 w-4" />
-          </Button>
-        ),
-        cell: ({ row }) => (
-          <span className="font-medium">{row.original.id}</span>
-        ),
-      },
-
-      {
-        accessorKey: "cliente_id",
-        header: "Cliente",
-        cell: ({ row }) => (
-          <span className="text-sm">
-            {row.original.cliente?.nombre || `#${row.original.cliente_id}`}
-          </span>
-        ),
-      },
-
-      {
-        accessorKey: "created_at",
-        header: "Fecha",
-        cell: ({ row }) => (
-          <span>{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>
-        ),
-      },
-
-      {
-        accessorKey: "estado",
-        header: "Estado",
-        cell: ({ row }) => {
-          const estado = row.original.estado.toLowerCase();
-          return (
-            <Badge className={estadoColorMap[estado] || ""}>
-              {estado.charAt(0).toUpperCase() + estado.slice(1)}
-            </Badge>
-          );
-        },
-      },
-
-      {
-        accessorKey: "tipo_recojo",
-        header: "Recojo",
-        cell: ({ row }) => (
-          <span className="capitalize">{row.original.tipo_recojo}</span>
-        ),
-      },
-
-      // ---------------------------------------------------------
-      // ACCIONES
-      // ---------------------------------------------------------
-      {
-        id: "actions",
-        header: "Acciones",
-        cell: ({ row }) => {
-          const p = row.original;
-
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 p-0"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent align="end" className="w-48">
-                {/* Ver detalles */}
-                <DropdownMenuItem
-                  onClick={() => {
-                    setPedidoId(p.id)
-                    setOpenDetalle(true)
-                  }}
-                >
-                  <Eye className="h-4 w-4 mr-2" />
-                  Ver detalles
-                </DropdownMenuItem>
-
-
-                <DropdownMenuSeparator />
-
-                {/* Confirmar */}
-                {p.estado === "pendiente" && (
-                  <DropdownMenuItem
-                    disabled={confirmarMutation.isPending}
-                    onClick={() => confirmarPedido(p.id)}
-                  >
-                    <Pencil className="h-4 w-4 mr-2" />
-                    {confirmarMutation.isPending ? "Confirmando..." : "Confirmar pedido"}
-                  </DropdownMenuItem>
-                )}
-
-
-                {/* Cancelar */}
-                {p.estado === "pendiente" && (
-                  <DropdownMenuItem
-                    onClick={() => cancelarPedido(p.id)}
-                    disabled={cancelarMutation.isPending}
-                    className="text-red-600"
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    {cancelarMutation.isPending ? "Cancelando..." : "Cancelar pedido"}
-                  </DropdownMenuItem>
-
-                )}
-
-                {/* Generar POS */}
-                {p.estado === "confirmado" && (
-                  <>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => setPedidoIdSeleccionado(p.id)}
-
-                      className="font-semibold"
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Generar Venta POS
-                    </DropdownMenuItem>
-                  </>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-      },
+    id: 1,
+    cliente: { nombre: "Juan Pérez" },
+    estado: "pendiente",
+    alerta_por_vencer: false,
+    tipo_recojo: "tienda",
+    detalles: [
+      { id: 101, producto_nombre: "Taladro Bosch", cantidad: 2, stock_actual: 10 },
+      { id: 102, producto_nombre: "Martillo Stanley", cantidad: 1, stock_actual: 25 },
     ],
-    []
-  );
+  },
+  {
+    id: 2,
+    cliente: { nombre: "María López" },
+    estado: "confirmado",
+    alerta_por_vencer: true,
+    tipo_recojo: "envio",
+    detalles: [
+      { id: 103, producto_nombre: "Sierra Circular Truper", cantidad: 1, stock_actual: 5 },
+    ],
+  },
+  {
+    id: 3,
+    cliente: null,
+    estado: "cancelado",
+    alerta_por_vencer: false,
+    tipo_recojo: "tienda",
+    detalles: [
+      { id: 104, producto_nombre: "Lijadora 3M", cantidad: 3, stock_actual: 8 },
+    ],
+  },
+];
 
-  // -----------------------------------------------------------
-  // Tabla Tanstack
-  // -----------------------------------------------------------
-  const table = useReactTable({
-    data: pedidosFiltrados,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-  });
+const PedidosPage = () => {
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [estadoFiltro, setEstadoFiltro] = useState<string>("pendiente");
 
-  if (isLoading) return <p>Cargando pedidos...</p>;
+  // Filtrar pedidos según estado seleccionado
+  const pedidosFiltrados = pedidosMock.filter(p => p.estado === estadoFiltro);
+
+  // Obtener detalle del pedido seleccionado (de los datos estáticos)
+  const detallePedido = pedidosMock.find(p => p.id === selectedId) ?? null;
+
+  // Simular acciones con toast y actualización local (no backend)
+  const confirmarPedido = () => {
+    toast.success("Pedido confirmado (simulado)");
+    // Aquí podrías actualizar el estado local si quieres simular cambio real
+  };
+
+  const cancelarPedido = () => {
+    toast.success("Pedido cancelado (simulado)");
+  };
+
+  const generarVentaPedido = () => {
+    toast.success("Venta generada (simulado)");
+  };
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold">Gestión de Pedidos</h1>
+      <h1 className="text-2xl font-bold">Gestión de Pedidos (Datos estáticos)</h1>
 
-      {/* ------------------------------------------------------- */}
-      {/* Filtros */}
-      {/* ------------------------------------------------------- */}
-      <div className="flex gap-4 items-center">
-        <Select value={estadoFiltro} onValueChange={setEstadoFiltro}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Estado" />
-          </SelectTrigger>
-          <SelectContent>
-           <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="pendiente">Pendiente</SelectItem>
-            <SelectItem value="confirmado">Confirmado</SelectItem>
-            <SelectItem value="cancelado">Cancelado</SelectItem>
-            <SelectItem value="entregado">Entregado</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Input
-          type="date"
-          className="w-[180px]"
-          value={fechaFiltro}
-          onChange={(e) => setFechaFiltro(e.target.value)}
-        />
+      {/* FILTROS */}
+      <div className="flex gap-4">
+        {["pendiente", "confirmado", "cancelado"].map((estado) => (
+          <Button
+            key={estado}
+            variant={estadoFiltro === estado ? "default" : "outline"}
+            onClick={() => setEstadoFiltro(estado)}
+          >
+            {estado.charAt(0).toUpperCase() + estado.slice(1)}
+          </Button>
+        ))}
       </div>
 
-      {/* ------------------------------------------------------- */}
-      {/* Tabla */}
-      {/* ------------------------------------------------------- */}
-      <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((g) => (
-              <TableRow key={g.id}>
-                {g.headers.map((h) => (
-                  <TableHead key={h.id}>
-                    {h.isPlaceholder
-                      ? null
-                      : flexRender(h.column.columnDef.header, h.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
+      {/* LISTA DE PEDIDOS */}
+      <Card>
+        <CardContent className="p-4">
+          {pedidosFiltrados.length === 0 && <p>No hay pedidos en estado "{estadoFiltro}"</p>}
+
+          <div className="space-y-3">
+            {pedidosFiltrados.map((p) => (
+              <div
+                key={p.id}
+                className="flex justify-between items-center border rounded p-3 cursor-pointer hover:bg-gray-50"
+                onClick={() => setSelectedId(p.id)}
+              >
+                <div>
+                  <p className="font-semibold">Pedido #{p.id}</p>
+                  <p className="text-sm text-gray-600">
+                    Cliente: {p.cliente?.nombre ?? "—"}
+                  </p>
+                </div>
+
+                {p.alerta_por_vencer && (
+                  <span className="text-red-600 font-bold">⚠ Por vencer</span>
+                )}
+
+                <span className="capitalize">{p.estado}</span>
+              </div>
             ))}
-          </TableHeader>
+          </div>
+        </CardContent>
+      </Card>
 
-          <TableBody>
-            {table.getRowModel().rows.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id}>
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="text-center h-24"
-                >
-                  No se encontraron pedidos.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+      {/* MODAL DETALLE */}
+      <Dialog open={!!selectedId} onOpenChange={() => setSelectedId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Detalle del Pedido</DialogTitle>
+          </DialogHeader>
 
-      {/* ------------------------------------------------------- */}
-      {/* Paginación */}
-      {/* ------------------------------------------------------- */}
-      <div className="flex justify-between items-center pt-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Anterior
-        </Button>
+          {!detallePedido && <p>No se encontró el pedido.</p>}
 
-        <span className="text-sm">
-          Página {table.getState().pagination.pageIndex + 1} de{" "}
-          {table.getPageCount()}
-        </span>
+          {detallePedido && (
+            <div className="space-y-4">
+              <p>
+                <strong>Estado:</strong> {detallePedido.estado}
+              </p>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Siguiente
-        </Button>
-      </div>
-      <DetallePedidoSheet
-        open={openDetalle}
-        onOpenChange={setOpenDetalle}
-        pedidoId={pedidoId}
-      />
+              <p>
+                <strong>Cliente:</strong> {detallePedido.cliente?.nombre ?? "—"}
+              </p>
+
+              <h3 className="font-bold mt-4">Productos</h3>
+              <div className="space-y-2">
+                {detallePedido.detalles.map((d) => (
+                  <div
+                    key={d.id}
+                    className="border p-2 rounded flex justify-between"
+                  >
+                    <span>
+                      {d.producto_nombre} (x{d.cantidad})
+                    </span>
+                    <span>Stock: {d.stock_actual}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* BOTONES */}
+              {detallePedido.estado === "pendiente" && (
+                <div className="flex gap-2">
+                  <Button onClick={confirmarPedido}>Confirmar</Button>
+                  <Button variant="destructive" onClick={cancelarPedido}>
+                    Cancelar
+                  </Button>
+                </div>
+              )}
+
+              {detallePedido.estado === "confirmado" && (
+                <Button className="w-full" onClick={generarVentaPedido}>
+                  Generar Venta
+                </Button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
-}
+};
+
+export default PedidosPage;
