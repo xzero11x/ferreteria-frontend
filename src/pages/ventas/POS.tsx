@@ -27,6 +27,7 @@ import ClientSelector from "@/components/ClientSelector";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCaja } from "@/context/CajaContext";
 import { AperturaCajaModal } from "@/components/AperturaCajaModal";
+import { useNavigate } from "react-router-dom";
 import { MovimientosCajaModal } from "@/components/MovimientosCajaModal";
 import { CierreCajaModal } from "@/components/CierreCajaModal";
 
@@ -60,10 +61,9 @@ function formatCurrency(value: string | number) {
 
 
 export default function POSPageV2() {
-
+  const navigate = useNavigate();
   const location = useLocation();
   const pedidoData = location.state?.pedido;
-
 
   const queryClient = useQueryClient();
   const { currentSessionId, isLoading: loadingSession } = useCaja();
@@ -113,7 +113,7 @@ export default function POSPageV2() {
 
 
   // 2. Convertir detalles → carrito
-  const carritoConvertido = pedidoData.detalles.map((d) => {
+  const carritoConvertido = pedidoData.detalles.map((d: any) => {
     const producto = productos.find((p) => p.id === d.producto_id);
     console.log("🔍 Buscando producto ID:", d.producto_id, "Encontrado:", producto);
     return {
@@ -124,7 +124,7 @@ export default function POSPageV2() {
       precioVenta: producto?.precio_venta ?? d.precio ?? 0,
       stockDisponible: producto?.stock ?? 0,
       unidadMedida: producto?.unidad_medida_id ?? null,
-      permiteDecimales: producto?.unidad_medida?.permite_decimales ?? false,
+      permiteDecimales: false,
     };
   });
 
@@ -293,16 +293,19 @@ export default function POSPageV2() {
 
   return (
     <>
-      <AperturaCajaModal open={!currentSessionId} />
+      {!currentSessionId && (
+        <AperturaCajaModal 
+          open={true} 
+          onClose={() => navigate('/dashboard')} 
+        />
+      )}
       
       {currentSessionId && (
         <>
           <MovimientosCajaModal open={showMovimientos} onOpenChange={setShowMovimientos} />
           <CierreCajaModal open={showCierre} onOpenChange={setShowCierre} />
-        </>
-      )}
-    
-      <div className="h-[calc(100vh-var(--header-height)-3rem)] px-3 md:px-4 lg:px-6 py-3 md:py-4">
+        
+          <div className="h-[calc(100vh-var(--header-height)-3rem)] px-3 md:px-4 lg:px-6 py-3 md:py-4">
         {/* Layout principal con 2 columnas */}
         <div className="flex gap-3 md:gap-4 lg:gap-6 h-full">
           {/* Columna Izquierda: Título + Búsqueda + Productos */}
@@ -667,6 +670,8 @@ export default function POSPageV2() {
         </div>
       </div>
     </div>
+        </>
+      )}
     </>
   );
 }

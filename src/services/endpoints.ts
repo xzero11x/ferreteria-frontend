@@ -56,5 +56,8 @@ export const endpoints = {
   reportes: {
     kardex: (productoId: number | string) => `/api/reportes/kardex/${productoId}`,
   },
+  dashboard: {
+    ventasEstadisticas: () => "/api/dashboard/ventas/estadisticas",
+  },
   healthcheck: () => "/api/healthcheck",
 };

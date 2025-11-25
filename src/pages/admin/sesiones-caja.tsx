@@ -5,6 +5,7 @@
 "use client"
 
 import * as React from "react"
+import { useCallback } from "react"
 import type { ColumnDef, SortingState, ColumnFiltersState, VisibilityState } from "@tanstack/react-table"
 import { flexRender, getCoreRowModel, getFilteredRowModel, getPaginationRowModel, getSortedRowModel, useReactTable } from "@tanstack/react-table"
 import { ArrowUpDown, ChevronDown, MoreHorizontal, Loader2, AlertTriangle, ShieldAlert, Calendar, User, Wallet } from 'lucide-react'
@@ -76,9 +77,21 @@ export default function AdminSesionesPage() {
   const [rowSelection, setRowSelection] = React.useState({})
 
   const { data: sesionesResponse, isLoading, refetch } = useGetApiSesionesCajaHistorial()
-  const sesiones = (sesionesResponse?.data ?? []).filter((s: { estado: string }) => s.estado === 'ABIERTA')
+  const sesiones = React.useMemo(() => 
+    (sesionesResponse?.data ?? []).filter((s: { estado: string }) => s.estado === 'ABIERTA'),
+    [sesionesResponse]
+  )
 
-  const { mutateAsync: cerrarAdministrativamente } = usePostApiSesionesCajaIdCierreAdministrativo()
+  const { mutateAsync: cerrarAdministrativamente } = usePostApiSesionesCajaIdCierreAdministrativo({
+    mutation: {
+      onError: (error: any) => {
+        console.error('Error en mutation:', error)
+        toast.error('Error al cerrar sesión', {
+          description: error?.response?.data?.message || error?.message || 'Error desconocido',
+        })
+      }
+    }
+  })
 
   const form = useForm<CierreAdministrativoFormValues>({
     resolver: zodResolver(cierreAdministrativoSchema),
@@ -88,39 +101,58 @@ export default function AdminSesionesPage() {
     },
   })
 
-  const handleOpenCierreModal = (sesion: SesionCaja) => {
+  const handleOpenCierreModal = useCallback((sesion: SesionCaja) => {
     setSelectedSesion(sesion)
     form.reset({
       monto_final: '',
       motivo: `Cierre administrativo: Usuario ${sesion.usuario?.nombre ?? 'desconocido'} no cerró su turno`,
     })
     setShowCierreModal(true)
-  }
+  }, [form])
 
   const handleCierreAdministrativo = async (data: CierreAdministrativoFormValues) => {
-    if (!selectedSesion) return
+    if (!selectedSesion) {
+      toast.error('No hay sesión seleccionada')
+      return
+    }
+
+    const sesionId = selectedSesion.id
+    const usuarioNombre = selectedSesion.usuario?.nombre ?? 'usuario'
 
     try {
+      // Cerrar modal INMEDIATAMENTE para evitar re-renders
+      setShowCierreModal(false)
+      
       await cerrarAdministrativamente({
-        id: selectedSesion.id,
+        id: sesionId,
         data: {
           monto_final: Number(data.monto_final),
           motivo: data.motivo,
         },
       })
 
-      toast.success('Sesión cerrada administrativamente', {
-        description: `Sesión de ${selectedSesion.usuario?.nombre ?? 'usuario'} cerrada con éxito`,
-      })
-
-      setShowCierreModal(false)
+      // Limpiar estado
       setSelectedSesion(null)
       form.reset()
-      refetch()
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido'
+
+      toast.success('Sesión cerrada administrativamente', {
+        description: `Sesión de ${usuarioNombre} cerrada con éxito`,
+      })
+      
+      // Refetch después de un delay para evitar race conditions
+      setTimeout(() => {
+        refetch()
+      }, 500)
+    } catch (error: any) {
+      console.error('Error en cierre administrativo:', error)
+      
+      // Re-abrir modal en caso de error
+      setShowCierreModal(true)
+      
+      const errorMessage = error?.response?.data?.message || error?.message || 'Error desconocido al cerrar sesión'
       toast.error('Error al cerrar sesión', {
         description: errorMessage,
+        duration: 5000,
       })
     }
   }
@@ -244,7 +276,7 @@ export default function AdminSesionesPage() {
         },
       },
     ],
-    []
+    [handleOpenCierreModal]
   )
 
   const table = useReactTable({
@@ -456,11 +488,15 @@ export default function AdminSesionesPage() {
                         </span>
                         <Input
                           {...field}
-                          type="number"
-                          step="0.01"
-                          min="0"
+                          type="text"
+                          inputMode="decimal"
                           placeholder="0.00"
                           className="pl-10 text-lg font-semibold"
+                          onChange={(e) => {
+                            // Limpiar input: solo números y punto decimal
+                            const value = e.target.value.replace(/[^0-9.]/g, '');
+                            field.onChange(value);
+                          }}
                         />
                       </div>
                     </FormControl>

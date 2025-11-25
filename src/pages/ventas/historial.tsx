@@ -179,11 +179,11 @@ export default function HistorialVentasPageV2() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[140px]">Comprobante</TableHead>
+                  <TableHead className="w-[140px] pl-4">Comprobante</TableHead>
                   <TableHead className="w-[160px]">Fecha y Hora</TableHead>
                   <TableHead>Cliente</TableHead>
                   <TableHead className="w-[110px]">Método Pago</TableHead>
-                  <TableHead className="text-right w-[120px]">Total</TableHead>
+                  <TableHead className="text-right w-[120px] pr-4">Total</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -214,7 +214,7 @@ export default function HistorialVentasPageV2() {
                             : "cursor-pointer hover:bg-muted/50 border-l-4 border-l-transparent"
                         }
                       >
-                        <TableCell className={isSelected ? "font-mono font-bold" : "font-mono font-semibold"}>
+                        <TableCell className={isSelected ? "font-mono font-bold pl-4" : "font-mono font-semibold pl-4"}>
                           {comprobante}
                         </TableCell>
                         <TableCell className="text-sm tabular-nums">
@@ -233,7 +233,7 @@ export default function HistorialVentasPageV2() {
                             {prettyPago(v.metodo_pago || undefined)}
                           </Badge>
                         </TableCell>
-                        <TableCell className={isSelected ? "text-right font-bold tabular-nums" : "text-right font-semibold tabular-nums"}>
+                        <TableCell className={isSelected ? "text-right font-bold tabular-nums pr-4" : "text-right font-semibold tabular-nums pr-4"}>
                           {formatCurrency(v.total)}
                         </TableCell>
                       </TableRow>

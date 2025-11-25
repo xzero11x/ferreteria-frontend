@@ -17,7 +17,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui_official/dialog';
 import {
   Form,
   FormControl,
@@ -25,11 +25,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from '@/components/ui_official/form';
+import { Input } from '@/components/ui_official/input';
+import { Textarea } from '@/components/ui_official/textarea';
+import { Button } from '@/components/ui_official/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui_official/tabs';
 import { usePostApiMovimientosCaja } from '@/api/generated/movimientos-de-caja/movimientos-de-caja';
 import { useCaja } from '@/context/CajaContext';
 import { toast } from 'sonner';

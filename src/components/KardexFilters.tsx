@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui_official/select";
 import { Input } from "@/components/ui_official/input";
-import { FileDown, Package, X } from "lucide-react";
+import { X } from "lucide-react";
 import { ProductSearchSelector } from "@/components/ProductSearchSelector";
 import type { Producto } from "@/api/generated/model";
 
@@ -22,8 +22,6 @@ interface KardexFiltersProps {
   onFechaInicioChange: (fecha: string) => void;
   fechaFin: string;
   onFechaFinChange: (fecha: string) => void;
-  onExport: () => void;
-  isExporting: boolean;
 }
 
 export const KardexFilters: React.FC<KardexFiltersProps> = ({
@@ -35,8 +33,6 @@ export const KardexFilters: React.FC<KardexFiltersProps> = ({
   onFechaInicioChange,
   fechaFin,
   onFechaFinChange,
-  onExport,
-  isExporting,
 }) => {
   const [selectedProducto, setSelectedProducto] = useState<Producto | null>(null);
 

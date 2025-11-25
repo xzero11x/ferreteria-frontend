@@ -9,7 +9,7 @@
  * "El cierre es definitivo independientemente de si cuadra o no"
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -19,7 +19,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/ui_official/dialog';
 import {
   Form,
   FormControl,
@@ -28,10 +28,10 @@ import {
   FormLabel,
   FormMessage,
   FormDescription,
-} from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+} from '@/components/ui_official/form';
+import { Input } from '@/components/ui_official/input';
+import { Button } from '@/components/ui_official/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui_official/alert';
 import { usePostApiSesionesCajaIdCierre } from '@/api/generated/sesiones-de-caja/sesiones-de-caja';
 import { useCaja } from '@/context/CajaContext';
 import { toast } from 'sonner';
@@ -78,17 +78,18 @@ export function CierreCajaModal({ open, onOpenChange }: CierreCajaModalProps) {
 
     const inicial = Number(currentSession.monto_inicial ?? 0);
     const ventas = Number(currentSession.total_ventas ?? 0);
+    const ingresos = Number(currentSession.total_ingresos ?? 0);
     const egresos = Number(currentSession.total_egresos ?? 0);
-    const esperado = inicial + ventas - egresos;
+    const esperado = inicial + ventas + ingresos - egresos;
     const diferencia = Number(montoFinal) - esperado;
 
     setPreviewDiferencia(diferencia);
   };
 
   // Actualizar preview cuando cambia el monto
-  useState(() => {
+  useEffect(() => {
     calcularDiferencia();
-  });
+  }, [montoFinal, currentSession]);
 
   const onSubmit = async (data: CierreFormValues) => {
     if (!currentSessionId) {
@@ -118,11 +119,43 @@ export function CierreCajaModal({ open, onOpenChange }: CierreCajaModalProps) {
 
       form.reset();
       onOpenChange(false);
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
-      toast.error('Error al cerrar caja', {
-        description: errorMessage,
-      });
+    } catch (error: any) {
+      // Extraer mensaje de error del response de Axios
+      const errorMessage = 
+        error?.response?.data?.error || 
+        error?.message || 
+        'Error desconocido al cerrar caja';
+      
+      // ESCENARIO 1: Sesión no encontrada o ya cerrada
+      if (errorMessage.includes('no encontrada') || errorMessage.includes('ya está cerrada')) {
+        toast.error('❌ Sesión No Disponible', {
+          description: 'La sesión ya fue cerrada o no existe. Recarga la página.',
+          duration: 6000,
+        });
+      }
+      // ESCENARIO 2: Usuario intenta cerrar sesión de otro usuario
+      else if (errorMessage.includes('no tienes permiso') || errorMessage.includes('no es tu sesión')) {
+        toast.error('🔒 Sin Permiso', {
+          description: 'Solo puedes cerrar tu propia sesión. Contacta a un supervisor para cierre administrativo.',
+          duration: 8000,
+        });
+      }
+      // ESCENARIO 3: Datos inválidos (monto negativo)
+      else if (errorMessage.includes('inválido') || errorMessage.includes('requerido') || errorMessage.includes('negativo')) {
+        toast.error('⚠️ Datos Inválidos', {
+          description: errorMessage,
+          duration: 5000,
+        });
+      }
+      // ESCENARIO 4: Error genérico
+      else {
+        toast.error('❌ Error al Cerrar Caja', {
+          description: errorMessage,
+          duration: 6000,
+        });
+      }
+      
+      console.error('[CierreCajaModal] Error completo:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -131,8 +164,9 @@ export function CierreCajaModal({ open, onOpenChange }: CierreCajaModalProps) {
   // Calcular montos para mostrar resumen
   const montoInicial = Number(currentSession?.monto_inicial ?? 0);
   const totalVentas = Number(currentSession?.total_ventas ?? 0);
+  const totalIngresos = Number(currentSession?.total_ingresos ?? 0);
   const totalEgresos = Number(currentSession?.total_egresos ?? 0);
-  const montoEsperado = montoInicial + totalVentas - totalEgresos;
+  const montoEsperado = montoInicial + totalVentas + totalIngresos - totalEgresos;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -154,6 +188,12 @@ export function CierreCajaModal({ open, onOpenChange }: CierreCajaModalProps) {
             <span className="text-muted-foreground">Total Ventas:</span>
             <span className="font-medium text-green-600">+ S/ {totalVentas.toFixed(2)}</span>
           </div>
+          {totalIngresos > 0 && (
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Ingresos:</span>
+              <span className="font-medium text-green-600">+ S/ {totalIngresos.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-muted-foreground">Total Egresos:</span>
             <span className="font-medium text-red-600">- S/ {totalEgresos.toFixed(2)}</span>
@@ -179,14 +219,15 @@ export function CierreCajaModal({ open, onOpenChange }: CierreCajaModalProps) {
                       </span>
                       <Input
                         {...field}
-                        type="number"
-                        step="0.01"
-                        min="0"
+                        type="text"
+                        inputMode="decimal"
                         placeholder="0.00"
                         className="pl-10 text-lg font-semibold"
                         disabled={isSubmitting}
                         onChange={(e) => {
-                          field.onChange(e);
+                          // Limpiar input: solo números y punto decimal
+                          const value = e.target.value.replace(/[^0-9.]/g, '');
+                          field.onChange(value);
                           calcularDiferencia();
                         }}
                       />
