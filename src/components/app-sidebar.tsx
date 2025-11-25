@@ -54,6 +54,7 @@ const data = {
     { label: "Ventas (POS)" },
     { title: "Punto de Venta", url: "/dashboard/ventas", icon: ShoppingCartIcon },
     { title: "Historial de Ventas", url: "/dashboard/ventas/historial", icon: FileTextIcon },
+    { title: "Dashboard de Ventas", url: "/dashboard/ventas/dashboard", icon: BarChartIcon },
     { title: "Clientes", url: "/dashboard/clientes", icon: UsersIcon },
     { title: "Pedidos", url: "/dashboard/pedidos", icon: ClipboardCheckIcon },
 

@@ -146,8 +146,6 @@ const KardexPage = () => {
         onFechaInicioChange={setFechaInicio}
         fechaFin={fechaFin}
         onFechaFinChange={setFechaFin}
-        onExport={handleExportExcel}
-        isExporting={isExporting}
       />
 
       {/* Contenido Principal */}

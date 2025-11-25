@@ -72,10 +72,7 @@ export default function PedidosPage() {
 const [pedidoId, setPedidoId] = useState<number | null>(null);
 
 
-  const pedidos = data?.data ?? [];
-
-
-  const { data: pedidoCompleto, isLoading: cargandoPedido } = useGetApiPedidosId(
+  const { data: pedidoCompleto } = useGetApiPedidosId(
   pedidoIdSeleccionado!,
   {
     query: { enabled: pedidoIdSeleccionado !== null },

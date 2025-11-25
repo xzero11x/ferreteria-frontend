@@ -2,8 +2,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "../pages/Home";
+import DemoShell from "@/pages/DemoShell";
 import DashboardShell from "@/app/dashboard/DashboardShell";
-import Dashboard from "@/pages/Dashboard";
 import ProtectedRoute from "./ProtectedRoute";
 
 // Auth
@@ -18,12 +18,12 @@ import CategoriasPage from "@/pages/categorias/index";
 import MarcasPage from "@/pages/marcas/index";
 import UnidadesMedidaPage from "@/pages/unidades-medida/index";
 import InventarioPage from "@/pages/inventario/index";
-import InventarioPageV2 from "@/pages/inventario/v2";
 import ComprasPage from "@/pages/compras/index";
 import NuevaOrdenCompraFiscalPage from "@/pages/compras/nueva-fiscal";
 import KardexPage from "@/pages/kardex/index";
 import POSPage from "@/pages/ventas/POS";
 import HistorialVentasPage from "@/pages/ventas/historial";
+import DashboardVentasV6Page from "@/pages/dashboard/ventas/dashboard-v6";
 import ReportesPage from "@/pages/reportes/index";
 import ReportesFiscalesPage from "@/pages/reportes/fiscales";
 import ConfiguracionPage from "@/pages/configuracion/index";
@@ -47,6 +47,9 @@ const AppRouter: React.FC = () => {
             <Routes>
                 {/* Rutas públicas */}
                 <Route path="/" element={<Home />} />
+                
+                {/* Ruta de demostración */}
+                <Route path="/demo" element={<DemoShell />} />
 
                 {/* Rutas Tienda Pública */}
                 <Route path="/tienda/catalogo" element={<Catalogo />} />
@@ -61,7 +64,7 @@ const AppRouter: React.FC = () => {
 
                     <Route path="" element={<DashboardShell />}>
                         {/* Dashboard principal */}
-                        <Route index element={<Dashboard />} />
+                        <Route index element={<DashboardVentasV6Page />} />
                         {/* Páginas principales de cada módulo */}
                         <Route path="productos" element={<ProductosPage />} />
 
@@ -72,7 +75,6 @@ const AppRouter: React.FC = () => {
                         <Route path="unidades-medida" element={<UnidadesMedidaPage />} />
 
                         <Route path="inventario" element={<InventarioPage />} />
-                        <Route path="inventario/v2" element={<InventarioPageV2 />} />
 
                         <Route path="usuarios" element={<UsuariosPage />} />
 
@@ -89,6 +91,7 @@ const AppRouter: React.FC = () => {
 
                         <Route path="ventas" element={<POSPage />} />
                         <Route path="ventas/historial" element={<HistorialVentasPage />} />
+                        <Route path="ventas/dashboard-v6" element={<DashboardVentasV6Page />} />
 
                         <Route path="reportes" element={<ReportesPage />} />
                         <Route path="reportes/fiscales" element={<ReportesFiscalesPage />} />

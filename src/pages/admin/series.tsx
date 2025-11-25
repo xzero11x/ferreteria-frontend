@@ -112,10 +112,10 @@ export default function AdminSeriesPage() {
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
 
-  const { data: seriesResponse, isLoading } = useGetApiSeries({}, {})
+  const { data: seriesResponse, isLoading, isError: seriesError } = useGetApiSeries({}, {})
   const series = seriesResponse?.data ?? []
 
-  const { data: cajasResponse } = useGetApiCajas({ includeInactive: 'false' }, {})
+  const { data: cajasResponse, isError: cajasError } = useGetApiCajas({ includeInactive: 'false' }, {})
   const cajas = cajasResponse?.data ?? []
 
   const { mutateAsync: createSerie } = usePostApiSeries()
@@ -336,6 +336,23 @@ export default function AdminSeriesPage() {
     )
   }
 
+  if (seriesError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <div className="text-destructive mb-4">
+          <FileText className="h-16 w-16 opacity-50" />
+        </div>
+        <p className="text-lg font-semibold mb-2">Error al cargar series</p>
+        <p className="text-sm text-muted-foreground mb-4">
+          No se pudieron cargar las series. Por favor, intenta de nuevo.
+        </p>
+        <Button onClick={() => window.location.reload()}>
+          Recargar página
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-5 px-4 lg:px-6 pt-1 md:pt-2">
       {/* Header */}
@@ -529,8 +546,8 @@ export default function AdminSeriesPage() {
                   <FormItem>
                     <FormLabel>Asignar a Caja (Opcional)</FormLabel>
                     <Select
-                      onValueChange={(val) => field.onChange(val ? Number(val) : null)}
-                      value={field.value?.toString() || ""}
+                      onValueChange={(val) => field.onChange(val === "0" ? null : Number(val))}
+                      value={field.value?.toString() || "0"}
                     >
                       <FormControl>
                         <SelectTrigger>
@@ -538,7 +555,7 @@ export default function AdminSeriesPage() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Sin asignar</SelectItem>
+                        <SelectItem value="0">Sin asignar</SelectItem>
                         {cajas.map((caja) => (
                           <SelectItem key={caja.id} value={caja.id.toString()}>
                             {caja.nombre}
@@ -619,8 +636,8 @@ export default function AdminSeriesPage() {
                     <FormItem>
                       <FormLabel>Asignar a Caja</FormLabel>
                       <Select
-                        onValueChange={(val) => field.onChange(val ? Number(val) : null)}
-                        value={field.value?.toString() || ""}
+                        onValueChange={(val) => field.onChange(val === "0" ? null : Number(val))}
+                        value={field.value?.toString() || "0"}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -628,7 +645,7 @@ export default function AdminSeriesPage() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">Sin asignar</SelectItem>
+                          <SelectItem value="0">Sin asignar</SelectItem>
                           {cajas.map((caja) => (
                             <SelectItem key={caja.id} value={caja.id.toString()}>
                               {caja.nombre}

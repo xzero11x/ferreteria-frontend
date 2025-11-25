@@ -8,6 +8,7 @@ import { AuthProvider } from './auth/AuthContext'
 import { CajaProvider } from './context/CajaContext'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { Toaster } from '@/components/ui_official/sonner'
 
 // Configuración del cliente de React Query
 const queryClient = new QueryClient({
@@ -80,6 +81,7 @@ createRoot(document.getElementById('root')!).render(
       <AuthProvider>
         <CajaProvider>
           <AppRouter />
+          <Toaster />
         </CajaProvider>
       </AuthProvider>
       <ReactQueryDevtools initialIsOpen={false} />
