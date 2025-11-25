@@ -1,7 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Loader2, ShoppingCart, DollarSign, Plus, Minus, Search, X, Package } from "lucide-react";
 
+import { useLocation } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui_official/card";
 import { Button } from "@/components/ui_official/button";
 import { Input } from "@/components/ui_official/input";
@@ -57,7 +58,13 @@ function formatCurrency(value: string | number) {
   }).format(num);
 }
 
+
 export default function POSPageV2() {
+
+  const location = useLocation();
+  const pedidoData = location.state?.pedido;
+
+
   const queryClient = useQueryClient();
   const { currentSessionId, isLoading: loadingSession } = useCaja();
   
@@ -94,6 +101,38 @@ export default function POSPageV2() {
   const productos = productosResponse?.data ?? [];
   const categorias = categoriasResponse?.data ?? [];
   const loading = loadingProductos || loadingCategorias;
+
+  useEffect(() => {
+  if (!pedidoData || productos.length === 0) return;
+
+  // 1. Preseleccionar cliente
+
+  console.log("🔍 Preseleccionando cliente ID:", pedidoData.cliente.id);
+  setSelectedClienteId(pedidoData.cliente.id);
+
+
+
+  // 2. Convertir detalles → carrito
+  const carritoConvertido = pedidoData.detalles.map((d) => {
+    const producto = productos.find((p) => p.id === d.producto_id);
+    console.log("🔍 Buscando producto ID:", d.producto_id, "Encontrado:", producto);
+    return {
+      productoId: d.producto_id,
+      nombre: producto?.nombre ?? "Producto",
+      sku: producto?.sku ?? null,
+      cantidad: d.cantidad,
+      precioVenta: producto?.precio_venta ?? d.precio ?? 0,
+      stockDisponible: producto?.stock ?? 0,
+      unidadMedida: producto?.unidad_medida_id ?? null,
+      permiteDecimales: producto?.unidad_medida?.permite_decimales ?? false,
+    };
+  });
+
+  // 3. Cargar carrito completo
+  setCarrito(carritoConvertido);
+
+}, [pedidoData, productos]);
+
 
   const filteredProductos = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -212,6 +251,7 @@ export default function POSPageV2() {
         cliente_id: selectedClienteId,
         tipo_comprobante: tipoComprobante,
         metodo_pago: paymentMethod,
+        pedido_origen_id: pedidoData?.id,
         detalles: carrito.map((i) => ({
           producto_id: i.productoId,
           cantidad: i.cantidad,
@@ -246,6 +286,10 @@ export default function POSPageV2() {
       </div>
     );
   }
+
+
+
+
 
   return (
     <>
@@ -404,6 +448,7 @@ export default function POSPageV2() {
               <div className="p-3 md:p-4 border-b">
                 <ClientSelector
                   value={selectedClienteId}
+                  clienteSeleccionado={clienteData ?? null}
                   onChange={(clienteId) => {
                     setSelectedClienteId(clienteId);
                     setTipoComprobante('BOLETA');
