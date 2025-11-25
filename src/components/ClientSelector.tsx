@@ -24,24 +24,15 @@ import CreateClientDialog from "@/components/CreateClientDialog";
 type ClientSelectorProps = {
   value: number | null;
   onChange: (clienteId: number | null, cliente: Cliente | null) => void;
-   clienteSeleccionado?: Cliente | null; 
   disabled?: boolean;
 };
 
-export default function ClientSelector({ value, onChange,clienteSeleccionado, disabled = false }: ClientSelectorProps) {
-
-   const [open, setOpen] = useState(false);
+export default function ClientSelector({ value, onChange, disabled = false }: ClientSelectorProps) {
+  const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
 
-  useEffect(() => {
-    if (clienteSeleccionado) {
-      setSelectedCliente(clienteSeleccionado);
-    } else if (value === null) {
-      setSelectedCliente(null);
-    }
-  }, [clienteSeleccionado, value]);
   // Debounce para búsqueda remota
   useEffect(() => {
     const timer = setTimeout(() => {
